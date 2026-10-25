@@ -70,6 +70,11 @@ jobs:
   assets:
     name: Brand assets are reproducible
     runs-on: ubuntu-latest
+    # The drift report is posted as a comment so a reviewer can see what changed
+    # without digging through the job log.
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
