@@ -69,7 +69,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="relative mt-24 overflow-hidden bg-ink text-paper-2">
+    <footer data-print="hide" className="relative mt-24 overflow-hidden bg-ink text-paper-2">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.16]"

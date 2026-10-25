@@ -26,7 +26,7 @@ export function ConsentBar() {
   if (!visible || consent !== 'unknown') return null
 
   return (
-    <div className="fixed inset-x-3 bottom-3 z-[105] sm:inset-x-auto sm:right-5 sm:bottom-5 sm:max-w-[26rem]">
+    <div data-print="hide" className="fixed inset-x-3 bottom-3 z-[105] sm:inset-x-auto sm:right-5 sm:bottom-5 sm:max-w-[26rem]">
       <div className="animate-[rise-in_0.5s_var(--ease-out-quint)] rounded-sm border border-ink/15 bg-paper-2/97 p-4 shadow-[0_30px_80px_-40px_rgba(11,26,19,0.8)] backdrop-blur">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-green/10 text-green">

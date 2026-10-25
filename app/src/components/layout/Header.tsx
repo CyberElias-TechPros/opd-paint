@@ -97,6 +97,7 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
       </div>
 
       <header
+        data-print="hide"
         className={cn(
           'sticky top-0 z-50 transition-[background-color,box-shadow,border-color] duration-500',
           scrolled

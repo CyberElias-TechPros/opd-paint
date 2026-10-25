@@ -303,6 +303,68 @@
   animation-play-state: paused;
 }
 
+/* ------------------------------------------------------------------ print */
+/*
+ * A paint site gets printed: dealers pin the colour list to the counter, a
+ * client takes a page to site. Two things matter — the swatches must survive
+ * (browsers drop background colours by default), and the chrome must not.
+ * Printing a colour page is also how a visitor gets a free sample card, so
+ * nothing here hides content, only navigation and overlays.
+ */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  *,
+  *::before,
+  *::after {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  html,
+  body {
+    background: #fff;
+  }
+
+  [data-print='hide'],
+  [role='dialog'],
+  .no-scrollbar {
+    display: none !important;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* Reveals animate from invisible; on paper they must simply be there. */
+  .reveal,
+  .reveal-scale {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+
+  section,
+  article,
+  li,
+  table {
+    break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  .grain::after {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

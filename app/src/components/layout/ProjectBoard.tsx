@@ -84,7 +84,7 @@ export function ProjectBoard() {
   if (!boardOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[95]">
+    <div data-print="hide" className="fixed inset-0 z-[95]">
       <button
         type="button"
         aria-label="Close project board"
