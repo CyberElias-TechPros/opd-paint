@@ -45,5 +45,13 @@ npm run check      # lint, all of the above, production build
 ```
 
 Continuous integration runs exactly these steps, plus a job that regenerates the
-brand assets, documents, fan deck, social card and sitemap and fails if the
-committed files differ — so a design change cannot land without its artefacts.
+brand assets, documents, fan deck, social card and sitemap, then runs
+`tools/check-assets.py` — so a design change cannot land without its artefacts.
+
+That check compares PDFs, PNGs and XML byte for byte (their generators pin every
+timestamp, so they are reproducible), and compares the social card's decoded
+pixels instead, because a JPEG is the output of libjpeg-turbo and two builds of
+it can encode identical artwork to different bytes. The tolerance is calibrated
+in the script: it absorbs a re-encode and still fails on a recoloured chip. The
+toolchain is pinned in the workflow, and a failure posts the file list on the
+pull request rather than leaving a red cross with no explanation.

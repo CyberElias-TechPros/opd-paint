@@ -105,29 +105,18 @@ jobs:
 
       - name: The committed artefacts match the scripts
         run: |
-          PATHS="app/public/sitemap.xml app/public/documents app/public/brand app/public/media/og-card.jpg"
-          if git diff --exit-code -- $PATHS; then
-            echo "committed artefacts match their scripts"
+          if python3 tools/check-assets.py > /tmp/assets.txt 2>&1; then
+            cat /tmp/assets.txt
             exit 0
           fi
-          # A red cross with no explanation wastes everyone's afternoon, so write
-          # down exactly what drifted and what to run.
+          cat /tmp/assets.txt
+          # A red cross with no explanation wastes everyone's afternoon, so keep
+          # the report where a reviewer can read it.
           {
             echo "### Brand assets are out of date"
             echo
             echo '```'
-            git status --short -- $PATHS
-            git diff --stat -- $PATHS
-            echo '```'
-            echo
-            echo "Regenerate and commit:"
-            echo
-            echo '```bash'
-            echo "node tools/build-sitemap.mjs"
-            echo "python3 tools/build-documents.py"
-            echo "python3 tools/build-icons.py"
-            echo "python3 tools/build-og.py"
-            echo "python3 tools/build-fandeck.py"
+            cat /tmp/assets.txt
             echo '```'
           } | tee "$GITHUB_STEP_SUMMARY" > /tmp/asset-report.md
           exit 1
