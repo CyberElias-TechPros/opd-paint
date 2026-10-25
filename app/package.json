@@ -9,10 +9,12 @@
     "preview": "vite preview --host 0.0.0.0",
     "lint": "oxlint src",
     "typecheck": "tsc -b",
-    "test": "node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/calculator.test.ts && node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/data.test.ts",
+    "test": "npm run test:unit && npm run test:server",
     "check": "npm run lint && npm test && npm run test:routes && npm run build",
     "server": "node ../server/index.mjs",
-    "test:routes": "vite build --ssr scripts/smoke.tsx --outDir .smoke --emptyOutDir --logLevel error && node .smoke/smoke.js"
+    "test:routes": "vite build --ssr scripts/smoke.tsx --outDir .smoke --emptyOutDir --logLevel error && node .smoke/smoke.js",
+    "test:unit": "node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/calculator.test.ts && node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/mask.test.ts && node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/data.test.ts",
+    "test:server": "node --test ../server/index.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",
@@ -35,5 +37,5 @@
     "typescript": "~6.0.3",
     "vite": "^8.3.4"
   },
-  "description": "OPUDA'S PAINT — colour, product and project platform"
+  "description": "OPUDA'S PAINT \u2014 colour, product and project platform"
 }

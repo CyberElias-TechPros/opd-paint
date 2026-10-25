@@ -18,3 +18,19 @@ createRoot(document.getElementById('root') as HTMLElement).render(
     <App />
   </StrictMode>,
 )
+
+/**
+ * Offline support, production only.
+ *
+ * The worker caches the shell and the photography and leaves every API request
+ * alone. It is registered after load so it can never compete with the first
+ * paint of the hero, and a browser without service workers simply skips it.
+ */
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // A failed registration must never surface to a visitor: the site works
+      // exactly as before, it just will not work offline.
+    })
+  })
+}

@@ -31,8 +31,9 @@ answers in local storage and tells them to call instead of losing the enquiry.
 
 ```bash
 npm run lint       # oxlint, zero errors expected
-npm test           # 14 calculator tests + 32 content-integrity tests
+npm test           # 14 calculator + 9 colour-mask + 32 content-integrity tests
 npm run typecheck  # tsc -b
+npm run test:server # 19 tests against the real HTTP server
 npm run check      # all of the above plus a production build
 ```
 

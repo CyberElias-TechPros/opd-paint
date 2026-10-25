@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Check, LayoutGrid, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Check, FileDown, LayoutGrid, Search, SlidersHorizontal, X } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
 import { COLORS, COLLECTIONS, COLOR_LRV, FAMILIES, FAMILY_SWATCH, ROOMS, type Family, type Room, type Undertone } from '../data/colors'
 import { PALETTES } from '../data/palettes'
@@ -151,7 +151,15 @@ export default function Colours() {
                 Save the ones you like — they will be waiting when you come back.
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href="/documents/opudas-fan-deck.pdf"
+                download
+                className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
+              >
+                <FileDown className="size-3.5" aria-hidden /> Fan deck
+                <span className="text-[0.66rem] font-normal opacity-60">PDF</span>
+              </a>
               <button
                 type="button"
                 onClick={() => setView('grid')}

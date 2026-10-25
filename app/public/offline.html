@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en-NG">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Offline — OPUDA'S PAINT</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f7f2e9;
+        --paper-2: #fcf9f3;
+        --ink: #0b1a13;
+        --moss: #4d6157;
+        --green: #0c6b45;
+        --crimson: #c1121f;
+        --line: #d8cdbb;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 2rem 1.25rem;
+        background: var(--paper);
+        color: var(--ink);
+        font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      main { width: 100%; max-width: 34rem; }
+      .kicker {
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--moss);
+      }
+      h1 {
+        margin: 0.6rem 0 0;
+        font: 400 clamp(2rem, 6vw, 3rem)/1.02 Georgia, "Times New Roman", serif;
+        letter-spacing: -0.01em;
+      }
+      p { margin: 1rem 0 0; color: #26362e; }
+      .chips { display: flex; margin: 1.75rem 0 0; }
+      .chips span { height: 34px; flex: 1; }
+      .chips span:first-child { border-radius: 3px 0 0 3px; }
+      .chips span:last-child { border-radius: 0 3px 3px 0; }
+      .actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.75rem; }
+      a.button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.15rem;
+        border-radius: 3px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+      a.solid { background: var(--green); color: var(--paper-2); }
+      a.outline { border: 1px solid var(--line); color: var(--ink); }
+      footer {
+        margin-top: 2.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--line);
+        font-size: 0.78rem;
+        color: var(--moss);
+      }
+      svg { display: block; width: 46px; height: auto; margin-bottom: 1.25rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg viewBox="0 0 48 40" role="img" aria-label="OPUDA'S PAINT">
+        <path d="M24 3.4 46.5 20.2v1.4H1.5v-1.4L24 3.4Z" fill="#0C6B45" />
+        <path d="M10 19.6h28v16.6c0 .6-.5 1.1-1.1 1.1H11.1c-.6 0-1.1-.5-1.1-1.1V19.6Z" fill="#0C6B45" />
+        <path d="M20.5 25.5h7v11.8h-7V25.5Z" fill="#FCF9F3" />
+        <path d="M21.6 26.6h4.8v10.7h-4.8V26.6Z" fill="#C1121F" />
+        <circle cx="41.4" cy="8.4" r="2.3" fill="#EE6C22" />
+      </svg>
+
+      <p class="kicker">You are offline</p>
+      <h1>The paint is still on the wall.</h1>
+      <p>
+        This page needs a connection. Anything you were looking at before is cached on your device — try going back,
+        or reconnect and reload.
+      </p>
+      <p>
+        If you were sending an enquiry, it has not been lost: reopen the form after reconnecting and your answers
+        will still be there.
+      </p>
+
+      <div class="chips" aria-hidden="true">
+        <span style="background: #f8f5ee"></span>
+        <span style="background: #ebe4d5"></span>
+        <span style="background: #c9b394"></span>
+        <span style="background: #6e7f63"></span>
+        <span style="background: #2f7fa8"></span>
+        <span style="background: #b4654a"></span>
+      </div>
+
+      <div class="actions">
+        <a class="button solid" href="/">Try again</a>
+        <a class="button outline" href="tel:+2349026424350">Call 0902 642 4350</a>
+      </div>
+
+      <footer>
+        OPUDA'S PAINT · manufactured in Lagos · Monday to Saturday, 8am–6pm.
+      </footer>
+    </main>
+  </body>
+</html>
