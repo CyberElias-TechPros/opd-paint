@@ -37,6 +37,20 @@ npm run test:server # 19 tests against the real HTTP server
 npm run check      # all of the above plus a production build
 ```
 
+## What the build produces
+
+`npm run build` runs the sitemap generator, `tsc -b`, `vite build`, then a head
+prerender. The last step renders all 92 routes to a string *only to read their
+metadata*, and writes `dist/<path>/index.html` — one file per URL — with that
+page's title, description, canonical link, Open Graph tags and JSON-LD already
+in the head. Bodies are not prerendered: the app mounts with `createRoot`, which
+would discard server markup anyway, and hydrating against local-storage state is
+not worth the mismatch risk. The head is what link previews and non-JS crawlers
+read, and 92 small files cost less than the app itself.
+
+If you add a route, add it to `app/scripts/prerender.tsx`; the script prints a
+route count and warns when a page renders no metadata.
+
 `npm test` runs the TypeScript sources directly under Node's type stripping via
 `scripts/register.mjs`, which teaches Node the two bundler behaviours the app
 relies on (extensionless imports, JSON without an import attribute).

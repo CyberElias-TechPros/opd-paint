@@ -201,7 +201,13 @@ async function serveStatic(req, res, pathname) {
   let info = null
   try {
     info = await stat(filePath)
-    if (info.isDirectory()) throw new Error('directory')
+    if (info.isDirectory()) {
+      // A prerendered route lives at dist/<path>/index.html. Serve that rather
+      // than the shell, so the URL keeps its own title and description.
+      const index = join(filePath, 'index.html')
+      info = await stat(index)
+      filePath = index
+    }
   } catch {
     if (looksLikeFile) return false
     // Client-side route: hand back the shell so a deep link works on reload.

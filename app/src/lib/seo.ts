@@ -6,7 +6,7 @@ import { useEffect } from 'react'
  * unmount so pages cannot inherit stale schema.
  */
 
-type Meta = {
+export type Meta = {
   title: string
   description: string
   /** absolute path, e.g. /colours/lilac-room */
@@ -16,8 +16,34 @@ type Meta = {
   noIndex?: boolean
 }
 
-const SITE = 'OPUDA’S PAINT'
-const ORIGIN = 'https://opudapaint.com'
+export const SITE = 'OPUDA’S PAINT'
+export const ORIGIN = 'https://opudapaint.com'
+
+/**
+ * The full <title>, without the trailing brand when the route already includes
+ * it. The brand is spelled with a curly apostrophe but routes often type a
+ * straight one, so the comparison strips apostrophes rather than betting on
+ * which the author used.
+ */
+const hasBrand = (title: string) => title.replace(/['’]/g, '').includes(SITE.replace(/['’]/g, ''))
+
+export const pageTitle = (title: string) => (hasBrand(title) ? title : `${title} — ${SITE}`)
+
+/**
+ * Server-side hand-off.
+ *
+ * Effects do not run when a route is rendered to a string, so a prerender would
+ * otherwise lose every page's title and description. During such a render the
+ * hook simply records what it was given; the prerender script reads it back and
+ * writes the tags into the HTML it emits. In the browser nothing is recorded.
+ */
+let rendered: Meta | null = null
+
+export function takeRenderedMeta(): Meta | null {
+  const meta = rendered
+  rendered = null
+  return meta
+}
 
 function upsertMeta(selector: string, attrs: Record<string, string>) {
   let el = document.head.querySelector<HTMLMetaElement>(selector)
@@ -34,8 +60,10 @@ export function usePageMeta({ title, description, path, image, jsonLd, noIndex }
   // re-adding the JSON-LD script each time the page re-renders.
   const jsonLdKey = jsonLd ? JSON.stringify(jsonLd) : ''
 
+  if (typeof document === 'undefined') rendered = { title, description, path, image, jsonLd, noIndex }
+
   useEffect(() => {
-    const fullTitle = title.includes(SITE) ? title : `${title} — ${SITE}`
+    const fullTitle = pageTitle(title)
     document.title = fullTitle
     const desc = description.slice(0, 300)
 

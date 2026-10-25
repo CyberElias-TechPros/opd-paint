@@ -56,6 +56,9 @@ jobs:
           test -f dist/documents/opudas-fan-deck.pdf
           test -f dist/sw.js
           test -f dist/offline.html
+          test -f dist/colours/index.html
+          grep -q '<title>Colour library' dist/colours/index.html
+          grep -q 'canonical" href="https://opudapaint.com/colours/palm-shadow"' dist/colours/palm-shadow/index.html
           echo "build artefacts present"
 
       - uses: actions/upload-artifact@v4

@@ -6,7 +6,7 @@ service uses only the Node standard library, so it starts in milliseconds and ha
 nothing to patch.
 
 ```
-app/dist/            the built site (HTML, hashed assets, photos, PDFs)
+app/dist/            the built site; one index.html per route carries that page's head
 server/index.mjs     the enquiry service: /api/*, /admin, and optionally the site
 server/data/*.jsonl  the enquiry log — the only thing that must be backed up
 ```
