@@ -108,7 +108,7 @@ export default function ColourDetail() {
   return (
     <>
       <nav aria-label="Breadcrumb" className="shell pt-6">
-        <ol className="flex flex-wrap items-center gap-2 text-[0.72rem] text-ink/60">
+        <ol className="flex flex-wrap items-center gap-2 text-[0.72rem] text-ink/72">
           <li>
             <Link to="/" className="hover:text-ink">
               Home
@@ -186,8 +186,8 @@ export default function ColourDetail() {
           </div>
 
           <div className="mt-6 rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-            <p className="flex items-start gap-2 text-[0.76rem] leading-relaxed text-ink/60">
-              <Info className="mt-0.5 size-4 shrink-0 text-ink/60" aria-hidden />
+            <p className="flex items-start gap-2 text-[0.76rem] leading-relaxed text-ink/72">
+              <Info className="mt-0.5 size-4 shrink-0 text-ink/72" aria-hidden />
               Colour on a screen is a digital approximation. Lighting, finish and substrate change how a real film
               reads. Order a sample pot or ask a dealer for a chip before committing to a room.
             </p>
@@ -207,7 +207,7 @@ export default function ColourDetail() {
           <Kicker className="mb-3">Colour record</Kicker>
           <h1 className="display text-[clamp(2.2rem,4.4vw,3.4rem)]">
             {colour.name}
-            <span className="ml-3 align-middle text-[0.9rem] font-sans font-semibold tracking-[0.14em] text-ink/60">
+            <span className="ml-3 align-middle text-[0.9rem] font-sans font-semibold tracking-[0.14em] text-ink/72">
               {colour.code}
             </span>
           </h1>
@@ -235,7 +235,7 @@ export default function ColourDetail() {
           </dl>
 
           <div className="mt-6 rounded-sm border border-ink/12 bg-paper-2/50 p-4">
-            <p className="text-[0.72rem] leading-relaxed text-ink/60">
+            <p className="text-[0.72rem] leading-relaxed text-ink/72">
               <span className="font-semibold text-ink">Reading the LRV.</span> Light reflectance value describes how
               much light a colour bounces back. 0 is absolute black, 100 is absolute white. Values under 25 absorb most
               light and need good lighting; values above 75 are bright enough for ceilings and small rooms. The number
@@ -249,7 +249,7 @@ export default function ColourDetail() {
             <h2 id="pairings-title" className="text-[1.15rem] font-semibold">
               Pairs with
             </h2>
-            <p className="mt-1 text-[0.8rem] text-ink/60">
+            <p className="mt-1 text-[0.8rem] text-ink/72">
               Curated pairings from our palettes first, then computed complements.
             </p>
             {(curatedPairings.length ? curatedPairings : related).length ? (
@@ -268,7 +268,7 @@ export default function ColourDetail() {
                   { label: 'Triadic', hexes: pairs.triadic },
                 ].map((group) => (
                   <div key={group.label} className="flex items-center gap-3">
-                    <span className="w-28 shrink-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-ink/60">
+                    <span className="w-28 shrink-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-ink/72">
                       {group.label}
                     </span>
                     <div className="flex flex-1 gap-1.5">
@@ -283,7 +283,7 @@ export default function ColourDetail() {
                     </div>
                   </div>
                 ))}
-                <p className="pt-1 text-[0.7rem] text-ink/60">
+                <p className="pt-1 text-[0.7rem] text-ink/72">
                   Computed in CIE space for preference, not a substitute for a designer’s eye.
                 </p>
               </div>
@@ -303,7 +303,7 @@ export default function ColourDetail() {
                     <Link to={`/products/${product.id}`} className="group flex items-center justify-between gap-4 py-3">
                       <span className="min-w-0">
                         <span className="block text-[0.88rem] font-semibold group-hover:text-green">{product.name}</span>
-                        <span className="block text-[0.72rem] text-ink/60">
+                        <span className="block text-[0.72rem] text-ink/72">
                           {product.finish} · {product.coveragePerUnit} m² per litre per coat
                         </span>
                       </span>
@@ -311,7 +311,7 @@ export default function ColourDetail() {
                         <span className="block text-[0.82rem] font-semibold">
                           {from.length ? naira(Math.min(...from)) : 'On request'}
                         </span>
-                        <span className="block text-[0.6rem] uppercase tracking-[0.1em] text-ink/60">from · guide</span>
+                        <span className="block text-[0.6rem] uppercase tracking-[0.1em] text-ink/72">from · guide</span>
                       </span>
                     </Link>
                   </li>
@@ -370,7 +370,7 @@ export default function ColourDetail() {
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-sm border border-ink/12 bg-paper-2/60 px-5 py-4">
           <div>
             <p className="text-[0.92rem] font-semibold">Need it in a specific finish?</p>
-            <p className="text-[0.8rem] text-ink/60">
+            <p className="text-[0.8rem] text-ink/72">
               {colour.name} can be mixed in Matt, Silk or Weathershield. Tell us the room and we will recommend one.
             </p>
           </div>

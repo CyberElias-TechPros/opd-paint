@@ -33,11 +33,11 @@ export function Field({ label, hint, error, required, className, labelAs = 'labe
                 *
               </span>
             ) : (
-              <span className="ml-1.5 font-medium normal-case tracking-normal text-ink/60">optional</span>
+              <span className="ml-1.5 font-medium normal-case tracking-normal text-ink/72">optional</span>
             )}
           </>
         )
-        const className = 'text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink/60'
+        const className = 'text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink/72'
         return labelAs === 'label' ? (
           <label htmlFor={id} className={className}>
             {heading}
@@ -48,7 +48,7 @@ export function Field({ label, hint, error, required, className, labelAs = 'labe
       })()}
       {children({ id, describedBy, invalid: Boolean(error) })}
       {hint && !error ? (
-        <p id={hintId} className="text-[0.76rem] leading-relaxed text-ink/60">
+        <p id={hintId} className="text-[0.76rem] leading-relaxed text-ink/72">
           {hint}
         </p>
       ) : null}
@@ -107,7 +107,7 @@ export function Checkbox({
       />
       <label htmlFor={id} className="cursor-pointer text-[0.84rem] leading-relaxed text-ink/75">
         {label}
-        {description ? <span className="mt-1 block text-[0.78rem] text-ink/60">{description}</span> : null}
+        {description ? <span className="mt-1 block text-[0.78rem] text-ink/72">{description}</span> : null}
       </label>
     </div>
   )
@@ -134,7 +134,7 @@ export function Toggle({
     >
       <span>
         <span className="block text-[0.82rem] font-semibold text-ink">{label}</span>
-        {description ? <span className="mt-0.5 block text-[0.74rem] text-ink/60">{description}</span> : null}
+        {description ? <span className="mt-0.5 block text-[0.74rem] text-ink/72">{description}</span> : null}
       </span>
       <span
         aria-hidden

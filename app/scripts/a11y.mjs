@@ -210,20 +210,41 @@ async function main() {
     await phonePage.goto(`${BASE}${path}`, { waitUntil: 'networkidle' })
     const overflow = await phonePage.evaluate(() => {
       const width = document.documentElement.clientWidth
+
+      // An element that is merely *inside* a horizontal scroller (the filter
+      // pills, a code strip) is not causing the page to overflow. Walk up and
+      // ignore anything a scroll container is responsible for.
+      const inScroller = (element) => {
+        let parent = element.parentElement
+        while (parent && parent !== document.body) {
+          const overflowX = getComputedStyle(parent).overflowX
+          if (overflowX === 'auto' || overflowX === 'scroll' || overflowX === 'hidden' || overflowX === 'clip') return true
+          parent = parent.parentElement
+        }
+        return false
+      }
+
       const wide = [...document.querySelectorAll('body *')]
         .filter((element) => {
           const rect = element.getBoundingClientRect()
-          // Ignore decorative absolutely-positioned layers that are clipped.
-          return rect.width > width + 1 && getComputedStyle(element).position !== 'fixed'
+          if (rect.width <= width + 1) return false
+          if (getComputedStyle(element).position === 'fixed') return false
+          return !inScroller(element)
         })
-        .slice(0, 3)
-        .map((element) => `${element.tagName.toLowerCase()}.${String(element.className).split(' ')[0] ?? ''}`)
+        .slice(0, 4)
+        .map((element) => {
+          const rect = element.getBoundingClientRect()
+          const label = `${element.tagName.toLowerCase()}${element.className ? `.${String(element.className).trim().split(/\s+/).slice(0, 3).join('.')}` : ''}`
+          const text = (element.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 70)
+          return `${label} (${Math.round(rect.width)}px) ${text ? `“${text}”` : ''}`
+        })
+
       return { scrollWidth: document.documentElement.scrollWidth, width, wide }
     })
     record(
       `${path} fits a 360px screen`,
       overflow.scrollWidth <= overflow.width + 1,
-      `${overflow.scrollWidth}px wide on a ${overflow.width}px screen: ${overflow.wide.join(', ')}`,
+      `${overflow.scrollWidth}px wide on a ${overflow.width}px screen: ${overflow.wide.join(' | ') || 'no single element identified'}`,
     )
   }
   await phone.close()

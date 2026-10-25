@@ -65,7 +65,7 @@ export default function Advice() {
           <h1 className="display max-w-3xl text-[clamp(2.3rem,4.8vw,3.8rem)]">
             Guides written for <span className="italic">this climate.</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-ink/65">
+          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-ink/75">
             Humidity, cement render, harmattan dust and salt air. Everything here assumes a Nigerian site, is reviewed
             by our technical desk, and carries a date so you know how current it is.
           </p>
@@ -97,7 +97,7 @@ export default function Advice() {
                   />
                 </Link>
                 <div className="flex flex-1 flex-col p-5">
-                  <div className="flex items-center gap-2 text-[0.64rem] font-bold uppercase tracking-[0.12em] text-ink/60">
+                  <div className="flex items-center gap-2 text-[0.64rem] font-bold uppercase tracking-[0.12em] text-ink/72">
                     <span className="text-green">{guide.category}</span>
                     <span aria-hidden>·</span>
                     <span>{guide.readMinutes} min</span>
@@ -107,8 +107,8 @@ export default function Advice() {
                       {guide.title}
                     </Link>
                   </h2>
-                  <p className="mt-2 flex-1 text-[0.83rem] leading-relaxed text-ink/60">{guide.summary}</p>
-                  <p className="mt-3 text-[0.68rem] text-ink/60">Reviewed {longDate(guide.updated)}</p>
+                  <p className="mt-2 flex-1 text-[0.83rem] leading-relaxed text-ink/72">{guide.summary}</p>
+                  <p className="mt-3 text-[0.68rem] text-ink/72">Reviewed {longDate(guide.updated)}</p>
                 </div>
               </article>
             </Reveal>
@@ -122,7 +122,7 @@ export default function Advice() {
               <h2 id="faq-title" className="display text-[clamp(1.6rem,3vw,2.3rem)]">
                 Short answers to the things painters ask on site.
               </h2>
-              <p className="mt-3 text-[0.88rem] leading-relaxed text-ink/60">
+              <p className="mt-3 text-[0.88rem] leading-relaxed text-ink/72">
                 If the answer is not here, call the colour desk on 0902 642 4350. We would rather talk it through than
                 have you buy the wrong bucket.
               </p>
@@ -140,12 +140,12 @@ export default function Advice() {
                     className="flex w-full items-start justify-between gap-4 py-4 text-left"
                   >
                     <span className="text-[0.92rem] font-semibold">{item.q}</span>
-                    <span aria-hidden className="mt-1 text-ink/60">
+                    <span aria-hidden className="mt-1 text-ink/72">
                       {open === index ? '−' : '+'}
                     </span>
                   </button>
                   {open === index ? (
-                    <p className="max-w-prose pb-4 text-[0.86rem] leading-relaxed text-ink/65">{item.a}</p>
+                    <p className="max-w-prose pb-4 text-[0.86rem] leading-relaxed text-ink/75">{item.a}</p>
                   ) : null}
                 </li>
               ))}

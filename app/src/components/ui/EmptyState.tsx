@@ -17,9 +17,9 @@ export function EmptyState({
 }) {
   return (
     <div className="rounded-sm border border-dashed border-ink/20 bg-white/40 px-6 py-10 text-center">
-      {icon ? <div className="mx-auto mb-3 grid size-10 place-items-center text-ink/60">{icon}</div> : null}
+      {icon ? <div className="mx-auto mb-3 grid size-10 place-items-center text-ink/72">{icon}</div> : null}
       <p className="font-[var(--font-display)] text-lg font-medium">{title}</p>
-      <p className="mx-auto mt-2 max-w-sm text-[0.82rem] leading-relaxed text-ink/60">{body}</p>
+      <p className="mx-auto mt-2 max-w-sm text-[0.82rem] leading-relaxed text-ink/72">{body}</p>
       {action ? <div className="mt-5 flex justify-center">{action}</div> : null}
     </div>
   )

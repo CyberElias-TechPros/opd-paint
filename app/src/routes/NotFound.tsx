@@ -23,7 +23,7 @@ export default function NotFound() {
         <h1 className="display text-[clamp(2.4rem,5.6vw,4.4rem)]">
           That wall is <span className="italic">blank.</span>
         </h1>
-        <p className="mt-4 max-w-md text-[1rem] leading-relaxed text-ink/65">
+        <p className="mt-4 max-w-md text-[1rem] leading-relaxed text-ink/75">
           The page you were looking for has moved or never existed. Try the colour library, the product range, or one of
           the six colours below.
         </p>
@@ -36,7 +36,7 @@ export default function NotFound() {
           </ButtonLink>
           <a
             href={`tel:${BRAND_PHONE_TEL}`}
-            className="inline-flex items-center gap-2 rounded-[3px] px-4 py-3 text-[0.82rem] font-semibold text-ink/60 hover:text-ink"
+            className="inline-flex items-center gap-2 rounded-[3px] px-4 py-3 text-[0.82rem] font-semibold text-ink/72 hover:text-ink"
           >
             <Phone className="size-4" aria-hidden /> {BRAND_PHONE_DISPLAY}
           </a>

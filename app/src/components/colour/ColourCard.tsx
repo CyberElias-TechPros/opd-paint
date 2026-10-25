@@ -26,7 +26,6 @@ export function ColourCard({
       <Link
         to={`/colours/${colour.id}`}
         className="block focus-visible:outline-offset-4"
-        aria-label={`${colour.name}, code ${colour.code}, ${colour.family}. Open colour details.`}
       >
         <div
           className={cn(
@@ -44,7 +43,7 @@ export function ColourCard({
             stays readable across the whole set (colour.ts `swatchText`).
           */}
           <div className="absolute inset-x-0 bottom-0 flex translate-y-full items-center justify-between gap-2 bg-paper-2/95 px-3 py-2 text-ink backdrop-blur-sm transition-transform duration-300 ease-[var(--ease-out-quint)] group-hover/sw:translate-y-0 group-focus-within/sw:translate-y-0">
-            <span className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-ink/60">{colour.code}</span>
+            <span className="text-[0.62rem] font-bold uppercase tracking-[0.16em] text-ink/72">{colour.code}</span>
             <span className="flex items-center gap-1.5 text-[0.68rem] font-semibold">
               <Eye className="size-3.5" aria-hidden /> Preview
             </span>
@@ -54,12 +53,13 @@ export function ColourCard({
           <div className="mt-2 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="truncate text-[0.85rem] font-semibold leading-tight">{colour.name}</p>
-              <p className="mt-0.5 truncate text-[0.7rem] text-ink/60">
+              <p className="mt-0.5 truncate text-[0.7rem] text-ink/72">
                 {colour.family} · LRV ≈ {COLOR_LRV(colour)}
               </p>
             </div>
           </div>
         ) : null}
+        <span className="sr-only">Open colour details.</span>
       </Link>
 
       <button
@@ -74,7 +74,7 @@ export function ColourCard({
           'absolute right-2 top-2 grid size-8 place-items-center rounded-full backdrop-blur transition-all duration-300',
           saved
             ? 'bg-ink text-paper-2 opacity-100'
-            : 'bg-paper-2/85 text-ink/60 opacity-0 hover:bg-paper-2 hover:text-ink group-hover/sw:opacity-100 focus-visible:opacity-100',
+            : 'bg-paper-2/85 text-ink/72 opacity-0 hover:bg-paper-2 hover:text-ink group-hover/sw:opacity-100 focus-visible:opacity-100',
         )}
       >
         {saved ? <BookmarkCheck className="size-4" aria-hidden /> : <Bookmark className="size-4" aria-hidden />}

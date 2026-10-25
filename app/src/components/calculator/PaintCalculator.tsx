@@ -124,7 +124,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                 aria-pressed={units === u}
                 className={cn(
                   'rounded-full px-3 py-1.5 text-[0.72rem] font-bold uppercase tracking-[0.1em] transition-colors',
-                  units === u ? 'bg-ink text-paper-2' : 'text-ink/60 hover:text-ink',
+                  units === u ? 'bg-ink text-paper-2' : 'text-ink/72 hover:text-ink',
                 )}
               >
                 {u === 'metric' ? 'Metres' : 'Feet'}
@@ -140,7 +140,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                 aria-pressed={mode === m}
                 className={cn(
                   'rounded-full px-3 py-1.5 text-[0.72rem] font-bold uppercase tracking-[0.1em] transition-colors',
-                  mode === m ? 'bg-ink text-paper-2' : 'text-ink/60 hover:text-ink',
+                  mode === m ? 'bg-ink text-paper-2' : 'text-ink/72 hover:text-ink',
                 )}
               >
                 {m === 'dimensions' ? 'Room size' : 'Wall area'}
@@ -151,7 +151,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
 
         {mode === 'dimensions' ? (
           <fieldset className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-            <legend className="kicker px-1 text-ink/60">Room dimensions</legend>
+            <legend className="kicker px-1 text-ink/72">Room dimensions</legend>
             <div className="mt-2 grid grid-cols-3 gap-3">
               {[
                 { label: `Length (${areaLabel})`, value: length, set: setLength, min: 0.5, max: 100, step: 0.1, id: 'len' },
@@ -159,7 +159,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                 { label: `Wall height (${areaLabel})`, value: height, set: setHeight, min: 1, max: 20, step: 0.1, id: 'hei' },
               ].map((field) => (
                 <div key={field.id}>
-                  <label htmlFor={field.id} className="mb-1 block text-[0.72rem] font-semibold text-ink/60">
+                  <label htmlFor={field.id} className="mb-1 block text-[0.72rem] font-semibold text-ink/72">
                     {field.label}
                   </label>
                   <input
@@ -176,15 +176,15 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                 </div>
               ))}
             </div>
-            <p className="mt-2 flex items-center gap-1.5 text-[0.72rem] text-ink/60">
+            <p className="mt-2 flex items-center gap-1.5 text-[0.72rem] text-ink/72">
               <Ruler className="size-3.5" aria-hidden /> Measure wall to wall at skirting level, then floor to ceiling.
             </p>
           </fieldset>
         ) : (
           <fieldset className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-            <legend className="kicker px-1 text-ink/60">Total wall area</legend>
+            <legend className="kicker px-1 text-ink/72">Total wall area</legend>
             <div className="mt-2">
-              <label htmlFor="area" className="mb-1 block text-[0.72rem] font-semibold text-ink/60">
+              <label htmlFor="area" className="mb-1 block text-[0.72rem] font-semibold text-ink/72">
                 Paintable wall area (m²)
               </label>
               <input
@@ -199,7 +199,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                 className="field tabular py-2 text-[0.9rem]"
               />
             </div>
-            <p className="mt-2 text-[0.72rem] text-ink/60">
+            <p className="mt-2 text-[0.72rem] text-ink/72">
               Use this if your architect or quantity surveyor has already given you an area.
             </p>
           </fieldset>
@@ -208,15 +208,15 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
         {mode === 'dimensions' ? (
           <fieldset className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
             <div className="flex items-center justify-between">
-              <legend className="kicker px-1 text-ink/60">Doors &amp; windows</legend>
-              <span className="text-[0.68rem] text-ink/60">deducted from wall area</span>
+              <legend className="kicker px-1 text-ink/72">Doors &amp; windows</legend>
+              <span className="text-[0.68rem] text-ink/72">deducted from wall area</span>
             </div>
             <ul className="mt-2 space-y-2">
               {openings.map((opening) => (
                 <li key={opening.id} className="grid grid-cols-[1fr_auto] items-end gap-2 rounded-[3px] bg-white/60 p-2">
                   <div className="grid grid-cols-[1.1fr_0.9fr_0.9fr_0.9fr] items-end gap-2">
                     <div>
-                      <label htmlFor={`${opening.id}-kind`} className="mb-0.5 block text-[0.64rem] font-semibold uppercase tracking-wide text-ink/60">
+                      <label htmlFor={`${opening.id}-kind`} className="mb-0.5 block text-[0.64rem] font-semibold uppercase tracking-wide text-ink/72">
                         Type
                       </label>
                       <select
@@ -232,7 +232,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                     </div>
                     {(['width', 'height', 'count'] as const).map((key) => (
                       <div key={key}>
-                        <label htmlFor={`${opening.id}-${key}`} className="mb-0.5 block text-[0.64rem] font-semibold uppercase tracking-wide text-ink/60">
+                        <label htmlFor={`${opening.id}-${key}`} className="mb-0.5 block text-[0.64rem] font-semibold uppercase tracking-wide text-ink/72">
                           {key === 'count' ? 'Qty' : `${key} (${areaLabel})`}
                         </label>
                         <input
@@ -250,7 +250,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                   <button
                     type="button"
                     onClick={() => setOpenings((current) => current.filter((o) => o.id !== opening.id))}
-                    className="mb-0.5 grid size-8 place-items-center rounded-full text-ink/60 transition-colors hover:bg-crimson/10 hover:text-crimson"
+                    className="mb-0.5 grid size-8 place-items-center rounded-full text-ink/72 transition-colors hover:bg-crimson/10 hover:text-crimson"
                     aria-label="Remove opening"
                   >
                     <Trash2 className="size-3.5" aria-hidden />
@@ -271,7 +271,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
 
         <div className="grid gap-4 sm:grid-cols-2">
           <fieldset className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-            <legend className="kicker px-1 text-ink/60">Coats</legend>
+            <legend className="kicker px-1 text-ink/72">Coats</legend>
             <div className="mt-2 grid grid-cols-3 gap-1.5" role="group" aria-label="Number of coats">
               {[1, 2, 3].map((n) => (
                 <button
@@ -288,19 +288,19 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-[0.7rem] text-ink/60">
+            <p className="mt-2 text-[0.7rem] text-ink/72">
               {coats === 1 ? 'One coat only works on a colour match. We do not recommend it.' : `${coats} coats is the standard specification.`}
             </p>
           </fieldset>
 
           <fieldset className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-            <legend className="kicker px-1 text-ink/60">Extras</legend>
+            <legend className="kicker px-1 text-ink/72">Extras</legend>
             <div className="mt-2 space-y-2">
               <Toggle checked={includeCeiling} onChange={setIncludeCeiling} label="Include ceiling" description="Calculated at length × width" />
               <div>
-                <label htmlFor="trim" className="flex items-center justify-between text-[0.72rem] font-semibold text-ink/60">
+                <label htmlFor="trim" className="flex items-center justify-between text-[0.72rem] font-semibold text-ink/72">
                   Trim allowance
-                  <span className="tabular text-ink/60">{trimAllowance}%</span>
+                  <span className="tabular text-ink/72">{trimAllowance}%</span>
                 </label>
                 <input
                   id="trim"
@@ -310,14 +310,14 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                   value={trimAllowance}
                   onChange={(event) => setTrimAllowance(Number(event.target.value))}
                 />
-                <p className="text-[0.7rem] text-ink/60">Skirting, reveals, cutting-in and touch-ups.</p>
+                <p className="text-[0.7rem] text-ink/72">Skirting, reveals, cutting-in and touch-ups.</p>
               </div>
             </div>
           </fieldset>
         </div>
 
         <fieldset className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-          <legend className="kicker px-1 text-ink/60">Product</legend>
+          <legend className="kicker px-1 text-ink/72">Product</legend>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             {PAINT_PRODUCTS.map((p) => (
               <button
@@ -337,7 +337,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                 />
                 <span>
                   <span className="block text-[0.8rem] font-semibold">{p.shortName}</span>
-                  <span className="block text-[0.68rem] text-ink/60">{p.coveragePerUnit} m²/L per coat</span>
+                  <span className="block text-[0.68rem] text-ink/72">{p.coveragePerUnit} m²/L per coat</span>
                 </span>
               </button>
             ))}
@@ -453,8 +453,8 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
 
         <div className="mt-4 space-y-3">
           <div className="flex items-start gap-2.5 rounded-sm border border-ink/12 bg-paper-2/60 p-3">
-            <Wind className="mt-0.5 size-4 shrink-0 text-ink/60" aria-hidden />
-            <p className="text-[0.76rem] leading-relaxed text-ink/60">
+            <Wind className="mt-0.5 size-4 shrink-0 text-ink/72" aria-hidden />
+            <p className="text-[0.76rem] leading-relaxed text-ink/72">
               <span className="font-semibold text-ink">Do not forget primer.</span> On new or repaired plaster, one coat
               of primer roughly halves the topcoat’s absorption and is the difference between two coats and three.{' '}
               <Link to="/products/primer" className="underline hover:text-green">
@@ -465,7 +465,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
           </div>
           <div className="flex items-start gap-2.5 rounded-sm border border-ink/12 bg-paper-2/60 p-3">
             <Badge tone="green">Verified formula</Badge>
-            <p className="text-[0.76rem] leading-relaxed text-ink/60">
+            <p className="text-[0.76rem] leading-relaxed text-ink/72">
               Calculations are covered by automated tests against independent worked examples. Coverage figures come
               from the product data sheet.
             </p>

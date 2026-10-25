@@ -26,7 +26,7 @@ const TYPE_SCALE = [
   { label: 'Headline / section', sample: 'Palettes with a reason', className: 'display text-[clamp(1.7rem,3.4vw,2.6rem)]' },
   { label: 'Title / card', sample: 'OPUDA’S SILK Emulsion', className: 'font-[var(--font-display)] text-[1.3rem]' },
   { label: 'Body', sample: 'Two coats on a sealed, primed surface. Add a third when changing dramatically between light and dark.', className: 'text-[0.95rem] text-ink/70 max-w-prose' },
-  { label: 'Small / meta', sample: 'OP-605 · Purple & Mauve · LRV ≈ 74', className: 'text-[0.75rem] text-ink/60' },
+  { label: 'Small / meta', sample: 'OP-605 · Purple & Mauve · LRV ≈ 74', className: 'text-[0.75rem] text-ink/72' },
   { label: 'Kicker', sample: 'Colour record', className: 'kicker text-moss' },
 ]
 
@@ -47,7 +47,7 @@ export default function StyleGuide() {
           <h1 className="display max-w-3xl text-[clamp(2.2rem,4.6vw,3.6rem)]">
             The system behind the <span className="italic">swatches.</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-ink/65">
+          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-ink/75">
             One source of truth for colour, type, spacing, motion and controls. Every value here is a CSS custom
             property in <code className="rounded bg-ink/6 px-1 py-0.5 text-[0.82em]">src/styles/theme.css</code>, consumed
             by Tailwind utilities — no ad-hoc hex values in components.
@@ -64,8 +64,8 @@ export default function StyleGuide() {
                 <div className="h-16" style={{ background: token.hex }} />
                 <div className="bg-paper-2 p-3">
                   <p className="text-[0.78rem] font-semibold">{token.name}</p>
-                  <p className="tabular text-[0.68rem] uppercase text-ink/60">{token.hex}</p>
-                  <p className="mt-1 text-[0.68rem] text-ink/60">{token.use}</p>
+                  <p className="tabular text-[0.68rem] uppercase text-ink/72">{token.hex}</p>
+                  <p className="mt-1 text-[0.68rem] text-ink/72">{token.use}</p>
                 </div>
               </li>
             ))}
@@ -77,7 +77,7 @@ export default function StyleGuide() {
           <div className="mt-6 divide-y divide-ink/10 rounded-sm border border-ink/12">
             {TYPE_SCALE.map((item) => (
               <div key={item.label} className="grid gap-2 p-4 sm:grid-cols-[10rem_1fr]">
-                <p className="text-[0.66rem] font-bold uppercase tracking-[0.14em] text-ink/60">{item.label}</p>
+                <p className="text-[0.66rem] font-bold uppercase tracking-[0.14em] text-ink/72">{item.label}</p>
                 <p className={item.className}>{item.sample}</p>
               </div>
             ))}
@@ -88,7 +88,7 @@ export default function StyleGuide() {
           <SectionHead kicker="03 — Components" title={<span id="components-title">Controls</span>} />
           <div className="mt-6 grid gap-5 lg:grid-cols-2">
             <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
-              <p className="kicker mb-3 text-ink/60">Buttons</p>
+              <p className="kicker mb-3 text-ink/72">Buttons</p>
               <div className="flex flex-wrap items-center gap-2">
                 <Button>Primary</Button>
                 <Button variant="ink">Ink</Button>
@@ -103,13 +103,13 @@ export default function StyleGuide() {
                 <Button size="md">Medium</Button>
                 <Button size="lg">Large</Button>
               </div>
-              <p className="mt-3 text-[0.72rem] text-ink/60">
+              <p className="mt-3 text-[0.72rem] text-ink/72">
                 Minimum target 44 × 44 px on touch. Focus is a 2.5 px green ring at 3 px offset, never removed.
               </p>
             </div>
 
             <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
-              <p className="kicker mb-3 text-ink/60">Badges &amp; pills</p>
+              <p className="kicker mb-3 text-ink/72">Badges &amp; pills</p>
               <div className="flex flex-wrap gap-2">
                 <Badge tone="green">Label verified</Badge>
                 <Badge tone="gold">5-year guarantee</Badge>
@@ -120,7 +120,7 @@ export default function StyleGuide() {
             </div>
 
             <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
-              <p className="kicker mb-3 text-ink/60">Form controls</p>
+              <p className="kicker mb-3 text-ink/72">Form controls</p>
               <div className="space-y-3">
                 <Field label="Your name" required>
                   {({ id }) => <TextInput id={id} placeholder="Adeola Bakare" />}
@@ -139,7 +139,7 @@ export default function StyleGuide() {
             </div>
 
             <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
-              <p className="kicker mb-3 text-ink/60">Spacing &amp; radius</p>
+              <p className="kicker mb-3 text-ink/72">Spacing &amp; radius</p>
               <div className="space-y-2">
                 {[
                   ['space-1', '0.25rem', '4px'],
@@ -151,7 +151,7 @@ export default function StyleGuide() {
                   <div key={name} className="flex items-center gap-3 text-[0.74rem]">
                     <span className="w-16 font-semibold">{name}</span>
                     <span className="h-3 bg-green/30" style={{ width: rem }} />
-                    <span className="text-ink/60">
+                    <span className="text-ink/72">
                       {rem} · {px}
                     </span>
                   </div>
@@ -159,7 +159,7 @@ export default function StyleGuide() {
               </div>
               <div className="mt-4 flex gap-2">
                 {['3px', '6px', '12px', '20px'].map((r) => (
-                  <div key={r} className="grid size-12 place-items-center border border-ink/20 text-[0.6rem] text-ink/60" style={{ borderRadius: r }}>
+                  <div key={r} className="grid size-12 place-items-center border border-ink/20 text-[0.6rem] text-ink/72" style={{ borderRadius: r }}>
                     {r}
                   </div>
                 ))}
@@ -178,7 +178,7 @@ export default function StyleGuide() {
             <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
               <PaintSwash className="h-4 w-full" />
               <p className="mt-4 text-[0.86rem] font-semibold">The brush sweep</p>
-              <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/60">
+              <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/72">
                 The crimson stroke across the lower half of the pail. Used as an underline on a hero phrase, once in
                 the footer, and nowhere else — a signature loses its meaning when it repeats.
               </p>
@@ -186,7 +186,7 @@ export default function StyleGuide() {
             <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
               <GuaranteeSeal className="w-24" />
               <p className="mt-4 text-[0.86rem] font-semibold">The guarantee seal</p>
-              <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/60">
+              <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/72">
                 Redrawn as a vector badge so it stays sharp from 64 px to print. It carries only the label&rsquo;s own
                 wording: five years, on Matt and Silk.
               </p>
@@ -198,7 +198,7 @@ export default function StyleGuide() {
                 </span>
               </PlankWall>
               <p className="mt-4 text-[0.86rem] font-semibold">The cream plank wall</p>
-              <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/60">
+              <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/72">
                 The backdrop in every pail photograph, rebuilt in CSS so it costs no image request. It grounds the
                 product pages without becoming a texture across the whole site.
               </p>
@@ -219,7 +219,7 @@ export default function StyleGuide() {
             ].map(([title, body]) => (
               <li key={title} className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
                 <p className="text-[0.86rem] font-semibold">{title}</p>
-                <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/60">{body}</p>
+                <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/72">{body}</p>
               </li>
             ))}
           </ul>

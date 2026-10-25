@@ -117,7 +117,7 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
   return (
     <Modal open={open} onClose={onClose} title="Search" description="Colours, products, palettes, projects and advice." size="lg">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink/60" aria-hidden />
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink/72" aria-hidden />
         <input
           ref={inputRef}
           type="search"
@@ -141,7 +141,7 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
           className="field pl-10"
         />
       </div>
-      <p id="search-help" className="mt-2 text-[0.72rem] text-ink/60">
+      <p id="search-help" className="mt-2 text-[0.72rem] text-ink/72">
         Use ↑ ↓ to move, Enter to open. Search covers colour codes too.
       </p>
 
@@ -164,25 +164,25 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
                   style={{ background: hit.hex }}
                 />
               ) : (
-                <span className="grid size-8 shrink-0 place-items-center rounded-[3px] bg-ink/6 text-[0.6rem] font-bold uppercase text-ink/60">
+                <span className="grid size-8 shrink-0 place-items-center rounded-[3px] bg-ink/6 text-[0.6rem] font-bold uppercase text-ink/72">
                   {hit.kind.slice(0, 3)}
                 </span>
               )}
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[0.9rem] font-semibold">{hit.title}</span>
-                <span className="block truncate text-[0.74rem] text-ink/60">{hit.sub}</span>
+                <span className="block truncate text-[0.74rem] text-ink/72">{hit.sub}</span>
               </span>
-              <span className="hidden shrink-0 text-[0.62rem] font-bold uppercase tracking-[0.13em] text-ink/60 sm:block">
+              <span className="hidden shrink-0 text-[0.62rem] font-bold uppercase tracking-[0.13em] text-ink/72 sm:block">
                 {hit.kind}
               </span>
-              {index === active ? <CornerDownLeft className="size-3.5 text-ink/60" aria-hidden /> : null}
+              {index === active ? <CornerDownLeft className="size-3.5 text-ink/72" aria-hidden /> : null}
             </button>
           </li>
         ))}
         {!results.length ? (
           <li className="px-2 py-8 text-center">
             <p className="text-[0.9rem] font-semibold">Nothing matched “{query}”.</p>
-            <p className="mt-1 text-[0.8rem] text-ink/60">
+            <p className="mt-1 text-[0.8rem] text-ink/72">
               Try a colour family, a product name or a code like OP-201.
             </p>
           </li>

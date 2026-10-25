@@ -203,6 +203,8 @@ async function serveStatic(req, res, pathname) {
   const looksLikeFile = /\.[a-z0-9]+$/i.test(relative)
   let filePath = candidate
   let info = null
+  // 200 for something that exists; 404 for the branded not-found document.
+  let status = 200
   try {
     info = await stat(filePath)
     if (info.isDirectory()) {
@@ -214,10 +216,13 @@ async function serveStatic(req, res, pathname) {
     }
   } catch {
     if (looksLikeFile) return false
-    // Client-side route: hand back the shell so a deep link works on reload.
-    filePath = join(STATIC_DIR, 'index.html')
+    // An unknown path. Serving the shell with a 200 would tell a crawler that
+    // every typo is a page, so serve the prerendered not-found document with
+    // the status it deserves. The client router takes over from there.
+    filePath = join(STATIC_DIR, '404.html')
     try {
       info = await stat(filePath)
+      status = 404
     } catch {
       return false
     }
@@ -232,7 +237,7 @@ async function serveStatic(req, res, pathname) {
     'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : 'public, max-age=0, must-revalidate',
     ...(extension === '.html' ? SECURITY_HEADERS : {}),
   }
-  res.writeHead(200, headers)
+  res.writeHead(status, headers)
   if (req.method === 'HEAD') {
     res.end()
     return true

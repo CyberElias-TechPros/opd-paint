@@ -33,12 +33,12 @@ export default function CalculatorPage() {
               <h1 className="display text-[clamp(2.3rem,4.8vw,3.8rem)]">
                 The right number of <span className="italic">litres.</span>
               </h1>
-              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/65">
+              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/75">
                 Measure the room, deduct the openings, add a trim allowance. We round up to real pack sizes and show you
                 every line of the arithmetic, so nobody has to guess on site.
               </p>
             </div>
-            <p className="text-[0.8rem] leading-relaxed text-ink/60">
+            <p className="text-[0.8rem] leading-relaxed text-ink/72">
               Assumes a sound, sealed surface. New plaster absorbs more paint — add one extra coat on a first
               decoration, and never skip primer.
             </p>
@@ -59,14 +59,14 @@ export default function CalculatorPage() {
           ].map((card) => (
             <div key={card.title} className="rounded-sm border border-ink/12 bg-paper-2/50 p-5">
               <h2 className="font-[var(--font-display)] text-[1.1rem]">{card.title}</h2>
-              <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink/60">{card.body}</p>
+              <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink/72">{card.body}</p>
               <ArrowLink to={card.to} className="mt-3 text-green">
                 Read more
               </ArrowLink>
             </div>
           ))}
         </div>
-        <p className="mt-8 text-[0.72rem] text-ink/60">
+        <p className="mt-8 text-[0.72rem] text-ink/72">
           Related reading: {GUIDES.slice(0, 2).map((g) => g.title).join(' · ')}
         </p>
       </section>

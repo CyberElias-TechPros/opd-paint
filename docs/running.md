@@ -59,7 +59,10 @@ bash tools/verify-restore.sh   # runs the real backup.sh and restore.sh
 prerender. The last step renders all 92 routes to a string *only to read their
 metadata*, and writes `dist/<path>/index.html` — one file per URL — with that
 page's title, description, canonical link, Open Graph tags and JSON-LD already
-in the head. Bodies are not prerendered: the app mounts with `createRoot`, which
+in the head. It also writes `dist/404.html`, the branded not-found document that
+the server, nginx and Vercel all serve with a real 404 status: a catch-all
+fallback to `index.html` would answer 200 and tell a crawler that every typo is
+a page. Bodies are not prerendered: the app mounts with `createRoot`, which
 would discard server markup anyway, and hydrating against local-storage state is
 not worth the mismatch risk. The head is what link previews and non-JS crawlers
 read, and 92 small files cost less than the app itself.

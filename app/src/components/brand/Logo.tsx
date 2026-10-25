@@ -55,7 +55,10 @@ export function LogoLockup({ tone = 'ink', className }: { tone?: 'ink' | 'paper'
   return (
     <Link
       to="/"
-      aria-label="OPUDA'S PAINT — home"
+      // The visible wordmark is set with a typographic apostrophe. The accessible
+      // name has to contain the visible text *as rendered*, or a voice-control
+      // user saying what they see cannot activate the link.
+      aria-label="OPUDA’S PAINT — home"
       className={cn('group flex items-center gap-2.5 outline-offset-4', className)}
     >
       <Mark className="h-8 w-auto transition-transform duration-500 ease-[var(--ease-spring)] group-hover:-rotate-3 group-hover:scale-105 sm:h-9" />

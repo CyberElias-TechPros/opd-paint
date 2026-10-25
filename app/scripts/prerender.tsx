@@ -41,6 +41,7 @@ import About from '../src/routes/About'
 import DataPage from '../src/routes/DataPage'
 import StyleGuide from '../src/routes/StyleGuide'
 import Legal from '../src/routes/Legal'
+import NotFound from '../src/routes/NotFound'
 
 import { COLORS } from '../src/data/colors'
 import { PRODUCTS } from '../src/data/products'
@@ -50,7 +51,7 @@ import { GUIDES } from '../src/data/guides'
 const DIST = join(process.cwd(), 'dist')
 const template = readFileSync(join(DIST, 'index.html'), 'utf8')
 
-type Page = { pattern: string; url: string; Page: () => React.ReactElement }
+type Page = { pattern: string; url: string; Page: () => React.ReactElement; file?: string }
 
 const pages: Page[] = [
   { pattern: '/', url: '/', Page: Home },
@@ -70,6 +71,11 @@ const pages: Page[] = [
   ...PROJECTS.map((project) => ({ pattern: '/inspiration/:id', url: `/inspiration/${project.id}`, Page: ProjectDetail })),
   ...GUIDES.map((guide) => ({ pattern: '/advice/:id', url: `/advice/${guide.id}`, Page: GuideDetail })),
   ...['privacy', 'terms', 'accessibility'].map((slug) => ({ pattern: '/legal/:slug', url: `/legal/${slug}`, Page: Legal })),
+  // A real 404 document, not the home page with a different URL. Vercel and
+  // nginx both serve `404.html` for an unmatched path, which is what makes the
+  // status code honest; a catch-all rewrite to index.html answers 200 and tells
+  // a crawler that every typo is a page.
+  { pattern: '*', url: '/404', Page: NotFound, file: '404.html' },
 ]
 
 const escape = (value: string) =>
@@ -88,7 +94,7 @@ const metaPattern = (key: string) => new RegExp('<meta\\s+(?=[^>]*' + key + ')[^
 let written = 0
 const orphans: string[] = []
 
-for (const { pattern, url, Page } of pages) {
+for (const { pattern, url, Page, file: fileOverride } of pages) {
   const body = renderToString(
     <MemoryRouter initialEntries={[url]}>
       <AppProvider>
@@ -146,8 +152,13 @@ for (const { pattern, url, Page } of pages) {
     )
   }
 
-  // `/` stays dist/index.html; everything else gets its own directory.
-  const file = url === '/' ? join(DIST, 'index.html') : join(DIST, url.replace(/^\//, ''), 'index.html')
+  // `/` stays dist/index.html; everything else gets its own directory, except
+  // the 404 document, which the server looks for by name.
+  const file = fileOverride
+    ? join(DIST, fileOverride)
+    : url === '/'
+      ? join(DIST, 'index.html')
+      : join(DIST, url.replace(/^\//, ''), 'index.html')
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, html)
   written += 1

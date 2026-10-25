@@ -142,7 +142,7 @@ export default function ProjectDetail() {
               {colours.map((colour) => (colour ? <ColourCard key={colour.id} colour={colour} height="compact" /> : null))}
             </div>
             {palette ? (
-              <p className="mt-3 text-[0.8rem] text-ink/60">
+              <p className="mt-3 text-[0.8rem] text-ink/72">
                 Curated as <Link to={`/colours?palette=${palette.id}`} className="font-semibold text-green hover:underline">{palette.name}</Link> — {palette.bestFor.toLowerCase()}.
               </p>
             ) : null}
@@ -171,7 +171,7 @@ export default function ProjectDetail() {
           </div>
 
           <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
-            <p className="kicker mb-2 text-ink/60">On this scheme</p>
+            <p className="kicker mb-2 text-ink/72">On this scheme</p>
             <div className="h-12 overflow-hidden rounded-[2px]">
               <div className="flex h-full">
                 {colours.map((colour) => (
@@ -179,14 +179,14 @@ export default function ProjectDetail() {
                 ))}
               </div>
             </div>
-            <ul className="mt-3 space-y-1 text-[0.76rem] text-ink/60">
+            <ul className="mt-3 space-y-1 text-[0.76rem] text-ink/72">
               {colours.slice(0, 4).map((colour) =>
                 colour ? (
                   <li key={colour.id} className="flex justify-between gap-2">
                     <Link to={`/colours/${colour.id}`} className="hover:text-green">
                       {colour.name}
                     </Link>
-                    <span className="text-ink/60">LRV ≈ {COLOR_LRV(colour)}</span>
+                    <span className="text-ink/72">LRV ≈ {COLOR_LRV(colour)}</span>
                   </li>
                 ) : null,
               )}
@@ -194,7 +194,7 @@ export default function ProjectDetail() {
           </div>
 
           <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
-            <p className="kicker mb-2 text-ink/60">More projects</p>
+            <p className="kicker mb-2 text-ink/72">More projects</p>
             <ul className="space-y-3">
               {others.map((other) => (
                 <li key={other.id}>
@@ -202,7 +202,7 @@ export default function ProjectDetail() {
                     <SmartImage name={other.cover} aspect={1} sizes="70px" className="w-16 shrink-0 rounded-[2px]" />
                     <span>
                       <span className="block text-[0.82rem] font-semibold leading-tight group-hover:text-green">{other.title}</span>
-                      <span className="block text-[0.7rem] text-ink/60">{other.location}</span>
+                      <span className="block text-[0.7rem] text-ink/72">{other.location}</span>
                     </span>
                   </Link>
                 </li>

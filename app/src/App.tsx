@@ -60,7 +60,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
           <h1 className="display mt-4 max-w-2xl text-[clamp(2rem,5vw,3.5rem)]">
             This page hit a problem. Nothing you saved has been lost.
           </h1>
-          <p className="mt-4 max-w-xl text-ink/65">
+          <p className="mt-4 max-w-xl text-ink/75">
             Your project board is stored in this browser, so your colours are still there. Try reloading, or continue
             browsing.
           </p>
@@ -86,7 +86,7 @@ function RouteFallback() {
   return (
     <div className="shell flex min-h-[60vh] flex-col justify-center py-20" role="status" aria-live="polite">
       <p className="kicker text-moss">Loading</p>
-      <p className="mt-3 max-w-md font-[var(--font-display)] text-[clamp(1.4rem,3vw,2rem)] text-ink/60">
+      <p className="mt-3 max-w-md font-[var(--font-display)] text-[clamp(1.4rem,3vw,2rem)] text-ink/72">
         Mixing the colour…
       </p>
       <div className="mt-6 flex h-2 w-40 overflow-hidden rounded-full bg-ink/10">

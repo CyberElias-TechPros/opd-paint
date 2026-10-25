@@ -103,7 +103,7 @@ export function Modal({
               {title}
             </h2>
             {description ? (
-              <p id="dialog-desc" className={cn('mt-1.5 text-[0.82rem]', tone === 'paper' ? 'text-ink/60' : 'text-paper-2/65')}>
+              <p id="dialog-desc" className={cn('mt-1.5 text-[0.82rem]', tone === 'paper' ? 'text-ink/72' : 'text-paper-2/65')}>
                 {description}
               </p>
             ) : null}

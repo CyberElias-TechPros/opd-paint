@@ -27,12 +27,12 @@ export default function RoomPreview() {
               <h1 className="display text-[clamp(2.3rem,4.8vw,3.8rem)]">
                 Try it on <span className="italic">your</span> wall.
               </h1>
-              <p className="mt-4 text-[0.98rem] leading-relaxed text-ink/65">
+              <p className="mt-4 text-[0.98rem] leading-relaxed text-ink/75">
                 Start with one of our site photographs or upload your own room. Tap the wall you want to change, then
                 work through the library. Nothing is uploaded — every calculation happens inside this tab.
               </p>
             </div>
-            <ul className="grid gap-2 text-[0.78rem] text-ink/60 sm:grid-cols-3 lg:max-w-md">
+            <ul className="grid gap-2 text-[0.78rem] text-ink/72 sm:grid-cols-3 lg:max-w-md">
               {[
                 { icon: MousePointerClick, text: 'Tap a wall to select it' },
                 { icon: Paintbrush, text: 'Brush the edges by hand' },
@@ -71,14 +71,14 @@ export default function RoomPreview() {
             <div key={card.title} className="rounded-sm border border-ink/12 bg-paper-2/50 p-5">
               <Sparkles className="size-4 text-green" aria-hidden />
               <h2 className="mt-2 font-[var(--font-display)] text-[1.1rem]">{card.title}</h2>
-              <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink/60">{card.body}</p>
+              <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink/72">{card.body}</p>
             </div>
           ))}
         </div>
         <div className="mt-8 flex flex-wrap items-center gap-6">
           <ArrowLink to="/calculator">Now size the job</ArrowLink>
           <ArrowLink to="/quote">Request a colour consultation</ArrowLink>
-          <Link to="/advice/colour-on-screen" className="text-[0.78rem] font-semibold text-ink/60 underline hover:text-green">
+          <Link to="/advice/colour-on-screen" className="text-[0.78rem] font-semibold text-ink/72 underline hover:text-green">
             Why screens differ from paint
           </Link>
         </div>

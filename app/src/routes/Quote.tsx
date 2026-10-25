@@ -154,11 +154,11 @@ export default function Quote() {
           </p>
           <dl className="mt-6 grid gap-3 sm:grid-cols-2">
             <div className="rounded-sm border border-ink/12 bg-paper-2 p-4">
-              <dt className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/60">Reference</dt>
+              <dt className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/72">Reference</dt>
               <dd className="tabular mt-1 text-[1.1rem] font-semibold">{response.reference}</dd>
             </div>
             <div className="rounded-sm border border-ink/12 bg-paper-2 p-4">
-              <dt className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/60">Routed to</dt>
+              <dt className="text-[0.62rem] font-bold uppercase tracking-[0.14em] text-ink/72">Routed to</dt>
               <dd className="mt-1 text-[0.92rem] font-semibold">{response.routedTo}</dd>
             </div>
           </dl>
@@ -196,7 +196,7 @@ export default function Quote() {
               <h1 className="display text-[clamp(2.2rem,4.6vw,3.6rem)]">
                 Send us the room. <span className="italic">We will send back a scheme.</span>
               </h1>
-              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/65">
+              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/75">
                 Dimensions, photographs, the light it gets and how you want the space to feel. We reply with two or three
                 options, the products to use, and the litres you will need.
               </p>
@@ -306,13 +306,13 @@ export default function Quote() {
 
           {colours.length ? (
             <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-              <p className="kicker mb-2 text-ink/60">Colours attached to this enquiry</p>
+              <p className="kicker mb-2 text-ink/72">Colours attached to this enquiry</p>
               <ul className="flex flex-wrap gap-2">
                 {colours.map((colour) => (
                   <li key={colour.id} className="flex items-center gap-2 rounded-full border border-ink/12 bg-white/60 py-1 pl-1 pr-3">
                     <span className="size-6 rounded-full ring-1 ring-inset ring-black/10" style={{ background: colour.hex }} aria-hidden />
                     <span className="text-[0.76rem] font-semibold">{colour.name}</span>
-                    <span className="text-[0.68rem] text-ink/60">{colour.code}</span>
+                    <span className="text-[0.68rem] text-ink/72">{colour.code}</span>
                   </li>
                 ))}
               </ul>
@@ -321,7 +321,7 @@ export default function Quote() {
               </Link>
             </div>
           ) : (
-            <p className="rounded-sm border border-dashed border-ink/20 px-4 py-3 text-[0.8rem] text-ink/60">
+            <p className="rounded-sm border border-dashed border-ink/20 px-4 py-3 text-[0.8rem] text-ink/72">
               No colours attached yet. That is fine —{' '}
               <Link to="/colours" className="font-semibold text-green hover:underline">
                 browse the library
@@ -370,7 +370,7 @@ export default function Quote() {
             <Button type="submit" size="lg" disabled={state === 'sending'}>
               {state === 'sending' ? 'Sending…' : 'Send enquiry'}
             </Button>
-            <p className="text-[0.74rem] text-ink/60">No account needed. We reply within one working day.</p>
+            <p className="text-[0.74rem] text-ink/72">No account needed. We reply within one working day.</p>
           </div>
         </form>
 
@@ -387,7 +387,7 @@ export default function Quote() {
                   <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-green/10 text-[0.6rem] font-bold text-green">
                     {index + 1}
                   </span>
-                  <span className="text-[0.82rem] leading-relaxed text-ink/65">{step}</span>
+                  <span className="text-[0.82rem] leading-relaxed text-ink/75">{step}</span>
                 </li>
               ))}
             </ol>
@@ -395,12 +395,12 @@ export default function Quote() {
 
           {products.length ? (
             <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
-              <p className="kicker mb-2 text-ink/60">Products on your board</p>
+              <p className="kicker mb-2 text-ink/72">Products on your board</p>
               <ul className="space-y-1.5">
                 {products.map((product) => (
                   <li key={product.id} className="flex items-center justify-between gap-2 text-[0.82rem]">
                     <span className="font-semibold">{product.shortName}</span>
-                    <span className="text-ink/60">{product.finish}</span>
+                    <span className="text-ink/72">{product.finish}</span>
                   </li>
                 ))}
               </ul>

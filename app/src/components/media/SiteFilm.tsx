@@ -86,7 +86,7 @@ export function SiteFilm({ className }: { className?: string }) {
         </div>
       </div>
 
-      <figcaption className="mx-auto mt-4 max-w-[19rem] text-[0.72rem] leading-relaxed text-ink/60">
+      <figcaption className="mx-auto mt-4 max-w-[19rem] text-[0.72rem] leading-relaxed text-ink/72">
         26 seconds on a live site, filmed on a phone. No audio track, no music, no staging.
       </figcaption>
     </figure>
