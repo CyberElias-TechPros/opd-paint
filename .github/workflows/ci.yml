@@ -1,0 +1,128 @@
+name: CI
+
+# Everything the project claims is checked here, on every push. A green badge
+# that nobody runs is worse than no badge, so this mirrors `npm run check`
+# exactly — same scripts, same order.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Site — lint, tests, routes, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit and content tests
+        run: npm run test:unit
+
+      - name: Enquiry service tests
+        run: npm run test:server
+
+      - name: Every route renders
+        run: npm run test:routes
+
+      - name: Production build
+        run: npm run build
+
+      - name: Check the build is self-contained
+        run: |
+          test -f dist/index.html
+          test -f dist/sitemap.xml
+          test -f dist/media/og-card.jpg
+          test -f dist/documents/opudas-matt-tds.pdf
+          test -f dist/documents/opudas-fan-deck.pdf
+          test -f dist/sw.js
+          test -f dist/offline.html
+          test -f dist/colours/index.html
+          grep -q '<title>Colour library' dist/colours/index.html
+          grep -q 'canonical" href="https://opudapaint.com/colours/palm-shadow"' dist/colours/palm-shadow/index.html
+          echo "build artefacts present"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-build
+          path: app/dist
+          retention-days: 7
+
+  assets:
+    name: Brand assets are reproducible
+    runs-on: ubuntu-latest
+    # The drift report is posted as a comment so a reviewer can see what changed
+    # without digging through the job log.
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Pinned, not floating. These scripts rasterise type and compress images,
+      # so a library upgrade can change the bytes of a PDF, PNG or JPEG without
+      # anyone touching the design. Pinning keeps the check below meaningful and
+      # stops a Dependabot-style bump from turning the build red for no reason.
+      - run: pip install 'fonttools==4.67.0' 'brotli==1.2.1' 'fpdf2==2.8.9' 'Pillow==13.0.0'
+
+      - name: Regenerate icons, social card, documents and sitemap
+        working-directory: app
+        run: |
+          npm ci
+          cd ..
+          node tools/build-sitemap.mjs
+          python3 tools/build-documents.py
+          python3 tools/build-icons.py
+          python3 tools/build-og.py
+          python3 tools/build-fandeck.py
+
+      - name: The committed artefacts match the scripts
+        run: |
+          if python3 tools/check-assets.py > /tmp/assets.txt 2>&1; then
+            cat /tmp/assets.txt
+            exit 0
+          fi
+          cat /tmp/assets.txt
+          # A red cross with no explanation wastes everyone's afternoon, so keep
+          # the report where a reviewer can read it.
+          {
+            echo "### Brand assets are out of date"
+            echo
+            echo '```'
+            cat /tmp/assets.txt
+            echo '```'
+          } | tee "$GITHUB_STEP_SUMMARY" > /tmp/asset-report.md
+          exit 1
+
+      - name: Post the drift to the pull request
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/asset-report.md

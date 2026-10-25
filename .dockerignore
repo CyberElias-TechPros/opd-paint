@@ -1,0 +1,11 @@
+# Keep the build context small and keep customer data out of images entirely.
+.git
+.github
+app/node_modules
+app/dist
+app/.smoke
+server/data
+opuda
+**/*.log
+*.md
+!app/README.md
