@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { usePageMeta, ORGANISATION_SCHEMA } from '../lib/seo'
 import { SmartImage } from '../components/media/SmartImage'
+import { GuaranteeSeal, PaintSwash } from '../components/brand/Devices'
 import { Reveal } from '../components/motion/Reveal'
 import { ArrowLink, Badge, Kicker, Rule, SectionHead } from '../components/ui/Bits'
 import { ButtonLink } from '../components/ui/Button'
@@ -116,11 +117,7 @@ export default function Home() {
               <br />
               <span className="relative inline-block">
                 <span className="relative z-10 italic">holds its own</span>
-                <span
-                  aria-hidden
-                  className="absolute inset-x-[-2%] bottom-[6%] z-0 h-[26%] -rotate-[0.8deg] bg-green/22"
-                  style={{ clipPath: 'polygon(0 12%, 100% 0, 99% 88%, 1% 100%)' }}
-                />
+                <PaintSwash className="absolute inset-x-[-3%] bottom-[-0.055em] z-0 h-[0.2em] w-[106%] -rotate-[0.5deg]" />
               </span>
               <br />
               in Lagos light.
@@ -212,22 +209,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* rotating seal */}
-        <div className="pointer-events-none absolute right-4 top-24 hidden lg:block">
-          <div className="relative size-24 animate-[spin-slow_28s_linear_infinite]">
-            <svg viewBox="0 0 100 100" className="size-full">
-              <defs>
-                <path id="sealPath" d="M50,50 m-36,0 a36,36 0 1,1 72,0 a36,36 0 1,1 -72,0" />
-              </defs>
-              <text className="fill-ink/40 text-[7.4px] font-bold uppercase tracking-[0.28em]">
-                <textPath href="#sealPath">Made in Nigeria · 5-year guarantee · </textPath>
-              </text>
-            </svg>
-          </div>
-          <div className="absolute inset-0 grid place-items-center">
-            <ShieldCheck className="size-6 text-green/70" aria-hidden />
-          </div>
-        </div>
+        {/* the guarantee seal, straight off the pail */}
+        <GuaranteeSeal className="pointer-events-none absolute right-3 top-16 hidden w-[7.5rem] drop-shadow-[0_18px_30px_rgba(11,26,19,0.16)] lg:block xl:right-8 xl:w-[8.5rem]" />
       </section>
 
       {/* ============================================================ RIBBON */}

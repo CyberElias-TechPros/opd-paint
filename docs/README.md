@@ -20,6 +20,7 @@ app/                    React 19 + Vite + Tailwind v4 front end
   scripts/              test runners and content tests (run by `npm test`)
   src/
     components/         UI kit, layout, room visualiser, calculator, colour cards
+      brand/            wordmark, brush sweep, guarantee seal, plank wall
     data/               colours, products, palettes, projects, dealers, guides
     lib/                colour maths, quantity engine, API client, SEO, analytics
     routes/             one module per URL

@@ -4,6 +4,7 @@ import { ArrowRight, Check, Droplet, Layers, ShieldCheck, Timer } from 'lucide-r
 import { usePageMeta } from '../lib/seo'
 import { PRODUCTS, FINISH_SHEEN_LABEL, type Finish, type Surface } from '../data/products'
 import { SmartImage } from '../components/media/SmartImage'
+import { PlankWall } from '../components/brand/Devices'
 import { Badge, Kicker, SectionHead, ArrowLink } from '../components/ui/Bits'
 import { Reveal } from '../components/motion/Reveal'
 import { Pill } from '../components/ui/Bits'
@@ -47,7 +48,9 @@ export default function Products() {
 
   return (
     <>
-      <header className="border-b border-ink/10 bg-paper-2/40">
+      <header className="relative isolate overflow-hidden border-b border-ink/10">
+        {/* the plank wall every pail is photographed against */}
+        <PlankWall className="absolute inset-0 -z-10 opacity-70" />
         <div className="shell py-10 sm:py-14">
           <Kicker className="mb-4">The range</Kicker>
           <div className="grid gap-8 lg:grid-cols-[1.25fr_1fr] lg:items-end">

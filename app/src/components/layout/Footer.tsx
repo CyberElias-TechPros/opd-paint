@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Phone, MessageCircle, Mail, MapPin } from 'lucide-react'
 import { LogoLockup } from '../brand/Logo'
+import { PaintSwash } from '../brand/Devices'
 import { BRAND_PHONE_DISPLAY, BRAND_PHONE_TEL, WHATSAPP_NUMBER } from '../../data/dealers'
 import { useApp } from '../../store/AppStore'
 import { subscribe } from '../../lib/api'
@@ -78,6 +79,8 @@ export function Footer() {
         }}
       />
       <div className="shell relative py-14 sm:py-20">
+        {/* the pail's brush stroke, closing the page the way the label opens */}
+        <PaintSwash className="mb-10 h-3 w-24 opacity-90" />
         <div className="grid gap-12 lg:grid-cols-[1.15fr_2fr]">
           <div>
             <LogoLockup tone="paper" />

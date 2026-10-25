@@ -121,6 +121,16 @@ def main() -> None:
     photo = rounded(photo.crop((left, top, left + target_w, top + target_h)), 10)
     card.paste(photo, (712, 32), photo)
 
+    # The pail, cropped to the label and set into the photograph's lower corner.
+    # The villa shows what the paint is for; the pail shows what is being sold,
+    # and carries the printed guarantee seal that no stock photograph would.
+    pail = Image.open(MEDIA / "product-matt-bucket.webp").convert("RGB").crop((176, 250, 592, 792))
+    pail_w, pail_h = 152, 198
+    pail = pail.resize((pail_w, pail_h), Image.LANCZOS)
+    frame = rounded(Image.new("RGBA", (pail_w + 12, pail_h + 12), (252, 249, 243, 255)), 8)
+    card.paste(frame, (734, 384), frame)
+    card.paste(rounded(pail, 4), (740, 390), rounded(pail, 4))
+
     # Mark + wordmark, set the way the site sets it.
     mark = Image.open(PUBLIC / "brand" / "mark-512.png").convert("RGBA").resize((88, 88), Image.LANCZOS)
     card.paste(mark, (64, 54), mark)

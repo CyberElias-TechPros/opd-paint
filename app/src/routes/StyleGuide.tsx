@@ -2,6 +2,7 @@ import { usePageMeta } from '../lib/seo'
 import { Badge, Kicker, SectionHead } from '../components/ui/Bits'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { Checkbox, Field, Select, TextInput, Toggle } from '../components/ui/Field'
+import { GuaranteeSeal, PaintSwash, PlankWall } from '../components/brand/Devices'
 import { useState } from 'react'
 
 const COLOUR_TOKENS = [
@@ -167,8 +168,46 @@ export default function StyleGuide() {
           </div>
         </section>
 
+        <section aria-labelledby="devices-title">
+          <SectionHead
+            kicker="04 — Identity"
+            title={<span id="devices-title">Three devices, all from the label</span>}
+            lede="The company has one piece of printed artwork: the pail. Everything decorative on this site is redrawn from it, so the site and the bucket are recognisably the same brand."
+          />
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
+              <PaintSwash className="h-4 w-full" />
+              <p className="mt-4 text-[0.86rem] font-semibold">The brush sweep</p>
+              <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/60">
+                The crimson stroke across the lower half of the pail. Used as an underline on a hero phrase, once in
+                the footer, and nowhere else — a signature loses its meaning when it repeats.
+              </p>
+            </div>
+            <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
+              <GuaranteeSeal className="w-24" />
+              <p className="mt-4 text-[0.86rem] font-semibold">The guarantee seal</p>
+              <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/60">
+                Redrawn as a vector badge so it stays sharp from 64 px to print. It carries only the label&rsquo;s own
+                wording: five years, on Matt and Silk.
+              </p>
+            </div>
+            <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
+              <PlankWall className="grid h-24 place-items-center rounded-[2px]">
+                <span className="rounded-full bg-paper-2/90 px-2.5 py-1 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-ink/70">
+                  Plank wall
+                </span>
+              </PlankWall>
+              <p className="mt-4 text-[0.86rem] font-semibold">The cream plank wall</p>
+              <p className="mt-1 text-[0.8rem] leading-relaxed text-ink/60">
+                The backdrop in every pail photograph, rebuilt in CSS so it costs no image request. It grounds the
+                product pages without becoming a texture across the whole site.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section aria-labelledby="rules-title">
-          <SectionHead kicker="04 — Rules" title={<span id="rules-title">Non-negotiables</span>} />
+          <SectionHead kicker="05 — Rules" title={<span id="rules-title">Non-negotiables</span>} />
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">
             {[
               ['Colour is never the only signal', 'Every swatch shows its name and code. State changes use text and iconography as well as colour.'],

@@ -5,6 +5,7 @@ import { usePageMeta } from '../lib/seo'
 import { PRODUCTS, findProduct, FINISH_SHEEN_LABEL } from '../data/products'
 import { COLORS } from '../data/colors'
 import { SmartImage } from '../components/media/SmartImage'
+import { GuaranteeSeal } from '../components/brand/Devices'
 import { Badge, DataRow, ArrowLink } from '../components/ui/Bits'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { ColourCard } from '../components/colour/ColourCard'
@@ -98,6 +99,17 @@ export default function ProductDetail() {
               sizes="(max-width: 1024px) 92vw, 46vw"
               className="rounded-sm"
             />
+            {product.guaranteeYears ? (
+              <div className="mt-4 flex items-center gap-3 rounded-sm border border-ink/12 bg-paper-2/70 p-3">
+                <GuaranteeSeal className="w-16 shrink-0" />
+                <p className="text-[0.76rem] leading-snug text-ink/70">
+                  <span className="block text-[0.64rem] font-bold uppercase tracking-[0.12em] text-green">
+                    {product.guaranteeYears}-year guarantee
+                  </span>
+                  On {product.name}, under the terms printed on the pail. Keep your till slip.
+                </p>
+              </div>
+            ) : null}
             <div className="mt-3 grid grid-cols-3 gap-2">
               {product.gallery.slice(0, 3).map((image) => (
                 <SmartImage key={image} name={image} aspect={1} sizes="15vw" className="rounded-sm" />
