@@ -22,6 +22,10 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto'
 
+import { log, requestId, describeError } from './logger.mjs'
+import { configuredChannels, notifyEnquiry } from './notify.mjs'
+import { recordError } from './errors.mjs'
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // The data directory is configurable so tests (and a staging box) can run
@@ -273,22 +277,63 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;')
 }
 
+/**
+ * Read a JSONL file, skipping damaged lines.
+ *
+ * Skipping is right — one truncated line (a disk that filled mid-append, a
+ * `kill -9`) must not hide every enquiry before it — but skipping *silently*
+ * is how data loss goes unnoticed for a year. Every skip is logged, and health
+ * reports the count so a monitor can alert on it.
+ */
 async function readRecords(file) {
   try {
     const raw = await readFile(file, 'utf8')
-    return raw
-      .split('\n')
-      .filter(Boolean)
-      .map((line) => {
-        try {
-          return JSON.parse(line)
-        } catch {
-          return null
-        }
-      })
-      .filter(Boolean)
+    let damaged = 0
+    const records = []
+    for (const line of raw.split('\n')) {
+      if (!line.trim()) continue
+      try {
+        records.push(JSON.parse(line))
+      } catch {
+        damaged += 1
+      }
+    }
+    if (damaged) {
+      log.warn('storage.damaged_lines', { file: file.split('/').pop(), damaged })
+    }
+    return records
   } catch {
     return []
+  }
+}
+
+// Health is polled by a monitor, so the damage count is memoised rather than
+// re-reading the whole log on every probe. The key is the file's own mtime and
+// size, not a clock: a count that goes stale for a minute after a new damaged
+// line appears is exactly the minute somebody is looking at the dashboard.
+let damageCache = { key: '', count: 0 }
+
+async function damagedRecordCount() {
+  try {
+    const info = await stat(QUOTES_FILE)
+    const key = `${info.mtimeMs}:${info.size}`
+    if (key === damageCache.key) return damageCache.count
+
+    const raw = await readFile(QUOTES_FILE, 'utf8')
+    let count = 0
+    for (const line of raw.split('\n')) {
+      if (!line.trim()) continue
+      try {
+        JSON.parse(line)
+      } catch {
+        count += 1
+      }
+    }
+    damageCache = { key, count }
+    return count
+  } catch {
+    // No file yet is not damage.
+    return 0
   }
 }
 
@@ -314,13 +359,79 @@ async function handle(req, res) {
   const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`)
   const path = url.pathname
 
+  // A request id ties the log lines for one request together, and appears in
+  // the response so a visitor quoting it to support can be traced to a record.
+  const id = requestId()
+  res.setHeader('X-Request-Id', id)
+  const startedAt = performance.now()
+  res.on('finish', () => {
+    // Static assets are noise; everything else is worth a line.
+    if (path.startsWith('/assets/') || path.startsWith('/media/') || path.startsWith('/documents/')) return
+    log.info('http.request', {
+      id,
+      method: req.method,
+      path,
+      status: res.statusCode,
+      ms: Math.round(performance.now() - startedAt),
+    })
+  })
+
   // Anything that is not an API or admin path can be served from the build.
   if (!path.startsWith('/api/') && !path.startsWith('/admin') && (await serveStatic(req, res, path))) {
     return
   }
 
   if (req.method === 'GET' && path === '/api/health') {
-    send(res, 200, { ok: true, data: { service: 'opd-enquiries', uptime: process.uptime(), time: new Date().toISOString() } })
+    // Health is public, so it reports capability, never configuration detail:
+    // which notification channels exist, not their URLs or credentials.
+    let dataDir = 'absent'
+    try {
+      await stat(DATA_DIR)
+      dataDir = 'ready'
+    } catch {
+      dataDir = 'not-created-yet'
+    }
+    send(res, 200, {
+      ok: true,
+      data: {
+        service: 'opd-enquiries',
+        version: process.env.OPD_RELEASE ?? 'dev',
+        uptime: Math.round(process.uptime()),
+        time: new Date().toISOString(),
+        storage: dataDir,
+        damagedRecords: await damagedRecordCount(),
+        notifications: configuredChannels(),
+        inbox: ADMIN_ENABLED,
+        errorForwarding: Boolean(process.env.OPD_SENTRY_DSN),
+      },
+    })
+    return
+  }
+
+  if (req.method === 'POST' && path === '/api/errors') {
+    // Diagnostics, not analytics: no consent gate, but also no identifiers, and
+    // a rate limit so a loop in one broken browser cannot fill the disk.
+    if (rateLimited(`${ip}:errors`, 20)) {
+      send(res, 429, { ok: false, error: 'Too many error reports.' })
+      return
+    }
+    let body
+    try {
+      body = await readJson(req, 12 * 1024)
+    } catch (error) {
+      const tooLarge = error instanceof Error && error.message === 'Payload too large'
+      // Never echo the payload back — it may contain a stack with a token in it.
+      send(res, tooLarge ? 413 : 400, { ok: false, error: 'Report rejected.' })
+      return
+    }
+    try {
+      await ensureData()
+      const { eventId } = await recordError(body, { dataDir: DATA_DIR, ip })
+      send(res, 202, { ok: true, data: { eventId } })
+    } catch (error) {
+      log.error('errors.intake_failed', { id, ...describeError(error) })
+      send(res, 202, { ok: true, data: { eventId: null } })
+    }
     return
   }
 
@@ -405,20 +516,21 @@ async function handle(req, res) {
     try {
       await ensureData()
       await appendFile(QUOTES_FILE, JSON.stringify(record) + '\n', 'utf8')
-      // eslint-disable-next-line no-console
-      console.log(`[quote] ${record.reference} ${record.projectType} ${record.city}`)
-      send(res, 201, {
-        ok: true,
-        data: {
-          reference: record.reference,
-          receivedAt: record.receivedAt,
-          routedTo: routeFor(projectType),
-          slaHours: projectType === 'dealer' ? 48 : 24,
-        },
+
+      const routing = { routedTo: routeFor(projectType), slaHours: projectType === 'dealer' ? 48 : 24 }
+      log.info('enquiry.received', {
+        id,
+        reference: record.reference,
+        projectType: record.projectType,
+        routedTo: routing.routedTo,
       })
+
+      // Answer the visitor first. Delivery to a human happens afterwards, so a
+      // slow webhook can never make a submitted enquiry feel broken.
+      send(res, 201, { ok: true, data: { reference: record.reference, receivedAt: record.receivedAt, ...routing } })
+      void notifyEnquiry(record, routing, { dataDir: DATA_DIR })
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[quote] storage failure', error)
+      log.error('enquiry.storage_failed', { id, ...describeError(error) })
       send(res, 503, { ok: false, error: 'We could not save your enquiry. Please call 0902 642 4350.' })
     }
     return
@@ -623,11 +735,25 @@ const startedDirectly =
 if (startedDirectly) {
   const server = createEnquiryServer()
   server.listen(PORT, '0.0.0.0', () => {
-    // eslint-disable-next-line no-console
-    console.log(`[api] enquiry service on http://0.0.0.0:${PORT}`)
+    log.info('service.started', {
+      port: PORT,
+      storage: DATA_DIR,
+      staticDir: STATIC_DIR || null,
+      notifications: configuredChannels(),
+      inbox: ADMIN_ENABLED,
+      errorForwarding: Boolean(process.env.OPD_SENTRY_DSN),
+    })
+    if (!configuredChannels().length) {
+      // This is the difference between a lead pipeline and a text file. Say it
+      // at startup, in the strongest terms that still respect the log format.
+      log.warn('service.no_notification_channels', {
+        detail:
+          'Enquiries will be stored and shown in /admin, but nobody will be alerted. ' +
+          'Set OPD_NOTIFY_WEBHOOK or OPD_RESEND_API_KEY + OPD_NOTIFY_EMAIL + OPD_NOTIFY_FROM.',
+      })
+    }
     if (!ADMIN_ENABLED) {
-      // eslint-disable-next-line no-console
-      console.log('[api] enquiry inbox disabled — set OPD_ADMIN_USER and OPD_ADMIN_PASSWORD')
+      log.info('service.inbox_disabled', { detail: 'set OPD_ADMIN_USER and OPD_ADMIN_PASSWORD to enable /admin' })
     }
   })
 }

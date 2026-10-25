@@ -205,7 +205,9 @@ test('the inbox does not exist when no credentials are configured', () => {
     const server = createEnquiryServer()
     server.listen(0, '127.0.0.1', async () => {
       const res = await fetch('http://127.0.0.1:' + server.address().port + '/admin')
-      process.stdout.write(String(res.status))
+      // Tagged, because the service now logs to stdout as well and the status
+      // must not be read out of a log line.
+      process.stdout.write('STATUS=' + res.status)
       server.close()
     })
   `
@@ -213,7 +215,7 @@ test('the inbox does not exist when no credentials are configured', () => {
     env: { ...process.env, OPD_ADMIN_USER: '', OPD_ADMIN_PASSWORD: '', OPD_DATA_DIR: dataDir },
     encoding: 'utf8',
   })
-  assert.equal(result.stdout.trim(), '404', 'an unconfigured inbox answered')
+  assert.match(result.stdout, /STATUS=404\b/, 'an unconfigured inbox answered')
 })
 
 // Last, because it deliberately exhausts the limiter for this address.
