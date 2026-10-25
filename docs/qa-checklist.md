@@ -17,6 +17,10 @@ teams, not in a repository.
 | Guides | Six articles with a named reviewer, review date and label-sourced technical content. |
 | Enquiry pipeline | Real server, real validation, real reference numbers, real routing and SLA. |
 | Technical documents | 12 generated PDFs (TD sheet and SDS per product) from one structured source. |
+| Fan deck | 19-page printable colour deck generated from `colors.ts`, linked from the colour library. |
+| Enquiry inbox | `GET /admin` and `/admin/enquiries.csv`, basic auth over a constant-time comparison, 404 unless credentials are set. |
+| Offline | Service worker: network-first pages, cached photography and fonts, branded offline page, API never cached. |
+| Printing | Print stylesheet keeps every swatch (`print-color-adjust: exact`) and drops the chrome. |
 
 ## What is explicitly provisional
 
@@ -40,13 +44,24 @@ cd app && npm run check
 ```
 
 - `npm run lint` — oxlint, zero errors.
-- `npm test` — 14 calculator tests, 32 content-integrity tests: unique ids and
+- `npm test` — 14 calculator, 9 colour-mask and 32 content-integrity tests, plus
+  19 HTTP-level tests against the real enquiry service (validation, honeypot,
+  routing and SLA, malformed JSON, 413 on an oversized body, subscriptions,
+  colour search, inbox auth, CSV escaping, rate limiting). Content tests check
+  unique ids and
   codes, valid hex, palette/guide/project cross-references, media manifest
   coverage, alt text, PDF existence, dealer coordinates, no render labelled as
   completed work, no unused image.
 - `tsc -b` — full type check, `verbatimModuleSyntax` and
   `exactOptionalPropertyTypes` on.
-- Production build with route-level code splitting.
+- `npm run test:routes` — all 21 routes rendered through the real router, each
+  asserting an `<h1>`, no `undefined`/`NaN`/`[object Object]` in the markup, and
+  no link to a route the app does not own.
+- Production build with route-level code splitting, then a head prerender that
+  writes one `dist/<path>/index.html` per URL with its own title, description,
+  canonical, Open Graph tags and JSON-LD.
+- CI regenerates the icons, documents, fan deck, social card and sitemap and
+  fails if the committed artefacts differ from their scripts.
 
 ## Manual pass before any release
 
@@ -77,5 +92,9 @@ There is no headless browser in the build environment, so this part is human.
   board is per-browser local storage.
 - No inventory, payment, or order management. Every commercial journey ends in a
   quote, a dealer visit or a phone call, on purpose.
+- No editor UI. `docs/deploying.md` covers running the service; content review is
+  Git-based, and the inbox is read-only by design — there is no way to edit or
+  delete a record from the browser, which is the correct default for personal
+  data but means pruning is a shell job.
 - Analytics events are queued locally and consent-gated; no vendor is wired up
   and none should be added without the consent review described in the roadmap.
