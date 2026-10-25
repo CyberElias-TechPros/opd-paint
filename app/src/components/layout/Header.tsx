@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Menu, Search, X, Phone, Layers, ChevronRight } from 'lucide-react'
 import { LogoLockup } from '../brand/Logo'
@@ -20,6 +20,8 @@ const NAV = [
 export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const { savedCount, setBoardOpen } = useApp()
   const location = useLocation()
 
@@ -39,6 +41,22 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
     return () => {
       document.body.style.overflow = ''
     }
+  }, [menuOpen])
+
+  // Keyboard behaviour for the drawer: focus moves in, Escape closes it, and
+  // focus returns to the button that opened it. Without this the panel is a
+  // visual overlay that a keyboard user can neither enter nor leave.
+  useEffect(() => {
+    if (!menuOpen) return
+    closeButtonRef.current?.focus()
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      event.stopPropagation()
+      setMenuOpen(false)
+      triggerRef.current?.focus()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
   }, [menuOpen])
 
   const boardLabel = useMemo(
@@ -154,11 +172,13 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
             </ButtonLink>
 
             <button
+              ref={triggerRef}
               type="button"
               className="grid size-10 place-items-center rounded-full border border-ink/12 lg:hidden"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
               aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
             >
               <Menu className="size-5" aria-hidden />
             </button>
@@ -173,6 +193,9 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
           menuOpen ? 'pointer-events-auto' : 'pointer-events-none',
         )}
         aria-hidden={!menuOpen}
+        // While closed the panel is still in the DOM for the transition, so it
+        // must not be reachable by tab, a screen reader or a search engine.
+        inert={!menuOpen}
       >
         <div
           className={cn(
@@ -182,6 +205,7 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
           onClick={() => setMenuOpen(false)}
         />
         <div
+          id="mobile-menu"
           role="dialog"
           aria-modal="true"
           aria-label="Site menu"
@@ -193,6 +217,7 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
           <div className="flex items-center justify-between border-b border-ink/10 px-5 py-4">
             <LogoLockup />
             <button
+              ref={closeButtonRef}
               type="button"
               onClick={() => setMenuOpen(false)}
               className="grid size-9 place-items-center rounded-full border border-ink/15"

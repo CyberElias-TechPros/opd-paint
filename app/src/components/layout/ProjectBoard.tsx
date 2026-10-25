@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Copy, Check, Trash2, X, Share2, ArrowRight } from 'lucide-react'
 import { useApp } from '../../store/AppStore'
@@ -17,6 +17,8 @@ import { EmptyState } from '../ui/EmptyState'
 export function ProjectBoard() {
   const { board, boardOpen, setBoardOpen, removeColor, toggleProduct, renameBoard, clearBoard } = useApp()
   const [copied, setCopied] = useState(false)
+  const paneRef = useRef<HTMLElement>(null)
+  const headingRef = useRef<HTMLInputElement>(null)
 
   const colours = useMemo(() => colorsByIds(board.savedColors), [board.savedColors])
   const products = useMemo(
@@ -36,6 +38,49 @@ export function ProjectBoard() {
     }
   }
 
+  // The board is a dialog, not just a panel: it takes focus when it opens,
+  // Escape closes it, focus returns to where the visitor was, and the page
+  // behind it stops scrolling. The component returns null when closed, so
+  // there is nothing hidden but focusable in the tree.
+  useEffect(() => {
+    if (!boardOpen) return
+    const previous = document.activeElement as HTMLElement | null
+    headingRef.current?.focus()
+    headingRef.current?.select()
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation()
+        setBoardOpen(false)
+      }
+      if (event.key !== 'Tab') return
+      const items = Array.from(
+        paneRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, textarea, select, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((element) => element.offsetParent !== null)
+      if (!items.length) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = originalOverflow
+      previous?.focus?.()
+    }
+  }, [boardOpen, setBoardOpen])
+
   if (!boardOpen) return null
 
   return (
@@ -47,6 +92,9 @@ export function ProjectBoard() {
         onClick={() => setBoardOpen(false)}
       />
       <aside
+        ref={paneRef}
+        role="dialog"
+        aria-modal="true"
         aria-label="Your project board"
         className="absolute inset-y-0 right-0 flex w-full max-w-[27rem] flex-col bg-paper-2 shadow-[0_0_120px_-20px_rgba(11,26,19,0.6)] animate-[slide-left_0.45s_var(--ease-out-quint)]"
       >
@@ -54,6 +102,7 @@ export function ProjectBoard() {
           <div className="min-w-0 flex-1">
             <p className="kicker text-moss">Your project</p>
             <input
+              ref={headingRef}
               value={board.boardName}
               onChange={(event) => renameBoard(event.target.value)}
               aria-label="Project name"

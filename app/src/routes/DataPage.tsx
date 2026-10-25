@@ -5,6 +5,7 @@ import { COLORS } from '../data/colors'
 import { PRODUCTS } from '../data/products'
 import { DEALERS } from '../data/dealers'
 import { GUIDES } from '../data/guides'
+import { ButtonLink } from '../components/ui/Button'
 import { Kicker, Badge, DataRow } from '../components/ui/Bits'
 
 type Status = 'verified' | 'pending' | 'estimated'
@@ -277,6 +278,35 @@ export default function DataPage() {
           </div>
         </aside>
       </div>
+
+      {/*
+        A provenance page can easily end in a cul-de-sac. It is the page a
+        sceptical buyer lands on, so it ends the same way every other page does:
+        with the one action that settles the question — a physical chip.
+      */}
+      <section className="shell pb-16 sm:pb-24">
+        <div className="grid gap-6 rounded-sm border border-ink/12 bg-paper-2/70 p-6 sm:p-10 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+          <div>
+            <Kicker className="mb-3">The only real answer</Kicker>
+            <h2 className="display text-[clamp(1.7rem,3.4vw,2.5rem)]">
+              A screen cannot settle a colour. A chip can.
+            </h2>
+            <p className="mt-3 max-w-xl text-[0.92rem] leading-relaxed text-ink/65">
+              Everything on this page exists to be honest about that limit: the hex value is a digital proof, the LRV is
+              an estimate until a dried film is measured, and the photograph on your wall is not the wall. Ask for a
+              sample pot, or hold the fan deck against the light in the room.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <ButtonLink to="/quote?type=sample" size="lg" fullWidth>
+              Request a sample pot
+            </ButtonLink>
+            <ButtonLink to="/dealers" size="lg" variant="outline" fullWidth>
+              Find a dealer with a fan deck
+            </ButtonLink>
+          </div>
+        </div>
+      </section>
     </>
   )
 }
