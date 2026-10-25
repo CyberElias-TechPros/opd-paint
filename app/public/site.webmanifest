@@ -1,0 +1,55 @@
+{
+  "name": "OPUDA'S PAINT",
+  "short_name": "OPUDA'S",
+  "description": "Colour library, product guides, paint calculator and dealer finder for OPUDA'S PAINT, Lagos.",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f2e9",
+  "theme_color": "#0c6b45",
+  "lang": "en-NG",
+  "dir": "ltr",
+  "categories": [
+    "shopping",
+    "lifestyle",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Colour library",
+      "url": "/colours"
+    },
+    {
+      "name": "Room preview",
+      "url": "/room-preview"
+    },
+    {
+      "name": "Paint calculator",
+      "url": "/calculator"
+    },
+    {
+      "name": "Find a dealer",
+      "url": "/dealers"
+    }
+  ]
+}

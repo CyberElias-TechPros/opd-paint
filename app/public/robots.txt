@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /style-guide
+Disallow: /api/
+
+# The site is served from one domain; see sitemap.xml for the public map.
+Sitemap: https://opudapaint.com/sitemap.xml

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 40" role="img" aria-label="OPUDA'S PAINT">
+  <title>OPUDA'S PAINT</title>
+  <path d="M24 3.4 46.5 20.2v1.4H1.5v-1.4L24 3.4Z" fill="#0C6B45"/>
+  <path d="M10 19.6h28v16.6c0 .6-.5 1.1-1.1 1.1H11.1c-.6 0-1.1-.5-1.1-1.1V19.6Z" fill="#0C6B45"/>
+  <path d="M20.5 25.5h7v11.8h-7V25.5Z" fill="#FCF9F3"/>
+  <path d="M21.6 26.6h4.8v10.7h-4.8V26.6Z" fill="#C1121F"/>
+  <circle cx="41.4" cy="8.4" r="2.3" fill="#EE6C22"/>
+</svg>
