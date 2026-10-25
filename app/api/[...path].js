@@ -19,9 +19,10 @@
  * readable body, and the client already degrades to the phone number — a
  * preview without a backend must not pretend to accept enquiries.
  *
- * Deliberately dependency-free CommonJS: this file is compiled and run by the
+ * Deliberately dependency-free ES module: this file is compiled and run by the
  * platform, not by the app's build, so it must not rely on anything in
- * app/node_modules.
+ * app/node_modules. It lives under `app/` because that is this project's Root
+ * Directory on Vercel — the platform only picks up functions from there.
  */
 
 const HOP_BY_HOP = new Set([
@@ -57,7 +58,7 @@ function fail(res, status, message) {
   res.end(JSON.stringify({ ok: false, error: message }))
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   const origin = (process.env.OPD_API_ORIGIN || '').trim().replace(/\/+$/, '')
 
   if (!origin) {
@@ -107,9 +108,10 @@ module.exports = async function handler(req, res) {
   res.end(body)
 }
 
-// Vercel's Node runtime: let the platform parse JSON bodies up to the same
-// 32 KB the service enforces, and accept everything else raw.
-module.exports.config = {
+// The platform must not parse the body for us: the service validates the raw
+// bytes and enforces its own 32 KB limit, and a 413 from here would bypass the
+// readable message the browser shows.
+export const config = {
   api: {
     bodyParser: false,
   },

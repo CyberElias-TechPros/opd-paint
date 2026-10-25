@@ -165,12 +165,15 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
 
+      # There is no package.json at the repository root: the app lives in app/.
       - run: npm ci
+        working-directory: app
 
       - name: No high or critical advisories in what actually ships
         run: npm audit --omit=dev --audit-level=high
 
       - name: Full advisory report (informational)
+        working-directory: app
         # Dev dependencies are not shipped, so an advisory in a build tool is a
         # maintenance note rather than a release blocker — but it should still be
         # visible in the run, and the summary makes it impossible to miss.
@@ -241,8 +244,26 @@ jobs:
           name: site-build
           path: app/dist
 
+      # The bundled browser is preferable — it is the one the dependency pins.
+      # But a failed browser download must not be the reason an accessibility
+      # gate cannot run, so the audit falls back to the Chrome that GitHub's
+      # runner image already has.
       - name: Install Chromium
+        id: chromium
+        continue-on-error: true
         run: npx playwright install --with-deps chromium
+
+      - name: Which browser the audit will use
+        env:
+          OUTCOME: ${{ steps.chromium.outcome }}
+        run: |
+          if [ "$OUTCOME" = "success" ]; then
+            echo "OPD_BROWSER_CHANNEL=chromium" >> "$GITHUB_ENV"
+            echo "Using the Playwright-managed Chromium."
+          else
+            echo "OPD_BROWSER_CHANNEL=chrome" >> "$GITHUB_ENV"
+            echo "::warning::Chromium install failed; falling back to the runner's Google Chrome."
+          fi
 
       - name: Serve the build exactly as production does
         working-directory: .
@@ -280,6 +301,7 @@ jobs:
           cache-dependency-path: app/package-lock.json
 
       - run: npm ci
+        working-directory: app
 
       - uses: actions/download-artifact@v4
         with:

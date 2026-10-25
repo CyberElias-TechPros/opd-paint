@@ -37,7 +37,7 @@ server/data/*.jsonl  the enquiry log — the only thing that must be backed up
 | `OPD_LOG_FORMAT` | `json` when `NODE_ENV=production` | One JSON object per line, ready for any drain. |
 | `OPD_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. |
 | `OPD_RELEASE` | unset | Name attached to error reports; Vercel supplies the commit SHA automatically. |
-| `OPD_API_ORIGIN` | unset | Vercel only: where `api/[...path].js` forwards `/api/*`. |
+| `OPD_API_ORIGIN` | unset | Vercel only: where `app/api/[...path].js` forwards `/api/*`. |
 
 The behaviour behind these — what is written where, what to alert on, what to do
 when a lead was never announced — is in [operations.md](operations.md). The
@@ -95,6 +95,43 @@ If you would rather have one process and no nginx, run the service with
 `OPD_STATIC_DIR=/srv/opudas/app/dist` and let it serve everything. It already
 sets HSTS, CSP, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`
 and `Permissions-Policy`, caches hashed assets for a year and HTML not at all.
+
+## Option C — Vercel for the site, a container for the service
+
+Vercel can host the *site*. It cannot host the *service*, and the reason is
+worth stating: a serverless function has no durable filesystem, and the enquiry
+log is the one thing in this project that must survive. So the two are deployed
+separately, with one seam between them:
+
+```
+browser ──▶ Vercel (static build + /api/* proxy) ──▶ the enquiry service
+```
+
+**On Vercel:** the project's **Root Directory is `app`**. That is where
+`app/vercel.json` and `app/api/[...path].js` are read from — the platform does
+not look at the repository root for either. The config sets the build
+(`npm run build`), the output (`dist`), the security headers, immutable caching
+for hashed assets, and a revalidating policy for HTML and `sw.js`.
+
+Two environment variables are required in the Vercel project:
+
+| Variable | Value |
+| --- | --- |
+| `OPD_API_ORIGIN` | Where the enquiry service is reachable, e.g. `https://api.opudapaint.com`. No trailing slash needed. |
+| `VERCEL_GIT_COMMIT_SHA` | Provided by Vercel automatically; the build turns it into the release stamp that appears in error reports. |
+
+With `OPD_API_ORIGIN` unset the proxy answers `503` with a readable body and the
+form keeps the visitor's answers on their device and offers the phone number —
+a preview without a backend must not pretend to accept enquiries.
+
+Check it after deploying:
+
+```bash
+curl -sS https://<deployment>/api/health | jq
+```
+
+A `502` there means the proxy is fine and the origin is unreachable; a `503`
+means the variable is missing.
 
 ## Backups
 

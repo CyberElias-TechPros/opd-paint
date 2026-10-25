@@ -61,13 +61,19 @@ const describe = (violation) =>
     .join('\n') +
   (violation.nodes.length > 3 ? `\n  …and ${violation.nodes.length - 3} more` : '')
 
+// `chrome` drives the browser already installed on the machine, which is what
+// CI falls back to when the Playwright browser download fails. Anything else
+// means the pinned, downloaded Chromium.
+const CHANNEL = process.env.OPD_BROWSER_CHANNEL === 'chrome' ? 'chrome' : undefined
+
 async function main() {
   let browser
   try {
-    browser = await chromium.launch()
+    browser = await chromium.launch(CHANNEL ? { channel: CHANNEL } : {})
   } catch (error) {
     process.stderr.write(
-      '\nCould not launch Chromium. Install it with:\n\n  npx playwright install chromium\n\n' +
+      '\nCould not launch a browser. Install one with:\n\n  npx playwright install chromium\n\n' +
+        'Or point OPD_BROWSER_CHANNEL=chrome at a Chrome already on the machine.\n\n' +
         `${String(error).split('\n')[0]}\n`,
     )
     process.exit(2)
@@ -86,7 +92,7 @@ async function main() {
   })
   page.on('pageerror', (error) => consoleErrors.push(String(error)))
 
-  process.stdout.write(`\nAccessibility audit against ${BASE}\n\n`)
+  process.stdout.write(`\nAccessibility audit against ${BASE}${CHANNEL ? ` (${CHANNEL})` : ''}\n\n`)
 
   for (const entry of PAGES) {
     const response = await page.goto(`${BASE}${entry.path}`, { waitUntil: 'networkidle' })

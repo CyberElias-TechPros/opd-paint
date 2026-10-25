@@ -58,7 +58,7 @@ cd app && npm run check
   asserting an `<h1>`, no `undefined`/`NaN`/`[object Object]` in the markup, and
   no link to a route the app does not own.
 - `npm run test:server` — 39 tests: the HTTP contract above, the Vercel proxy
-  (`api/[...path].js`) against the real service, and the operational paths —
+  (`app/api/[...path].js`) against the real service, and the operational paths —
   notification delivery and retry, a dead webhook not failing an enquiry,
   error-report scrubbing, and the health check.
 - `npm run test:browser` — 7 tests in a jsdom DOM against a real enquiry service

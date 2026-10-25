@@ -2,7 +2,7 @@
  * Vercel proxy tests — run with `npm test`.
  *
  * The deployment splits the site (Vercel) from the enquiry service (a container
- * with a real volume), and `api/[...path].js` is the seam between them. A seam
+ * with a real volume), and `app/api/[...path].js` is the seam between them. A seam
  * nobody tests is where production breaks, so this drives the actual handler
  * against the actual service over real HTTP.
  *
@@ -23,7 +23,7 @@ process.env.OPD_DATA_DIR = dataDir
 // The module is loaded once; every test decides what OPD_API_ORIGIN is, because
 // the handler reads it per request.
 delete process.env.OPD_API_ORIGIN
-const proxy = require('../api/[...path].js')
+const { default: proxy } = await import('../app/api/[...path].js')
 
 const { createEnquiryServer } = await import('./index.mjs')
 

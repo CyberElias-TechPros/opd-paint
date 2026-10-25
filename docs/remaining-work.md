@@ -94,7 +94,7 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 
 | # | Item | Why it matters now |
 | --- | --- | --- |
-| 1 | ~~**The Vercel project is misconfigured.**~~ **Done.** `vercel.json` builds `app/`, outputs `app/dist`, serves `/api/*` from a dependency-free proxy function, and sets the security headers. | Needs one Vercel environment variable, `OPD_API_ORIGIN`, pointing at the enquiry service — and the service itself must be hosted somewhere. Until then the form fails honestly and keeps the answers on the device. |
+| 1 | ~~**The Vercel project is misconfigured.**~~ **Done.** `app/vercel.json` builds the app, publishes `dist`, serves `/api/*` from `app/api/[...path].js`, and sets the security headers. The project's Root Directory is `app`, which is where the platform looks for both. | Needs one Vercel environment variable, `OPD_API_ORIGIN`, pointing at the enquiry service — and the service itself must be hosted somewhere. Until then the form fails honestly and keeps the answers on the device. |
 | 2 | ~~**No enquiry notification.**~~ **Built**, not yet *switched on*. Webhook and Resend email channels, retries, an audit file and a startup warning when nothing is configured. | The channel credentials are not issued, so production still announces nothing until `OPD_NOTIFY_WEBHOOK` or `OPD_RESEND_API_KEY`/`OPD_NOTIFY_EMAIL`/`OPD_NOTIFY_FROM` are set. See `docs/operations.md`. |
 | 3 | ~~**No error monitoring.**~~ **Built**, both halves: browser reports to `/api/errors` (scrubbed, rate-limited, no PII), server faults logged structurally, optional Sentry forwarding. | A Sentry DSN (or a decision to rely on the JSONL and the log drain) is still a human step. |
 | 4 | ~~**Backups are never restored.**~~ **Done and drilled.** `tools/restore.sh` restores with traversal checks and quarantines damaged lines; `tools/verify-restore.sh` proves the whole round trip on every CI run. | Restoring a *real* archive quarterly remains a human habit, not a script. |
@@ -210,7 +210,7 @@ to hit a date — the README is explicit about that.
 **Stage 1 — Make the current build trustworthy — ✅ built, awaiting first CI run**
 Fix the Vercel configuration · enquiry notifications · error monitoring · restore
 test · dependency scanning · Lighthouse CI · axe · browser smoke tests.
-→ *Closes the G6 technical half.* Evidence: `vercel.json`, `api/[...path].js`,
+→ *Closes the G6 technical half.* Evidence: `app/vercel.json`, `app/api/[...path].js`,
 `server/{notify,errors,logger}.mjs`, `tools/{restore,verify-restore}.sh`,
 `app/scripts/{browser.test.tsx,a11y.mjs}`, `.lighthouserc.json`,
 `.gitleaks.toml`, `.github/dependabot.yml`, and six CI jobs.
