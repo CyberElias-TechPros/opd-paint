@@ -168,14 +168,20 @@ export default function Home() {
               </Reveal>
 
               <div
-                className="absolute -left-4 bottom-6 hidden w-[13.5rem] overflow-hidden rounded-sm border border-paper-2/60 shadow-[0_30px_60px_-30px_rgba(11,26,19,0.7)] sm:block"
+                className="absolute -left-4 bottom-6 hidden w-[13.5rem] sm:block"
                 style={{ transform: 'translate3d(0, calc(var(--hero-shift, 0) * -0.6px), 0)' }}
               >
-                <SmartImage name="product-matt-bucket" aspect={3 / 4} sizes="220px" />
-                <div className="bg-paper-2/95 px-2.5 py-2 backdrop-blur">
-                  <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-green">The pail</p>
-                  <p className="text-[0.74rem] font-semibold leading-tight">OPUDA&rsquo;S MATT · 20 L</p>
+                <div className="overflow-hidden rounded-sm border border-paper-2/60 shadow-[0_30px_60px_-30px_rgba(11,26,19,0.7)]">
+                  <Link to="/products/matt" className="block">
+                    <SmartImage name="product-matt-bucket" aspect={3 / 4} sizes="220px" />
+                  </Link>
+                  <div className="bg-paper-2/95 px-2.5 py-2 backdrop-blur">
+                    <p className="text-[0.62rem] font-bold uppercase tracking-[0.12em] text-green">The pail</p>
+                    <p className="text-[0.74rem] font-semibold leading-tight">OPUDA&rsquo;S MATT · 20 L</p>
+                  </div>
                 </div>
+                {/* the seal sits on the product, the way it is printed on it */}
+                <GuaranteeSeal className="pointer-events-none absolute -right-8 -top-9 w-[5.4rem] drop-shadow-[0_14px_22px_rgba(11,26,19,0.22)]" />
               </div>
 
               <div
@@ -209,8 +215,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* the guarantee seal, straight off the pail */}
-        <GuaranteeSeal className="pointer-events-none absolute right-3 top-16 hidden w-[7.5rem] drop-shadow-[0_18px_30px_rgba(11,26,19,0.16)] lg:block xl:right-8 xl:w-[8.5rem]" />
       </section>
 
       {/* ============================================================ RIBBON */}
