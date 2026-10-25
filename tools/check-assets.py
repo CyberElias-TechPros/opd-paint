@@ -70,6 +70,24 @@ def committed_bytes(path: str) -> bytes | None:
     return result.stdout if result.returncode == 0 else None
 
 
+def differing_region(worst: "Image.Image") -> str:
+    """Where the difference lives, in per-cent of the card, plus its mean."""
+    mask = worst.point(lambda level: 255 if level > JPEG_HEAVY_LEVEL else 0)
+    box = mask.getbbox()
+    if not box:
+        return "no region above the threshold"
+    left, top, right, bottom = box
+    inner = worst.crop(box)
+    histogram = inner.histogram()
+    pixels = max(1, inner.width * inner.height)
+    mean = sum(i * c for i, c in enumerate(histogram)) / pixels
+    return (
+        f"region x {left / worst.width:.0%}-{right / worst.width:.0%}, "
+        f"y {top / worst.height:.0%}-{bottom / worst.height:.0%} "
+        f"(mean {mean:.1f} inside it)"
+    )
+
+
 def jpeg_delta(a: bytes, b: bytes) -> tuple[float, float, str]:
     """Mean channel difference and per-cent of pixels that moved a lot."""
     left = Image.open(BytesIO(a)).convert("RGB")
@@ -85,7 +103,7 @@ def jpeg_delta(a: bytes, b: bytes) -> tuple[float, float, str]:
 
     mean_delta = sum(index * count for index, count in enumerate(histogram)) / pixels
     heavy = sum(histogram[JPEG_HEAVY_LEVEL + 1 :]) / pixels * 100
-    return mean_delta, heavy, ""
+    return mean_delta, heavy, differing_region(worst)
 
 
 def compare(path: str) -> str | None:
@@ -103,9 +121,9 @@ def compare(path: str) -> str | None:
         return None
 
     if path.lower().endswith((".jpg", ".jpeg")):
-        mean_delta, heavy, note = jpeg_delta(old, new)
-        if note:
-            return f"{path}: {note}"
+        mean_delta, heavy, region = jpeg_delta(old, new)
+        if region.startswith("size "):
+            return f"{path}: {region}"
         if mean_delta <= JPEG_MAX_MEAN_DELTA and heavy <= JPEG_MAX_HEAVY_FRACTION:
             print(
                 f"  ~ {path}: same picture, re-encoded "
@@ -114,7 +132,7 @@ def compare(path: str) -> str | None:
             return None
         return (
             f"{path}: pixels differ (mean {mean_delta:.3f}, heavy {heavy:.3f}%) "
-            "— the artwork changed, commit it"
+            f"in {region} — the artwork changed, commit it"
         )
 
     return f"{path}: {len(old)} -> {len(new)} bytes"

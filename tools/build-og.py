@@ -38,6 +38,13 @@ LETTER_COLOURS = [(193, 18, 31), (12, 107, 69), (31, 111, 178), (108, 63, 164), 
 # Six colours that read as a range: white, stone, sand, sage, blue, clay.
 CHIPS = ["#F8F5EE", "#EBE4D5", "#C9B394", "#6E7F63", "#2F7FA8", "#B4654A"]
 
+# Pin the text layout engine, because it changes every measurement this script
+# takes. `fitted()` shrinks the headline until it fits, and `tracked()` spaces
+# the wordmark by measured width, so a machine with HarfBuzz (raqm) bundled into
+# Pillow lays the card out differently from one without — same code, same fonts,
+# different picture. BASIC shaping has no kerning but is identical everywhere.
+LAYOUT = ImageFont.Layout.BASIC
+
 _cache: dict[tuple[str, int, int | None], ImageFont.FreeTypeFont] = {}
 
 
@@ -60,9 +67,9 @@ def load(spec: Path, size: int, weight: int | None = None) -> ImageFont.FreeType
         buffer = BytesIO()
         font.save(buffer)
         buffer.seek(0)
-        loaded = ImageFont.truetype(buffer, size)
+        loaded = ImageFont.truetype(buffer, size, layout_engine=LAYOUT)
     else:
-        loaded = ImageFont.truetype(str(spec), size)
+        loaded = ImageFont.truetype(str(spec), size, layout_engine=LAYOUT)
 
     if weight is not None:
         try:
