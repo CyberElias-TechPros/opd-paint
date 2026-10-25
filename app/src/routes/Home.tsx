@@ -511,7 +511,7 @@ export default function Home() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent lg:bg-gradient-to-r" />
               <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-paper-2/90 px-3 py-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-ink">
-                <Sun className="size-3.5" aria-hidden /> Same room, sixty colours
+                <Sun className="size-3.5" aria-hidden /> Same room, {COLORS.length} colours
               </div>
             </div>
             <div className="flex flex-col justify-center gap-5 p-7 sm:p-10">
@@ -746,7 +746,7 @@ export default function Home() {
           <div>
             <Kicker className="mb-3">The library</Kicker>
             <h2 id="explore-title" className="display text-[clamp(1.7rem,3.2vw,2.5rem)]">
-              Six of sixty. The rest are in the library.
+              Six of {COLORS.length}. The rest are in the library.
             </h2>
           </div>
           <ArrowLink to="/colours">Open the colour library</ArrowLink>
