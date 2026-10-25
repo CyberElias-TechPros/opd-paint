@@ -131,6 +131,21 @@ for (const { pattern, url, Page } of pages) {
     html = html.replace('</head>', `    ${ld}\n  </head>`)
   }
 
+  // The home page opens with the finished-villa photograph; telling the browser
+  // about it before the JavaScript parses is worth roughly a second of LCP on a
+  // Nigerian mobile connection. Other routes get no preload because they do not
+  // use this image.
+  if (url === '/') {
+    html = html.replace(
+      '</head>',
+      [
+        '    <link rel="preload" as="image" href="/media/project-finished-villa.webp" media="(min-width: 721px)" fetchpriority="high" />',
+        '    <link rel="preload" as="image" href="/media/project-finished-villa-640.webp" media="(max-width: 720px)" fetchpriority="high" />',
+        '  </head>',
+      ].join('\n'),
+    )
+  }
+
   // `/` stays dist/index.html; everything else gets its own directory.
   const file = url === '/' ? join(DIST, 'index.html') : join(DIST, url.replace(/^\//, ''), 'index.html')
   mkdirSync(dirname(file), { recursive: true })

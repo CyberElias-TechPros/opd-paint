@@ -65,14 +65,15 @@ export default function Products() {
             </div>
             <dl className="grid grid-cols-3 gap-3">
               {[
-                { icon: ShieldCheck, k: 'Guarantee', v: '5 yr' },
-                { icon: Droplet, k: 'Max coverage', v: '13 m²/L' },
-                { icon: Timer, k: 'Recoat', v: '3 hrs' },
+                { icon: ShieldCheck, k: 'Guarantee', v: '5 yr', d: 'Matt & Silk' },
+                { icon: Droplet, k: 'Coverage', v: '13 m²/L', d: 'Gloss, per coat' },
+                { icon: Timer, k: 'Recoat', v: '3 hrs', d: 'Matt at 25°C' },
               ].map((item) => (
                 <div key={item.k} className="rounded-sm border border-ink/12 bg-paper-2/70 p-3">
                   <item.icon className="size-4 text-green" aria-hidden />
                   <dt className="mt-2 text-[0.6rem] font-bold uppercase tracking-[0.12em] text-ink/60">{item.k}</dt>
                   <dd className="font-[var(--font-display)] text-[1.15rem] leading-none">{item.v}</dd>
+                  <dd className="mt-1 text-[0.6rem] leading-tight text-ink/60">{item.d}</dd>
                 </div>
               ))}
             </dl>

@@ -56,7 +56,7 @@ const DOMAINS: Array<{
     domain: 'Dealer network',
     source: 'Commercial team trading areas',
     status: 'pending',
-    note: 'Nine of fourteen entries are awaiting stock and hours confirmation and render with a “call ahead” note.',
+    note: `${String(DEALERS.filter((dealer) => !dealer.verified).length)} of ${String(DEALERS.length)} entries are awaiting stock and hours confirmation and render with a “call ahead” note.`,
   },
   {
     domain: 'Project photography',
