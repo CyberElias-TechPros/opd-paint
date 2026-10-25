@@ -16,7 +16,7 @@ const DOCS: Doc[] = [
   {
     slug: 'privacy',
     title: 'Privacy notice',
-    updated: '2026-09-01',
+    updated: '2026-10-26',
     intro:
       'This notice explains what OPUDA’S PAINT collects through this website, why, and what you can ask us to do about it. It is written to be read, not to be survived.',
     sections: [
@@ -34,6 +34,13 @@ const DOCS: Doc[] = [
         body: [
           'Analytics is off by default. Nothing is measured until you accept measurement in the cookie panel. If you decline, the site works identically and no measurement events are sent.',
           'When measurement is enabled we record page views and interaction events such as opening a colour, saving a colour, or completing the calculator. Events carry the colour or product reference and nothing that identifies you — no name, no email, no phone number, no free text.',
+        ],
+      },
+      {
+        heading: 'Fault reports',
+        body: [
+          'When a page breaks, your browser sends us a technical report so we can fix it: the error message, the page it happened on (without the part after the ? in the address), which version of the site it was, and your browser’s name. These reports are diagnostics, not measurement — they are sent whether or not you accept analytics, because there is no way to keep a broken page working otherwise.',
+          'A fault report contains no name, no email address, no phone number and no form contents. Email addresses and long digit strings are stripped out before the report is stored, and reports are deleted with the rest of our server logs.',
         ],
       },
       {

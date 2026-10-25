@@ -8,6 +8,8 @@ import { ProjectBoard } from './components/layout/ProjectBoard'
 import { ConsentBar } from './components/layout/ConsentBar'
 import { SearchPalette } from './components/search/SearchPalette'
 import { track } from './lib/analytics'
+import { reportBoundaryError } from './lib/telemetry'
+import type { ErrorInfo as ReactErrorInfo } from 'react'
 import { ButtonLink } from './components/ui/Button'
 
 import { lazy, Suspense } from 'react'
@@ -42,9 +44,12 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
     return { error }
   }
 
-  componentDidCatch(error: Error) {
-    // In production this is where the error reporter attaches (roadmap 17.03.02).
-    console.error('[boundary]', error)
+  componentDidCatch(error: Error, info: ReactErrorInfo) {
+    // The boundary is the one place that knows a *page* failed, as distinct
+    // from a request failing. It reports with the component stack, which is
+    // what makes a production crash reproducible.
+    reportBoundaryError(error, info.componentStack ?? error.stack)
+    if (import.meta.env.DEV) console.error('[boundary]', error)
   }
 
   render() {

@@ -330,12 +330,14 @@ export default function Quote() {
             </p>
           )}
 
-          <Field label="Consent" required error={errors.consent}>
+          <Field label="Consent" required error={errors.consent} labelAs="span">
             {({ id, describedBy, invalid }) => (
-              <div aria-invalid={invalid} aria-describedby={describedBy}>
+              <div>
                 <Checkbox
                   id={id}
                   name="consent"
+                  aria-invalid={invalid}
+                  aria-describedby={describedBy}
                   label={
                     <>
                       I agree that OPUDA’S PAINT may use these details to reply to my enquiry, as described in the{' '}

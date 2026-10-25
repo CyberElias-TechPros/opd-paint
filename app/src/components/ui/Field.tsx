@@ -7,10 +7,16 @@ type WrapProps = {
   error?: string
   required?: boolean
   className?: string
+  /**
+   * A checkbox or radio set is already labelled by its own `<label>`. Rendering
+   * a second `<label for>` there gives the control two labels and a doubled
+   * accessible name, so those callers ask for a plain `span` heading instead.
+   */
+  labelAs?: 'label' | 'span'
   children: (props: { id: string; describedBy?: string; invalid: boolean }) => ReactNode
 }
 
-export function Field({ label, hint, error, required, className, children }: WrapProps) {
+export function Field({ label, hint, error, required, className, labelAs = 'label', children }: WrapProps) {
   const id = useId()
   const hintId = hint ? `${id}-hint` : undefined
   const errorId = error ? `${id}-error` : undefined
@@ -18,16 +24,28 @@ export function Field({ label, hint, error, required, className, children }: Wra
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <label htmlFor={id} className="text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink/60">
-        {label}
-        {required ? (
-          <span className="ml-1 text-crimson" aria-hidden>
-            *
-          </span>
+      {(() => {
+        const heading = (
+          <>
+            {label}
+            {required ? (
+              <span className="ml-1 text-crimson" aria-hidden>
+                *
+              </span>
+            ) : (
+              <span className="ml-1.5 font-medium normal-case tracking-normal text-ink/60">optional</span>
+            )}
+          </>
+        )
+        const className = 'text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink/60'
+        return labelAs === 'label' ? (
+          <label htmlFor={id} className={className}>
+            {heading}
+          </label>
         ) : (
-          <span className="ml-1.5 font-medium normal-case tracking-normal text-ink/60">optional</span>
-        )}
-      </label>
+          <span className={className}>{heading}</span>
+        )
+      })()}
       {children({ id, describedBy, invalid: Boolean(error) })}
       {hint && !error ? (
         <p id={hintId} className="text-[0.76rem] leading-relaxed text-ink/60">
@@ -71,16 +89,21 @@ export function Checkbox({
   label,
   description,
   className,
+  id: providedId,
   ...rest
 }: ComponentPropsWithoutRef<'input'> & { label: ReactNode; description?: ReactNode }) {
-  const id = useId()
+  // The id has to be the same one the label points at. Taking the generated id
+  // and then letting `...rest` overwrite it on the input detached the label
+  // from its checkbox — a screen reader read the consent text as loose prose.
+  const generatedId = useId()
+  const id = providedId ?? generatedId
   return (
     <div className={cn('flex items-start gap-3', className)}>
       <input
-        id={id}
         type="checkbox"
         className="mt-1 size-4 shrink-0 cursor-pointer accent-[var(--color-green)]"
         {...rest}
+        id={id}
       />
       <label htmlFor={id} className="cursor-pointer text-[0.84rem] leading-relaxed text-ink/75">
         {label}
