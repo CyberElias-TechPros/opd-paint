@@ -13,11 +13,31 @@ page say so, because a printed chip from a hex value is still not a paint chip.
 Run:  python3 tools/build-fandeck.py   (needs fpdf2, fonttools, brotli)
 """
 import re
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from fpdf import FPDF
+
+import os
+from datetime import datetime, timezone
+
+# --------------------------------------------------------------------------
+# Reproducible output.
+#
+# fpdf2 stamps every PDF with the current time and derives the file's /ID from
+# it, so building twice from identical source produces two different files.
+# That is harmless on a desk and poisonous in CI, where the check "the
+# committed documents match their source" can then never pass. Pin the
+# timestamp instead; SOURCE_DATE_EPOCH overrides it if a release needs a real
+# date (see reproducible-builds.org).
+# --------------------------------------------------------------------------
+def build_time() -> datetime:
+    epoch = os.environ.get("SOURCE_DATE_EPOCH")
+    if epoch:
+        return datetime.fromtimestamp(int(epoch), tz=timezone.utc)
+    return datetime(2026, 10, 1, tzinfo=timezone.utc)
+
 
 ROOT = Path(__file__).resolve().parent.parent
 COLORS_TS = ROOT / "app" / "src" / "data" / "colors.ts"
@@ -79,8 +99,16 @@ def export_fonts(directory: Path) -> dict[str, Path]:
 
     produced = {}
 
+    # fontTools stamps `head.modified` with the current time on every save, which
+    # would change the embedded font stream — and therefore the PDF — on every
+    # build. The download timestamp means nothing for a print deck.
+    # `head.modified` counts seconds from 1904-01-01, the fontTools epoch.
+    FIXED = int((build_time() - datetime(1904, 1, 1, tzinfo=timezone.utc)).total_seconds())
+
     serif = TTFont(SERIF)
     serif.flavor = None
+    serif.recalcTimestamp = False
+    serif["head"].modified = FIXED
     produced["serif"] = directory / "InstrumentSerif.ttf"
     serif.save(produced["serif"])
 
@@ -88,6 +116,8 @@ def export_fonts(directory: Path) -> dict[str, Path]:
         font = TTFont(SANS)
         font.flavor = None
         instance = instantiateVariableFont(font, {"wght": weight})
+        instance.recalcTimestamp = False
+        instance["head"].modified = FIXED
         path = directory / f"Archivo-{weight}.ttf"
         instance.save(path)
         produced[name] = path
@@ -105,7 +135,7 @@ class Deck(FPDF):
         self.set_font("Sans", "B", 8)
         self.set_xy(14, 5.5)
         self.cell(120, 5, "OPUDA'S PAINT  ·  COLOUR LIBRARY", align="L")
-        self.cell(0, 5, f"{date.today():%B %Y}", align="R")
+        self.cell(0, 5, f"{build_time():%B %Y}", align="R")
         self.set_text_color(*INK)
 
     def footer(self):
@@ -171,7 +201,7 @@ def cover(pdf: Deck, colours: list[dict], fonts: dict[str, Path]) -> None:
     pdf.cell(0, 5, "0902 642 4350", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Sans", "", 8)
     pdf.set_text_color(*MOSS)
-    pdf.cell(0, 4, "Revision " + date.today().strftime("%Y-%m"), new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 4, "Revision " + build_time().strftime("%Y-%m"), new_x="LMARGIN", new_y="NEXT")
 
 
 def how_to_use(pdf: Deck) -> None:
@@ -285,6 +315,7 @@ def main() -> None:
     with TemporaryDirectory() as tmp:
         fonts = export_fonts(Path(tmp))
         pdf = Deck(format="A4")
+        pdf.set_creation_date(build_time())
         pdf.set_auto_page_break(False)
         pdf.set_margins(14, 14, 14)
         pdf.add_font("Serif", "", str(fonts["serif"]))

@@ -13,6 +13,26 @@ from pathlib import Path
 
 from fpdf import FPDF
 
+import os
+from datetime import datetime, timezone
+
+# --------------------------------------------------------------------------
+# Reproducible output.
+#
+# fpdf2 stamps every PDF with the current time and derives the file's /ID from
+# it, so building twice from identical source produces two different files.
+# That is harmless on a desk and poisonous in CI, where the check "the
+# committed documents match their source" can then never pass. Pin the
+# timestamp instead; SOURCE_DATE_EPOCH overrides it if a release needs a real
+# date (see reproducible-builds.org).
+# --------------------------------------------------------------------------
+def build_time() -> datetime:
+    epoch = os.environ.get("SOURCE_DATE_EPOCH")
+    if epoch:
+        return datetime.fromtimestamp(int(epoch), tz=timezone.utc)
+    return datetime(2026, 10, 1, tzinfo=timezone.utc)
+
+
 OUT = Path(__file__).resolve().parent.parent / "app" / "public" / "documents"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -304,6 +324,7 @@ class Sheet(FPDF):
 
 def tds(key: str, product: dict) -> None:
     pdf = Sheet(format="A4")
+    pdf.set_creation_date(build_time())
     pdf.set_auto_page_break(auto=True, margin=20)
     pdf.add_page()
     pdf.h1(f"Technical Data Sheet\n{product['name']}")
@@ -362,6 +383,7 @@ def tds(key: str, product: dict) -> None:
 
 def sds(key: str, product: dict) -> None:
     pdf = Sheet(format="A4")
+    pdf.set_creation_date(build_time())
     pdf.set_auto_page_break(auto=True, margin=20)
     pdf.add_page()
     pdf.h1(f"Safety Data Sheet\n{product['name']}")
