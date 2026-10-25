@@ -106,7 +106,7 @@ export function ProjectBoard() {
               value={board.boardName}
               onChange={(event) => renameBoard(event.target.value)}
               aria-label="Project name"
-              className="mt-2 w-full border-b border-transparent bg-transparent pb-1 font-[var(--font-display)] text-2xl font-medium tracking-[-0.02em] outline-none transition-colors hover:border-ink/20 focus:border-green"
+              className="mt-2 w-full border-b border-transparent bg-transparent pb-1 font-[var(--font-display)] text-2xl font-medium tracking-[-0.02em] transition-colors hover:border-ink/20 focus:border-green"
             />
             <p className="mt-1.5 text-[0.74rem] text-ink/60">
               Saved on this device · {colours.length} colour{colours.length === 1 ? '' : 's'} ·{' '}

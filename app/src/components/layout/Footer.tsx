@@ -148,7 +148,7 @@ export function Footer() {
                 aria-invalid={Boolean(error)}
                 aria-describedby={error ? 'footer-email-error' : 'footer-email-note'}
                 className={cn(
-                  'min-h-11 flex-1 rounded-[3px] border bg-paper-2/5 px-3.5 py-2.5 text-[0.88rem] text-paper-2 placeholder:text-paper-2/65 focus:outline-none focus:ring-2 focus:ring-green-bright/60',
+                  'min-h-11 flex-1 rounded-[3px] border bg-paper-2/5 px-3.5 py-2.5 text-[0.88rem] text-paper-2 placeholder:text-paper-2/65 focus:ring-2 focus:ring-green-bright focus:ring-offset-2 focus:ring-offset-green-deep',
                   error ? 'border-crimson' : 'border-paper-2/20',
                 )}
               />
