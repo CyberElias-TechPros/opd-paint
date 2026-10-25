@@ -151,9 +151,11 @@ jobs:
   security:
     name: Dependencies and secrets
     runs-on: ubuntu-latest
+    # A security failure is the one a reviewer most needs spelled out, and the
+    # job log is not readable from everywhere. The findings go on the PR.
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -170,7 +172,28 @@ jobs:
         working-directory: app
 
       - name: No high or critical advisories in what actually ships
-        run: npm audit --omit=dev --audit-level=high
+        run: |
+          set +e
+          npm audit --omit=dev --audit-level=high > /tmp/audit-prod.txt 2>&1
+          status=$?
+          cat /tmp/audit-prod.txt
+          exit $status
+
+      - name: Post the advisories to the pull request
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo '### Dependency advisories'
+            echo
+            echo 'High or critical advisories affect a dependency the site actually ships.'
+            echo
+            echo '```'
+            cat /tmp/audit-prod.txt
+            echo '```'
+          } > /tmp/audit-report.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/audit-report.md
 
       - name: Full advisory report (informational)
         working-directory: app
@@ -224,6 +247,9 @@ jobs:
     name: Accessibility — axe on real Chromium
     runs-on: ubuntu-latest
     needs: web
+    permissions:
+      contents: read
+      pull-requests: write
     defaults:
       run:
         working-directory: app
@@ -279,6 +305,15 @@ jobs:
 
       - name: axe, keyboard, reduced motion, 360px
         run: npm run test:a11y
+
+      - name: Post the audit to the pull request
+        if: failure() && github.event_name == 'pull_request'
+        working-directory: app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/a11y-report.mjs reports/a11y.json > /tmp/a11y-report.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/a11y-report.md
 
       - uses: actions/upload-artifact@v4
         if: always()
