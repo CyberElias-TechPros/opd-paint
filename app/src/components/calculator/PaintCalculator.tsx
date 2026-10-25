@@ -392,7 +392,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
               <div className="rounded-[3px] bg-paper-2/8 px-3 py-3">
                 <div className="flex items-baseline justify-between">
                   <span className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-paper-2/70">Guide total</span>
-                  <span className="tabular font-[var(--font-display)] text-2xl">{cost != null ? naira(cost) : 'On request'}</span>
+                  <span className="tabular font-sans text-[1.5rem] font-extrabold tracking-[-0.03em]">{cost != null ? naira(cost) : 'On request'}</span>
                 </div>
                 <p className="mt-1 text-[0.68rem] leading-relaxed text-paper-2/65">
                   Indicative Lagos retail guide, excluding VAT and delivery. A quotation from your dealer may differ and

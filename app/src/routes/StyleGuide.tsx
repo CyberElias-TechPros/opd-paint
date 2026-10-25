@@ -72,7 +72,7 @@ export default function StyleGuide() {
         </section>
 
         <section aria-labelledby="type-title">
-          <SectionHead kicker="02 — Typography" title={<span id="type-title">Fraunces &amp; Manrope</span>} lede="Fraunces carries the editorial voice with its variable optical size and soft terminals. Manrope handles the interface: labels, tables, forms and numerals." />
+          <SectionHead kicker="02 — Typography" title={<span id="type-title">Instrument Serif &amp; Archivo</span>} lede="Two voices, both taken from the product. Instrument Serif is the catalogue voice — a tight, high-contrast display face with a real italic, set large and close. Archivo is the tin voice — the signage grotesque that matches the lettering on the pail, carrying labels, tables, forms and every numeral." />
           <div className="mt-6 divide-y divide-ink/10 rounded-sm border border-ink/12">
             {TYPE_SCALE.map((item) => (
               <div key={item.label} className="grid gap-2 p-4 sm:grid-cols-[10rem_1fr]">

@@ -6,7 +6,7 @@ type Variant = 'solid' | 'ink' | 'outline' | 'ghost' | 'paper' | 'crimson'
 type Size = 'sm' | 'md' | 'lg'
 
 const base =
-  'group/btn relative inline-flex items-center justify-center gap-2 font-semibold tracking-[0.01em] ' +
+  'group/btn relative inline-flex items-center justify-center gap-2 font-semibold tracking-[0.005em] ' +
   'transition-[transform,background-color,color,border-color,box-shadow] duration-300 ease-[var(--ease-out-quint)] ' +
   'disabled:pointer-events-none disabled:opacity-45 rounded-[3px] select-none'
 

@@ -29,8 +29,13 @@
      to a low-vision user looking for where to type. */
   --color-line-strong: #8a8478;
 
-  --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
-  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+  /* The catalogue voice: a display serif with a genuine italic. Only a 400
+     weight exists, which is the point — headings get their presence from size
+     and tight setting, not from fake bold. */
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  /* The tin voice: Archivo's heavy caps are the closest match to the lettering
+     printed on the pail, and it stays legible at 11px in a table. */
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
 
   --text-2xs: 0.6875rem;
   --text-display: clamp(2.75rem, 8.5vw, 7.5rem);
@@ -71,6 +76,7 @@
     font-family: var(--font-sans);
     font-size: 1rem;
     line-height: 1.6;
+    letter-spacing: 0.002em;
     font-synthesis-weight: none;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -82,9 +88,10 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    font-weight: 500;
-    letter-spacing: -0.022em;
-    line-height: 1.02;
+    font-weight: 400;
+    font-kerning: normal;
+    letter-spacing: -0.008em;
+    line-height: 1.0;
     text-wrap: balance;
     margin: 0;
   }
@@ -153,18 +160,19 @@
 
 @utility kicker {
   font-family: var(--font-sans);
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 800;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   line-height: 1;
+  font-feature-settings: 'ss02' 1;
 }
 
 @utility display {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
-  font-weight: 500;
-  letter-spacing: -0.03em;
+  font-weight: 400;
+  font-kerning: normal;
+  letter-spacing: -0.012em;
   line-height: 0.94;
 }
 

@@ -4,11 +4,11 @@ import { cn } from '../../lib/cn'
 /**
  * Brand marks.
  *
- * The label artwork supplied by the company uses a house-and-brush device with
- * a deep green wordmark and five coloured letters in "PAINT". The mark and the
- * wordmark here are redrawn as vectors — no raster logo is upscaled, and the
- * lockup stays crisp at every size. The five letter colours are brand-critical
- * and are referenced from a single place.
+ * Redrawn from the pail label: the house device, the deep green wordmark and the
+ * five coloured letters of "PAINT". The wordmark is set in Archivo at its heavy
+ * end with tight tracking, because that is what the printed label does — a
+ * serif here would look like a different company. Everything is vector, so the
+ * lockup holds at 32px in the header and on an A0 banner alike.
  */
 
 const LETTER_COLOURS = ['#C1121F', '#0C6B45', '#1F6FB2', '#6C3FA4', '#EE6C22']
@@ -33,13 +33,13 @@ export function Wordmark({ className, tone = 'ink' }: { className?: string; tone
     <span className={cn('flex flex-col leading-none', className)}>
       <span
         className={cn(
-          'display text-[1.18rem] font-semibold leading-none tracking-[-0.03em] sm:text-[1.32rem]',
+          'font-sans text-[1.02rem] font-extrabold uppercase leading-none tracking-[-0.015em] sm:text-[1.12rem]',
           tone === 'ink' ? 'text-green' : 'text-paper-2',
         )}
       >
         OPUDA&rsquo;S
       </span>
-      <span className="mt-[3px] flex text-[0.72rem] font-extrabold leading-none tracking-[0.42em]">
+      <span className="mt-[5px] flex font-sans text-[0.66rem] font-extrabold leading-none tracking-[0.44em]">
         {PAINT_LETTERS.map((letter, index) => (
           <span key={letter} style={{ color: LETTER_COLOURS[index] }} aria-hidden>
             {letter}

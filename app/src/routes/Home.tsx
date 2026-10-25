@@ -147,7 +147,7 @@ export default function Home() {
                 { value: `${STATES.length}`, label: 'States with a dealer' },
               ].map((stat) => (
                 <div key={stat.label}>
-                  <dt className="tabular font-[var(--font-display)] text-[1.7rem] leading-none">{stat.value}</dt>
+                  <dt className="tabular font-sans text-[1.55rem] font-extrabold leading-none tracking-[-0.03em]">{stat.value}</dt>
                   <dd className="mt-1.5 text-[0.7rem] leading-snug text-ink/60">{stat.label}</dd>
                 </div>
               ))}

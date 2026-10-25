@@ -14,7 +14,7 @@ const NAV = [
   { to: '/room-preview', label: 'Room preview', note: 'Paint your own wall' },
   { to: '/inspiration', label: 'Inspiration', note: 'Real OPUDA’S sites' },
   { to: '/advice', label: 'Advice', note: 'Preparation and application' },
-  { to: '/dealers', label: 'Where to buy', note: 'Dealers across Nigeria' },
+  { to: '/dealers', label: 'Dealers', note: 'Counters across Nigeria' },
 ]
 
 export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
@@ -115,7 +115,7 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
                     to={item.to}
                     className={({ isActive }) =>
                       cn(
-                        'relative block rounded-sm px-3 py-2 text-[0.84rem] font-semibold transition-colors',
+                        'relative block rounded-sm px-2.5 py-2 text-[0.72rem] font-bold uppercase tracking-[0.08em] transition-colors',
                         isActive ? 'text-green' : 'text-ink/75 hover:text-ink',
                       )
                     }
@@ -239,7 +239,7 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
                         <span className="tabular text-[0.6rem] font-bold text-ink/60">
                           {String(index + 1).padStart(2, '0')}
                         </span>
-                        <span className="display text-[1.35rem]">{item.label}</span>
+                        <span className="display text-[1.5rem]">{item.label}</span>
                       </span>
                       <span className="mt-0.5 block pl-6 text-[0.75rem] text-ink/60">{item.note}</span>
                     </span>

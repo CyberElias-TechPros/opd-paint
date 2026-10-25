@@ -1,7 +1,15 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@fontsource-variable/fraunces/wght.css'
-import '@fontsource-variable/manrope/wght.css'
+// Two voices, both drawn from the product itself:
+//   Instrument Serif — the catalogue voice. A tight, high-contrast display
+//     serif with a real italic, set large and close. It reads like a printed
+//     colour card, not a dashboard.
+//   Archivo — the tin voice. A signage grotesque whose heavy caps match the
+//     lettering on the pail; it carries labels, tables, forms and numbers.
+// Subsets are declared per file, so only latin and latin-ext are ever fetched.
+import '@fontsource/instrument-serif/400.css'
+import '@fontsource/instrument-serif/400-italic.css'
+import '@fontsource-variable/archivo/wght.css'
 import './styles/theme.css'
 import { App } from './App'
 
