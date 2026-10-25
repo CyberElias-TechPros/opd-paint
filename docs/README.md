@@ -11,6 +11,7 @@ still a placeholder.
 | [content-editing.md](content-editing.md) | You need to add a colour, product, guide, dealer or project — without touching React. |
 | [qa-checklist.md](qa-checklist.md) | You are reviewing a release against the README's gates, or you need to know what is *not* real yet. |
 | [deploying.md](deploying.md) | You are putting it on a server: Docker, systemd, nginx, env vars, backups, monitoring, post-deploy smoke test. |
+| [remaining-work.md](remaining-work.md) | You are planning what is left: a gate-by-gate gap analysis against the root README roadmap, with the business blockers named. |
 
 ## Layout
 
