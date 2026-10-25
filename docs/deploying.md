@@ -31,6 +31,18 @@ server/data/*.jsonl  the enquiry log — the only thing that must be backed up
 | `OPD_STATIC_DIR` | unset | Set it and the service also serves the built site, including the client-side routes and the security headers. |
 | `OPD_ADMIN_USER` | unset | Enables the inbox. |
 | `OPD_ADMIN_PASSWORD` | unset | Enables the inbox. Use a long random string — it is compared in constant time, not hashed on disk, so treat it like a password for a bank account. |
+| `OPD_NOTIFY_WEBHOOK` | unset | Any JSON-POST endpoint — Slack, Teams, Zapier, Make. Without it (or email) enquiries arrive silently; the service warns at startup. |
+| `OPD_RESEND_API_KEY`, `OPD_NOTIFY_EMAIL`, `OPD_NOTIFY_FROM` | unset | Transactional email via Resend. All three are needed for email to be attempted. |
+| `OPD_SENTRY_DSN` | unset | Forwards browser and server errors to Sentry using `fetch`. Optional: errors are written to `errors.jsonl` either way. |
+| `OPD_LOG_FORMAT` | `json` when `NODE_ENV=production` | One JSON object per line, ready for any drain. |
+| `OPD_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. |
+| `OPD_RELEASE` | unset | Name attached to error reports; Vercel supplies the commit SHA automatically. |
+| `OPD_API_ORIGIN` | unset | Vercel only: where `api/[...path].js` forwards `/api/*`. |
+
+The behaviour behind these — what is written where, what to alert on, what to do
+when a lead was never announced — is in [operations.md](operations.md). The
+short version: **configure a notification channel before launch.** An enquiry
+that is stored but never announced is a lead lost politely.
 
 If either admin variable is missing, `/admin` returns **404**, not 401. An
 unconfigured inbox is invisible rather than merely locked, which is the safer
@@ -101,6 +113,41 @@ The archive contains names, phone numbers and site addresses. It is personal
 data: store it encrypted and off the host (an object store with server-side
 encryption is enough), and delete it on the same schedule you promise in
 `/legal/privacy`.
+
+### Restoring
+
+```bash
+./tools/restore.sh /var/backups/opudas/opudas-enquiries-20261026T021500Z.tar.gz /srv/opudas/data
+```
+
+It verifies the archive is readable and contains no traversal paths, restores
+records in order, quarantines any damaged line into a `.damaged-<stamp>` sidecar
+rather than refusing the archive or dropping data, refuses to overwrite a live
+directory without `--force`, and prints the record count and the date range so
+the restore can be reconciled against the archive.
+
+### Proving it works
+
+```bash
+bash tools/verify-restore.sh
+```
+
+Runs the real backup and restore against throwaway data — including a truncated
+final line, a non-archive, an archive with `../../` members, and a check that the
+service serves exactly the restored records. It runs in CI on every push. Do it
+quarterly against a real archive too: restore into a scratch directory and
+reconcile the count. A backup nobody has restored is a hypothesis.
+
+### After a deploy
+
+```bash
+curl -fsS https://opudapaint.com/api/health | jq
+```
+
+Expect `storage: "ready"`, `notifications` to list the channels you configured,
+`inbox: true`, and `damagedRecords: 0`. Then submit one real enquiry from a
+phone, confirm it arrives in the channel, and delete it from `quotes.jsonl`
+afterwards if you do not want it in the log.
 
 Every record carries a `receivedAt`, so pruning is a filter rather than a
 schema change:

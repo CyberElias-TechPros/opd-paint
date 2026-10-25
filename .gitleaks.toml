@@ -1,0 +1,35 @@
+# Secret scanning configuration.
+#
+# The default rule set is kept — it knows what an AWS key, a Stripe key and a
+# private key look like far better than anything hand-written here — and a small
+# allowlist covers the strings that are deliberately, obviously not secrets.
+#
+# The repository is public and the enquiry service reads its credentials from
+# the environment only. If a rule ever fires, the fix is to rotate the value and
+# remove it, never to add it to this file.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Test fixtures, documentation examples and drill passwords — none of these are live credentials"
+paths = [
+  '''server/.*\.test\.mjs''',
+  '''tools/verify-restore\.sh''',
+  '''docs/.*\.md''',
+  '''README\.md''',
+  '''app/scripts/.*\.test\.tsx''',
+]
+regexes = [
+  # The deliberately weak credentials used by the test suite and the drills.
+  '''correct horse battery''',
+  '''restore-drill''',
+  '''OPD_ADMIN_PASSWORD=(desk|test|password)''',
+  # Placeholder phone numbers and the published business line.
+  '''0[789]0\d\s?\d{3}\s?\d{4}''',
+  '''2349026424350''',
+  # Example addresses in documentation and fixtures.
+  '''[a-z]+@example\.(com|org)''',
+  # Localhost origins, which look like URLs with embedded credentials to some rules.
+  '''http://127\.0\.0\.1:\d+''',
+]

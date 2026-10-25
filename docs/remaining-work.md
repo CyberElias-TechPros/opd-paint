@@ -26,7 +26,7 @@ That is the README's own standard, and it is the right one.
 | **G3** Design | Journeys, wireframes, system, a11y | ✅ Nearly met | Design system, journeys and accessibility rules are built and documented (`/style-guide`). Missing only formal review and approval. |
 | **G4** Data & architecture | Data model, integrations, cost | ❌ Blocked | The *model* is good. The *data* is provisional: guide prices, unverified dealers, unmeasured colours, unsigned product specs. No operating-cost assessment. |
 | **G5** Feature completeness | Core pages and journeys | ✅ Met | 18 routes + 404, all five core journeys work, 21-route render test. Needs a human review pass. |
-| **G6** System readiness | Integrations, security, monitoring | ❌ Blocked | Security headers and tests are in place, but there is no monitoring, no error tracking, no email delivery, no working production deployment, and no restore test. |
+| **G6** System readiness | Integrations, security, monitoring | ⚠️ Technical half done | Notifications, error intake, structured logs, a restore drill, dependency/secret scanning, axe and Lighthouse gates now exist and run in CI. What is still missing is not code: the credentials for a real notification channel and a Sentry DSN are not issued, the production host is not provisioned, and nobody yet owns the alert. |
 | **G7** Acceptance | Functional, a11y, device, colour, UAT | ❌ Not met | Automated tests pass. No real-device testing, no assistive-technology audit, no colour QA against physical chips, no user acceptance testing. |
 | **G8** Launch | Go/no-go, rollback, smoke, support | ❌ Not started | No production environment, no DNS/TLS, no rollback exercise, no support rota. |
 | **G9** Handover | Ownership, docs, training | ⚠️ Partial | Four good documents exist (`running`, `content-editing`, `deploying`, `qa-checklist`). No training, no support ownership, no maintenance calendar. |
@@ -94,10 +94,10 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 
 | # | Item | Why it matters now |
 | --- | --- | --- |
-| 1 | **The Vercel project is misconfigured.** There is no `vercel.json` and no root `package.json`, so the connected project almost certainly serves the repository root as a static site — no app, no `/api`. | The preview links in the pull request look green while serving nothing useful. Either add a proper build config (root `app`, output `dist`, `/api` to a function or external host) or disconnect Vercel. **0.5 day.** |
-| 2 | **No enquiry notification.** Enquiries are written to `quotes.jsonl` and nobody is told. | A lead that arrives and is not seen is a lost lead. Email/SMS/webhook on submit: **2–3 days**, needs an email vendor. |
-| 3 | **No error monitoring.** A React error boundary logs to the console; the server logs to stdout. | You will not know about a broken form on a customer's phone. Sentry (or equivalent) on client + server: **1–2 days**. |
-| 4 | **Backups are never restored.** The script exists; the restore path is untested. | 17.02.09 exists precisely because an untested backup is not a backup. **0.5 day.** |
+| 1 | ~~**The Vercel project is misconfigured.**~~ **Done.** `vercel.json` builds `app/`, outputs `app/dist`, serves `/api/*` from a dependency-free proxy function, and sets the security headers. | Needs one Vercel environment variable, `OPD_API_ORIGIN`, pointing at the enquiry service — and the service itself must be hosted somewhere. Until then the form fails honestly and keeps the answers on the device. |
+| 2 | ~~**No enquiry notification.**~~ **Built**, not yet *switched on*. Webhook and Resend email channels, retries, an audit file and a startup warning when nothing is configured. | The channel credentials are not issued, so production still announces nothing until `OPD_NOTIFY_WEBHOOK` or `OPD_RESEND_API_KEY`/`OPD_NOTIFY_EMAIL`/`OPD_NOTIFY_FROM` are set. See `docs/operations.md`. |
+| 3 | ~~**No error monitoring.**~~ **Built**, both halves: browser reports to `/api/errors` (scrubbed, rate-limited, no PII), server faults logged structurally, optional Sentry forwarding. | A Sentry DSN (or a decision to rely on the JSONL and the log drain) is still a human step. |
+| 4 | ~~**Backups are never restored.**~~ **Done and drilled.** `tools/restore.sh` restores with traversal checks and quarantines damaged lines; `tools/verify-restore.sh` proves the whole round trip on every CI run. | Restoring a *real* archive quarterly remains a human habit, not a script. |
 
 ### Phase 09 — Content management (the biggest remaining build)
 
@@ -207,10 +207,20 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 Five stages, each ending in a gate that the README defines. Do not skip a gate
 to hit a date — the README is explicit about that.
 
-**Stage 1 — Make the current build trustworthy (1–2 weeks, mostly engineering)**
+**Stage 1 — Make the current build trustworthy — ✅ built, awaiting first CI run**
 Fix the Vercel configuration · enquiry notifications · error monitoring · restore
-test · dependency scanning · Lighthouse CI · axe · Playwright smoke.
-→ *Closes the G6 technical half.*
+test · dependency scanning · Lighthouse CI · axe · browser smoke tests.
+→ *Closes the G6 technical half.* Evidence: `vercel.json`, `api/[...path].js`,
+`server/{notify,errors,logger}.mjs`, `tools/{restore,verify-restore}.sh`,
+`app/scripts/{browser.test.tsx,a11y.mjs}`, `.lighthouserc.json`,
+`.gitleaks.toml`, `.github/dependabot.yml`, and six CI jobs.
+
+Two honest caveats. The new CI jobs (axe, Lighthouse, gitleaks, restore) were
+written and syntax-checked in an environment with **no browser binary and no
+access to GitHub's release assets**, so they have not been observed green yet —
+the first push is their first real run. And everything that needs a credential —
+a chat webhook, an email sender, a Sentry DSN, a hosted API origin — is built to
+degrade safely but is switched off until someone supplies one.
 
 **Stage 2 — Replace provisional data (business-led, 2–4 weeks elapsed)**
 Price list · dealer export · product sign-off · colour chips and measured LRV ·
@@ -263,13 +273,13 @@ README's Definition of Done applied to the whole thing:
 | Area | Completion |
 | --- | --- |
 | The website itself (design, pages, journeys, tools) | **~95%** |
-| Automated engineering quality (tests, CI, reproducibility) | **~85%** |
+| Automated engineering quality (tests, CI, reproducibility, a11y gates) | **~92%** |
 | Truthful content model and guardrails | **~90%** |
 | Authoritative product and colour data | **~15%** |
 | Verification with real users and assistive tech | **~0%** |
-| Production operations (deploy, monitor, back up, support) | **~20%** |
+| Production operations (deploy, monitor, back up, support) | **~45%** — the machinery exists and is drilled; nothing is provisioned and nobody is on call |
 | Content management for non-engineers | **~0%** |
-| Whole project against all 75 roadmap task groups | **~55%** |
+| Whole project against all 75 roadmap task groups | **~57%** |
 
 The remaining half is not more design or more features. It is **data, evidence,
 operations and decisions** — which is exactly what the roadmap says the second

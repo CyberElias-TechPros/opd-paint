@@ -30,11 +30,27 @@ answers in local storage and tells them to call instead of losing the enquiry.
 ## Checks
 
 ```bash
-npm run lint       # oxlint, zero errors expected
-npm test           # 14 calculator + 9 colour-mask + 32 content-integrity tests
-npm run typecheck  # tsc -b
-npm run test:server # 19 tests against the real HTTP server
-npm run check      # all of the above plus a production build
+npm run lint         # oxlint, zero errors expected
+npm test             # 14 calculator + 9 colour-mask + 32 content-integrity tests
+npm run typecheck    # tsc -b
+npm run test:server  # 39 tests against the real HTTP server, the Vercel proxy
+                     # and the notification / error-intake paths
+npm run test:routes  # every route renders
+npm run test:browser # 7 tests: the quote form and calculator in a jsdom DOM,
+                     # submitting to a real enquiry service on a real socket
+npm run test:a11y    # axe, keyboard, reduced motion, 360px — needs Chromium
+npm run check        # lint, all of the above except a11y, and a production build
+```
+
+`npm run test:a11y` needs a browser binary (`npx playwright install chromium`)
+and a served build; it is a CI job rather than part of `npm run check` so a
+laptop without Chromium is not blocked. With no browser it exits 2 and says
+what to install — it does not pretend to have passed.
+
+Backups have their own check:
+
+```bash
+bash tools/verify-restore.sh   # runs the real backup.sh and restore.sh
 ```
 
 ## What the build produces

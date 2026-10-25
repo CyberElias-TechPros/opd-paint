@@ -17,6 +17,16 @@ services:
       # Leave these empty to disable the enquiry inbox entirely.
       OPD_ADMIN_USER: ${OPD_ADMIN_USER:-}
       OPD_ADMIN_PASSWORD: ${OPD_ADMIN_PASSWORD:-}
+      # Notifications: an enquiry that nobody is told about is a lead lost
+      # politely. Set at least one channel — see docs/operations.md.
+      OPD_NOTIFY_WEBHOOK: ${OPD_NOTIFY_WEBHOOK:-}
+      OPD_RESEND_API_KEY: ${OPD_RESEND_API_KEY:-}
+      OPD_NOTIFY_EMAIL: ${OPD_NOTIFY_EMAIL:-}
+      OPD_NOTIFY_FROM: ${OPD_NOTIFY_FROM:-}
+      # Optional error forwarding; errors are written to the data volume either way.
+      OPD_SENTRY_DSN: ${OPD_SENTRY_DSN:-}
+      OPD_RELEASE: ${OPD_RELEASE:-}
+      OPD_LOG_LEVEL: ${OPD_LOG_LEVEL:-info}
     volumes:
       - enquiries:/srv/opudas/data
     healthcheck:

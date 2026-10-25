@@ -57,6 +57,31 @@ cd app && npm run check
 - `npm run test:routes` — all 21 routes rendered through the real router, each
   asserting an `<h1>`, no `undefined`/`NaN`/`[object Object]` in the markup, and
   no link to a route the app does not own.
+- `npm run test:server` — 39 tests: the HTTP contract above, the Vercel proxy
+  (`api/[...path].js`) against the real service, and the operational paths —
+  notification delivery and retry, a dead webhook not failing an enquiry,
+  error-report scrubbing, and the health check.
+- `npm run test:browser` — 7 tests in a jsdom DOM against a real enquiry service
+  on a real socket: an invalid submission focuses the first bad field, a valid
+  one stores exactly one record and shows its reference, a server-side field
+  error lands on the right input without losing the typed answers, the honeypot
+  stores nothing, and the calculator's figures follow the inputs (including the
+  imperial switch).
+- `bash tools/verify-restore.sh` — the real backup and restore scripts, end to
+  end, including a damaged archive and a traversal attempt.
+
+CI adds three jobs that need a browser binary or network access, so they run
+there rather than as part of `npm run check`:
+
+- **Accessibility** — axe-core (WCAG 2.2 A/AA) on thirteen pages in Chromium,
+  plus the things a rule cannot check: the skip link is the first Tab stop,
+  focus is visible on every interactive element, reduced motion really is
+  reduced, no page overflows a 360 px screen, and no console errors.
+- **Lighthouse budgets** — accessibility 100, best practices ≥ 95, SEO ≥ 95,
+  LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 300 ms, with script/CSS/image/font weight caps.
+- **Dependencies and secrets** — `npm audit` (blocking for production
+  dependencies at high/critical), plus gitleaks over the full history with a
+  pinned binary and checksum.
 - Production build with route-level code splitting, then a head prerender that
   writes one `dist/<path>/index.html` per URL with its own title, description,
   canonical, Open Graph tags and JSON-LD.
@@ -65,7 +90,9 @@ cd app && npm run check
 
 ## Manual pass before any release
 
-There is no headless browser in the build environment, so this part is human.
+The automated checks above cover the contract, the DOM and the accessibility
+rules. What they cannot cover is how it feels on a real phone on a real network,
+so this part is human.
 
 1. **Keyboard only** — Tab from the top of every page: skip link, header, then
    page content. Focus must always be visible and in a sensible order.
