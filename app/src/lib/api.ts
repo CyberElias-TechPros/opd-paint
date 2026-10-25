@@ -8,6 +8,23 @@
  */
 
 export type ApiError = { ok: false; error: string; fields?: Record<string, string> }
+
+/**
+ * A rejection the server can explain field by field.
+ *
+ * Client-side validation is a courtesy, not the boundary — the server decides
+ * what is acceptable. When it refuses, its per-field messages are surfaced on
+ * the inputs rather than collapsed into one generic banner.
+ */
+export class ApiFieldError extends Error {
+  fields: Record<string, string>
+
+  constructor(message: string, fields: Record<string, string>) {
+    super(message)
+    this.name = 'ApiFieldError'
+    this.fields = fields
+  }
+}
 export type ApiOk<T> = { ok: true; data: T }
 
 export type QuotePayload = {
@@ -46,12 +63,29 @@ async function post<T>(path: string, body: unknown): Promise<ApiOk<T>> {
       body: JSON.stringify(body),
       signal: controller.signal,
     })
-    const json = (await res.json()) as ApiOk<T> | ApiError
+    let json: ApiOk<T> | ApiError
+    try {
+      json = (await res.json()) as ApiOk<T> | ApiError
+    } catch {
+      throw new Error(
+        res.ok
+          ? 'The server sent an unexpected reply.'
+          : `The enquiry service is not available right now (${res.status}).`,
+      )
+    }
     if (!res.ok || !('ok' in json) || json.ok === false) {
-      const error = (json as ApiError).error ?? `Request failed (${res.status})`
-      throw new Error(error)
+      const failure = json as ApiError
+      if (failure.fields && Object.keys(failure.fields).length) {
+        throw new ApiFieldError(failure.error ?? 'Some details need attention.', failure.fields)
+      }
+      throw new Error(failure.error ?? `Request failed (${res.status})`)
     }
     return json
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('The enquiry service took too long to answer.')
+    }
+    throw error
   } finally {
     clearTimeout(timer)
   }

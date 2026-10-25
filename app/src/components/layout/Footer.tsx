@@ -205,7 +205,7 @@ export function Footer() {
             </a>
           </div>
         </div>
-        <p className="mt-4 max-w-3xl text-[0.68rem] leading-relaxed text-paper-2/30">
+        <p className="mt-4 max-w-3xl text-[0.7rem] leading-relaxed text-paper-2/70">
           Colours shown on a screen are digital approximations and cannot guarantee a physical match. Paint appearance
           depends on lighting, substrate, finish and application. Always confirm with a sample pot or a physical chip.
           Prices shown as “guide price” are indicative, exclude VAT and delivery, and are not a quotation.

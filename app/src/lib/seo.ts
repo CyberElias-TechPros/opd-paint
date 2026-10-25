@@ -29,6 +29,11 @@ function upsertMeta(selector: string, attrs: Record<string, string>) {
 }
 
 export function usePageMeta({ title, description, path, image, jsonLd, noIndex }: Meta) {
+  // Routes usually pass an inline object literal, which is a new reference on
+  // every render. Serialising it keeps the effect from tearing down and
+  // re-adding the JSON-LD script each time the page re-renders.
+  const jsonLdKey = jsonLd ? JSON.stringify(jsonLd) : ''
+
   useEffect(() => {
     const fullTitle = title.includes(SITE) ? title : `${title} — ${SITE}`
     document.title = fullTitle
@@ -50,9 +55,10 @@ export function usePageMeta({ title, description, path, image, jsonLd, noIndex }
     canonical.href = `${ORIGIN}${path}`
 
     const scripts: HTMLScriptElement[] = []
-    if (jsonLd) {
-      const blocks = Array.isArray(jsonLd) ? jsonLd : [jsonLd]
-      blocks.forEach((block) => {
+    if (jsonLdKey) {
+      const parsed: unknown = JSON.parse(jsonLdKey)
+      const blocks = Array.isArray(parsed) ? parsed : [parsed]
+      blocks.forEach((block: unknown) => {
         const script = document.createElement('script')
         script.type = 'application/ld+json'
         script.dataset.route = path
@@ -65,7 +71,7 @@ export function usePageMeta({ title, description, path, image, jsonLd, noIndex }
     return () => {
       scripts.forEach((s) => s.remove())
     }
-  }, [title, description, path, image, jsonLd, noIndex])
+  }, [title, description, path, image, jsonLdKey, noIndex])
 }
 
 export const ORGANISATION_SCHEMA = {

@@ -805,13 +805,13 @@ export default function Home() {
         />
         <div className="shell relative grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-center">
           <div>
-            <p className="kicker mb-4 flex items-center gap-2 text-white/70">
+            <p className="kicker mb-4 flex items-center gap-2 text-white/90">
               <Leaf className="size-3.5" aria-hidden /> Colour consultation
             </p>
             <h2 id="cta-title" className="display text-[clamp(1.9rem,3.8vw,3rem)]">
               Send us the room. We will send back a scheme.
             </h2>
-            <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-white/80">
+            <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-white/90">
               Photographs of the space, the light it gets, and how you want it to feel. Our colour desk replies with two
               or three options and the litres you will need — normally within one working day.
             </p>
@@ -829,7 +829,7 @@ export default function Home() {
             >
               WhatsApp the colour desk
             </ButtonLink>
-            <p className="text-center text-[0.7rem] text-white/60">
+            <p className="text-center text-[0.72rem] text-white/90">
               Or call {BRAND_PHONE_DISPLAY} — Monday to Saturday, 8am to 6pm.
             </p>
           </div>

@@ -5,6 +5,7 @@ import { usePageMeta } from '../lib/seo'
 import { PROJECTS, STAGE_LABEL, type Stage } from '../data/projects'
 import { COLORS } from '../data/colors'
 import { SmartImage } from '../components/media/SmartImage'
+import { SiteFilm } from '../components/media/SiteFilm'
 import { Badge, Kicker, ArrowLink } from '../components/ui/Bits'
 import { Pill } from '../components/ui/Bits'
 import { Reveal } from '../components/motion/Reveal'
@@ -49,6 +50,29 @@ export default function Inspiration() {
           </p>
         </div>
       </header>
+
+      <section className="shell grid items-center gap-10 py-10 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:gap-16">
+        <div>
+          <Kicker className="mb-3">The site film</Kicker>
+          <h2 className="display max-w-lg text-[clamp(1.9rem,3.6vw,2.9rem)]">
+            What the work actually looks like at 9am.
+          </h2>
+          <p className="mt-4 max-w-md text-[0.95rem] leading-relaxed text-ink/65">
+            Photographs get curated. A 26-second clip does not. This was shot on a phone during a
+            topcoat run — the same emulsion and the same roller you would be quoted for, on a wall
+            that had been screeded two days earlier.
+          </p>
+          <ul className="mt-6 space-y-2 text-[0.85rem] text-ink/70">
+            <li>· Filmed on an OPUDA&rsquo;S site in Lagos, not in a studio</li>
+            <li>· No audio, no music, no voiceover</li>
+            <li>· Portrait, because that is how the painter sent it to us</li>
+          </ul>
+          <div className="mt-6">
+            <ArrowLink to="/advice/preparing-walls">Why the wall was screeded first</ArrowLink>
+          </div>
+        </div>
+        <SiteFilm />
+      </section>
 
       <div className="shell py-8">
         <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-2" role="group" aria-label="Filter by project type">

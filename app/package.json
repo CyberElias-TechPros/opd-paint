@@ -10,8 +10,9 @@
     "lint": "oxlint src",
     "typecheck": "tsc -b",
     "test": "node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/calculator.test.ts && node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/data.test.ts",
-    "check": "npm run lint && npm test && npm run build",
-    "server": "node ../server/index.mjs"
+    "check": "npm run lint && npm test && npm run test:routes && npm run build",
+    "server": "node ../server/index.mjs",
+    "test:routes": "vite build --ssr scripts/smoke.tsx --outDir .smoke --emptyOutDir --logLevel error && node .smoke/smoke.js"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

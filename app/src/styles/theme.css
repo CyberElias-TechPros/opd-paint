@@ -83,7 +83,6 @@
   h4 {
     font-family: var(--font-display);
     font-weight: 500;
-    font-optical-sizing: auto;
     letter-spacing: -0.022em;
     line-height: 1.02;
     text-wrap: balance;

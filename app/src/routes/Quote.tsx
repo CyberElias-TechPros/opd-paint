@@ -9,7 +9,7 @@ import { BRAND_PHONE_DISPLAY, BRAND_PHONE_TEL, WHATSAPP_NUMBER } from '../data/d
 import { Button, ButtonLink } from '../components/ui/Button'
 import { Checkbox, Field, Select, TextArea, TextInput } from '../components/ui/Field'
 import { Kicker, Badge, ArrowLink } from '../components/ui/Bits'
-import { submitQuote, stashFailedSubmission, type QuoteResponse } from '../lib/api'
+import { ApiFieldError, submitQuote, stashFailedSubmission, type QuoteResponse } from '../lib/api'
 import { track } from '../lib/analytics'
 
 const PROJECT_TYPES = [
@@ -118,6 +118,17 @@ export default function Quote() {
       track('quote_success', { projectType: payload.projectType })
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (error) {
+      // The server rejected specific fields: show them where they belong and
+      // keep the visitor's typing, rather than asking them to start again.
+      if (error instanceof ApiFieldError) {
+        setErrors(error.fields as Errors)
+        setState('idle')
+        setFailure(error.message)
+        const firstField = Object.keys(error.fields)[0]
+        form.querySelector<HTMLElement>(`[name="${firstField}"]`)?.focus()
+        track('form_validation_error', { fields: Object.keys(error.fields).join(',') })
+        return
+      }
       stashFailedSubmission('quote', payload)
       setState('idle')
       setFailure(

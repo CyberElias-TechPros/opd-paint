@@ -69,6 +69,8 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
   const [canUndo, setCanUndo] = useState(false)
   const { toggleColor, isSaved, toast } = useApp()
   const objectUrlRef = useRef<string | null>(null)
+  /** Keyboard cursor position, in source-canvas pixels. */
+  const keyPointRef = useRef<{ x: number; y: number } | null>(null)
 
 
   const render = useCallback(() => {
@@ -226,6 +228,52 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
     render()
   }
 
+  /**
+   * Keyboard route into the canvas.
+   *
+   * A pointer-only tool excludes anyone using a keyboard or a switch device.
+   * Arrow keys move a cursor over the picture, Enter applies the current tool at
+   * that point, and every move is announced through the live status line so the
+   * position is never only visual.
+   */
+  const onCanvasKeyDown = (event: React.KeyboardEvent<HTMLCanvasElement>) => {
+    const mask = maskRef.current
+    if (!mask || !ready) return
+    const step = event.shiftKey ? 0.08 : 0.02
+    const current = keyPointRef.current ?? { x: mask.width / 2, y: mask.height * 0.45 }
+    let { x, y } = current
+
+    switch (event.key) {
+      case 'ArrowLeft':
+        x -= mask.width * step
+        break
+      case 'ArrowRight':
+        x += mask.width * step
+        break
+      case 'ArrowUp':
+        y -= mask.height * step
+        break
+      case 'ArrowDown':
+        y += mask.height * step
+        break
+      case 'Enter':
+      case ' ':
+        event.preventDefault()
+        applyFill(x, y)
+        return
+      default:
+        return
+    }
+
+    event.preventDefault()
+    x = Math.max(0, Math.min(mask.width - 1, x))
+    y = Math.max(0, Math.min(mask.height - 1, y))
+    keyPointRef.current = { x, y }
+    setStatus(
+      `Cursor ${Math.round((x / mask.width) * 100)}% from the left, ${Math.round((y / mask.height) * 100)}% from the top. Press Enter to ${tool === 'erase' ? 'remove' : 'select'} this area.`,
+    )
+  }
+
   const endStroke = () => {
     if (paintingRef.current) {
       paintingRef.current = false
@@ -291,6 +339,8 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
               onPointerMove={onPointerMove}
               onPointerUp={endStroke}
               onPointerLeave={endStroke}
+              onKeyDown={onCanvasKeyDown}
+              tabIndex={0}
               className={cn(
                 'block w-full touch-none select-none',
                 tool === 'fill' ? 'cursor-crosshair' : 'cursor-cell',
