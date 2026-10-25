@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url'
 import { COLORS, findColor } from '../src/data/colors.ts'
 import { PALETTES } from '../src/data/palettes.ts'
 import { PRODUCTS, findProduct } from '../src/data/products.ts'
-import { DEALERS, directionsUrl, distanceKm } from '../src/data/dealers.ts'
+import { DEALERS, STATES, directionsUrl, distanceKm } from '../src/data/dealers.ts'
 import { GUIDES } from '../src/data/guides.ts'
 import { PROJECTS } from '../src/data/projects.ts'
 import { INK, PAPER, contrast, estimateLrv, readableInk, swatchText } from '../src/lib/color.ts'
@@ -241,14 +241,21 @@ test('dealer ids are unique and coordinates are inside Nigeria', () => {
 })
 
 test('distance maths is sane and symmetric', () => {
-  const lekki = DEALERS.find((d) => d.id === 'lekki-phase-1')
-  const ikeja = DEALERS.find((d) => d.city === 'Lagos' && d.id !== 'lekki-phase-1')
-  assert.ok(lekki && ikeja, 'expected a Lekki and a second Lagos dealer')
-  assert.equal(distanceKm(lekki.lat, lekki.lng, lekki.lat, lekki.lng), 0, 'self distance')
-  const there = distanceKm(lekki.lat, lekki.lng, ikeja.lat, ikeja.lng)
-  const back = distanceKm(ikeja.lat, ikeja.lng, lekki.lat, lekki.lng)
+  const counter = DEALERS.find((d) => d.id === 'ph-trans-amadi')
+  const gra = DEALERS.find((d) => d.id === 'ph-gra')
+  assert.ok(counter && gra, 'expected the two Port Harcourt counters')
+  assert.equal(distanceKm(counter.lat, counter.lng, counter.lat, counter.lng), 0, 'self distance')
+  const there = distanceKm(counter.lat, counter.lng, gra.lat, gra.lng)
+  const back = distanceKm(gra.lat, gra.lng, counter.lat, counter.lng)
   assert.equal(there, back, 'distance not symmetric')
-  assert.ok(there > 1 && there < 150, `implausible Lagos distance ${there} km`)
+  assert.ok(there > 1 && there < 40, `implausible Port Harcourt distance ${there} km`)
+})
+
+test('the network is anchored in Port Harcourt, the factory city', () => {
+  const ph = DEALERS.filter((d) => d.city === 'Port Harcourt')
+  assert.ok(ph.length >= 3, `expected several Port Harcourt counters, found ${ph.length}`)
+  assert.ok(DEALERS.some((d) => d.kind === 'Brand trade counter' && d.city === 'Port Harcourt'), 'no brand counter in the factory city')
+  assert.ok(STATES.includes('Rivers'), 'Rivers State missing from the network')
 })
 
 test('directions links are valid maps URLs', () => {

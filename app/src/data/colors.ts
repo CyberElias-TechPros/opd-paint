@@ -54,7 +54,7 @@ export const COLORS: PaintColor[] = [
   c({ id: 'coconut-milk', code: 'OP-004', name: 'Coconut Milk', hex: '#F3EDE1', family: 'White & Off-White', undertone: 'Warm', rooms: ['Living', 'Bedroom', 'Ceiling'], collection: 'The Signature', note: 'A half-strength warm white that keeps large rooms from feeling clinical under LED lighting.' }),
   c({ id: 'limestone', code: 'OP-008', name: 'Limestone', hex: '#EBE4D5', family: 'White & Off-White', undertone: 'Warm', rooms: ['Living', 'Bedroom', 'Office'], collection: 'The Signature', note: 'The colour of the plaster in half the estates we paint. Works as a whole-house base you can layer colour onto.' }),
   c({ id: 'bone', code: 'OP-010', name: 'Bone', hex: '#E6DFCF', family: 'White & Off-White', undertone: 'Warm', rooms: ['Living', 'Bedroom', 'Exterior'], collection: 'The Signature', note: 'Slightly deeper than Limestone; holds its own next to dark timber and bronze detailing.' }),
-  c({ id: 'ivory-coast', code: 'OP-012', name: 'Ivory Coast', hex: '#F0E8D6', family: 'White & Off-White', undertone: 'Warm', rooms: ['Living', 'Bedroom'], collection: 'The Lagos Edit', note: 'A sun-warmed ivory that photographs beautifully in north-facing rooms.' }),
+  c({ id: 'ivory-coast', code: 'OP-012', name: 'Ivory Coast', hex: '#F0E8D6', family: 'White & Off-White', undertone: 'Warm', rooms: ['Living', 'Bedroom'], collection: 'The Delta Edit', note: 'A sun-warmed ivory that photographs beautifully in north-facing rooms.' }),
   c({ id: 'cotton-paper', code: 'OP-016', name: 'Cotton Paper', hex: '#E2DCD0', family: 'White & Off-White', undertone: 'Neutral', rooms: ['Ceiling', 'Bedroom'], collection: 'The Signature', note: 'A soft, low-shine white for cornices and bulkheads where you want separation without contrast.' }),
   c({ id: 'stone-white', code: 'OP-020', name: 'Stone White', hex: '#EEEEEA', family: 'White & Off-White', undertone: 'Cool', rooms: ['Kitchen', 'Bathroom'], collection: 'The Signature', note: 'A cool, clean white that resists looking dingy against stainless steel and tiles.' }),
 
@@ -67,26 +67,26 @@ export const COLORS: PaintColor[] = [
   c({ id: 'taupe-drift', code: 'OP-124', name: 'Taupe Drift', hex: '#A3917C', family: 'Warm Neutral', undertone: 'Warm', rooms: ['Living', 'Bedroom'], collection: 'The Signature', note: 'Depth for feature walls without the commitment of a full colour.' }),
   c({ id: 'bronze-dust', code: 'OP-128', name: 'Bronze Dust', hex: '#8F7A62', family: 'Warm Neutral', undertone: 'Warm', rooms: ['Living', 'Exterior'], collection: 'The Signature', note: 'Sits between brass and clay — a strong companion for cream render and dark roofs.' }),
   c({ id: 'pebble', code: 'OP-132', name: 'Pebble', hex: '#A8A69C', family: 'Warm Neutral', undertone: 'Neutral', rooms: ['Living', 'Office', 'Exterior'], collection: 'The Signature', note: 'A calm stone grey that keeps architectural shadows legible.' }),
-  c({ id: 'lagos-fog', code: 'OP-136', name: 'Lagos Fog', hex: '#C2C1B8', family: 'Warm Neutral', undertone: 'Cool', rooms: ['Living', 'Office', 'Ceiling'], collection: 'The Lagos Edit', note: 'Our hashtag colour: the soft grey-green of early-morning haze over the lagoon.' }),
+  c({ id: 'bonny-haze', code: 'OP-136', name: 'Bonny Haze', hex: '#C2C1B8', family: 'Warm Neutral', undertone: 'Cool', rooms: ['Living', 'Office', 'Ceiling'], collection: 'The Delta Edit', note: 'Our hashtag colour: the soft grey-green of early-morning haze sitting on the Bonny River.' }),
 
   // ---------------------------------------------------------------- greens
   c({ id: 'opuda-green', code: 'OP-201', name: 'Opuda Green', hex: '#0C6B45', family: 'Green', undertone: 'Cool', rooms: ['Exterior', 'Living', 'Office'], collection: 'The Signature', note: 'The brand green, straight from the pail. Use it on feature walls, signage and railings.' }),
   c({ id: 'forest-floor', code: 'OP-205', name: 'Forest Floor', hex: '#2B4A37', family: 'Green', undertone: 'Cool', rooms: ['Living', 'Office', 'Exterior'], collection: 'The Signature', note: 'A deep, enveloping green that makes a large room feel like a library.' }),
   c({ id: 'palm-shadow', code: 'OP-209', name: 'Palm Shadow', hex: '#3E5C46', family: 'Green', undertone: 'Cool', rooms: ['Living', 'Bedroom'], collection: 'Rain Season', note: 'The cool green under the palms at 4pm. Pairs well with brass and rattan.' }),
-  c({ id: 'eko-emerald', code: 'OP-213', name: 'Eko Emerald', hex: '#15734F', family: 'Green', undertone: 'Cool', rooms: ['Living', 'Office'], collection: 'The Lagos Edit', note: 'Brighter than the brand green — a strong single-wall choice behind dark shelving.' }),
+  c({ id: 'delta-emerald', code: 'OP-213', name: 'Delta Emerald', hex: '#15734F', family: 'Green', undertone: 'Cool', rooms: ['Living', 'Office'], collection: 'The Delta Edit', note: 'Brighter than the brand green — a strong single-wall choice behind dark shelving.' }),
   c({ id: 'moss-room', code: 'OP-217', name: 'Moss Room', hex: '#6B7B55', family: 'Green', undertone: 'Warm', rooms: ['Bedroom', 'Living'], collection: 'Rain Season', note: 'An olive-leaning green that behaves like a neutral in rooms with a lot of daylight.' }),
   c({ id: 'olive-branch', code: 'OP-221', name: 'Olive Branch', hex: '#7D7F4E', family: 'Green', undertone: 'Warm', rooms: ['Living', 'Kitchen'], collection: 'Rain Season', note: 'A dry, herbal green. Best in matt, where the texture reads as pigment rather than shine.' }),
   c({ id: 'sage-whisper', code: 'OP-225', name: 'Sage Whisper', hex: '#B9C1A7', family: 'Green', undertone: 'Warm', rooms: ['Bedroom', 'Children', 'Kitchen'], collection: 'Rain Season', note: 'A gentle herbal wash for bedrooms and children’s rooms. Very forgiving of uneven light.' }),
   c({ id: 'eucalyptus-mist', code: 'OP-229', name: 'Eucalyptus Mist', hex: '#CED7C8', family: 'Green', undertone: 'Cool', rooms: ['Bedroom', 'Bathroom', 'Ceiling'], collection: 'Rain Season', note: 'A pale green-grey for ceilings and small rooms that you want to feel taller.' }),
 
   // ----------------------------------------------------------------- blues
-  c({ id: 'atlantic-blue', code: 'OP-301', name: 'Atlantic Blue', hex: '#1E4E6B', family: 'Blue', undertone: 'Cool', rooms: ['Living', 'Office', 'Exterior'], collection: 'The Lagos Edit', note: 'Serious, architectural navy. Used on doors and gates it reads almost black at dusk.' }),
+  c({ id: 'atlantic-blue', code: 'OP-301', name: 'Atlantic Blue', hex: '#1E4E6B', family: 'Blue', undertone: 'Cool', rooms: ['Living', 'Office', 'Exterior'], collection: 'The Delta Edit', note: 'Serious, architectural navy. Used on doors and gates it reads almost black at dusk.' }),
   c({ id: 'lagoon', code: 'OP-305', name: 'Lagoon', hex: '#2C6E85', family: 'Blue', undertone: 'Cool', rooms: ['Living', 'Bathroom'], collection: 'Rain Season', note: 'A teal-leaning blue that stays cheerful in humid, low-contrast light.' }),
   c({ id: 'harmattan-sky', code: 'OP-309', name: 'Harmattan Sky', hex: '#A7BECD', family: 'Blue', undertone: 'Cool', rooms: ['Bedroom', 'Ceiling', 'Children'], collection: 'Harmattan', note: 'The bleached blue of a dusty December sky. The safest way to bring blue into a bedroom.' }),
   c({ id: 'powder-blue', code: 'OP-313', name: 'Powder Blue', hex: '#C2D2DD', family: 'Blue', undertone: 'Cool', rooms: ['Bedroom', 'Children', 'Bathroom'], collection: 'Harmattan', note: 'Soft, clean and slightly grey — reads as white in a bright room, as blue in a dark one.' }),
   c({ id: 'denim-room', code: 'OP-317', name: 'Denim Room', hex: '#566F8A', family: 'Blue', undertone: 'Cool', rooms: ['Living', 'Bedroom'], collection: 'The Signature', note: 'A mid blue like worn denim. Excellent behind white bedding and pale wood.' }),
   c({ id: 'indigo-night', code: 'OP-321', name: 'Indigo Night', hex: '#263050', family: 'Blue', undertone: 'Cool', rooms: ['Living', 'Office'], collection: 'The Signature', note: 'A deep blue-violet for studies and media rooms where glow and reflection matter.' }),
-  c({ id: 'blue-fence', code: 'OP-325', name: 'Blue Fence', hex: '#2F7FA8', family: 'Blue', undertone: 'Cool', rooms: ['Exterior'], collection: 'The Lagos Edit', note: 'A saturated outdoor blue taken from gates and fences across Lekki. Weather resistant in Silk.' }),
+  c({ id: 'blue-fence', code: 'OP-325', name: 'Blue Fence', hex: '#2F7FA8', family: 'Blue', undertone: 'Cool', rooms: ['Exterior'], collection: 'The Delta Edit', note: 'A saturated outdoor blue taken from gates and fences across Port Harcourt. Weather resistant in Silk.' }),
 
   // ----------------------------------------------------- terracotta & reds
   c({ id: 'terracotta', code: 'OP-401', name: 'Terracotta', hex: '#B4654A', family: 'Terracotta & Red', undertone: 'Warm', rooms: ['Living', 'Exterior'], collection: 'Harmattan', note: 'Fired-earth orange-red. Strong on rendered walls, calmer in matt interiors.' }),
@@ -106,9 +106,9 @@ export const COLORS: PaintColor[] = [
 
   // ------------------------------------------------------- purple & mauve
   c({ id: 'aubergine', code: 'OP-601', name: 'Aubergine', hex: '#4A2B45', family: 'Purple & Mauve', undertone: 'Cool', rooms: ['Living', 'Office'], collection: 'The Signature', note: 'A dark, serious plum. Almost black in corners, wine-red in daylight.' }),
-  c({ id: 'lilac-room', code: 'OP-605', name: 'Lilac Room', hex: '#D1BFD5', family: 'Purple & Mauve', undertone: 'Cool', rooms: ['Bedroom', 'Children'], collection: 'The Lagos Edit', note: 'Taken from a finished lounge in Lekki Phase 1. Soft enough for a whole room, unusual enough to remember.' }),
+  c({ id: 'lilac-room', code: 'OP-605', name: 'Lilac Room', hex: '#D1BFD5', family: 'Purple & Mauve', undertone: 'Cool', rooms: ['Bedroom', 'Children'], collection: 'The Delta Edit', note: 'Taken from a finished lounge in GRA Phase 2, Port Harcourt. Soft enough for a whole room, unusual enough to remember.' }),
   c({ id: 'plum-velvet', code: 'OP-609', name: 'Plum Velvet', hex: '#6B3FA3', family: 'Purple & Mauve', undertone: 'Cool', rooms: ['Living', 'Office'], collection: 'The Signature', note: 'A true saturated purple for feature walls and doors. Demands good lighting.' }),
-  c({ id: 'mauve-linen', code: 'OP-613', name: 'Mauve Linen', hex: '#C2A5AD', family: 'Purple & Mauve', undertone: 'Neutral', rooms: ['Bedroom', 'Living'], collection: 'The Lagos Edit', note: 'A dusty rose-mauve that works as a neutral with grey, cream and walnut.' }),
+  c({ id: 'mauve-linen', code: 'OP-613', name: 'Mauve Linen', hex: '#C2A5AD', family: 'Purple & Mauve', undertone: 'Neutral', rooms: ['Bedroom', 'Living'], collection: 'The Delta Edit', note: 'A dusty rose-mauve that works as a neutral with grey, cream and walnut.' }),
   c({ id: 'dusty-grape', code: 'OP-617', name: 'Dusty Grape', hex: '#8C6D85', family: 'Purple & Mauve', undertone: 'Cool', rooms: ['Bedroom', 'Living'], collection: 'The Signature', note: 'Muted, grown-up purple. Pairs with sage green and aged brass.' }),
   c({ id: 'blush-room', code: 'OP-621', name: 'Blush Room', hex: '#E6C8C0', family: 'Purple & Mauve', undertone: 'Warm', rooms: ['Bedroom', 'Children'], collection: 'Harmattan', note: 'A warm, skin-toned blush. The softest way to introduce colour to a small bedroom.' }),
 
@@ -141,7 +141,7 @@ export const FAMILIES: Family[] = [
 
 export const ROOMS: Room[] = ['Living', 'Bedroom', 'Kitchen', 'Bathroom', 'Children', 'Office', 'Exterior', 'Ceiling']
 
-export const COLLECTIONS = ['The Signature', 'The Lagos Edit', 'Harmattan', 'Rain Season'] as const
+export const COLLECTIONS = ['The Signature', 'The Delta Edit', 'Harmattan', 'Rain Season'] as const
 
 export const COLOR_LRV = (color: PaintColor): number => color.measuredLrv ?? estimateLrv(color.hex)
 

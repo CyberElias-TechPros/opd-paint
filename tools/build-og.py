@@ -144,7 +144,7 @@ def main() -> None:
         draw.text((x, 104), char, font=letter, fill=LETTER_COLOURS[index])
         x += draw.textlength(char, font=letter) + 12
     x += 14
-    tracked(draw, (x, 108), "MANUFACTURED IN LAGOS", load(SANS, 13, 700), MUTED, 2.2)
+    tracked(draw, (x, 108), "MANUFACTURED IN PORT HARCOURT", load(SANS, 13, 700), MUTED, 2.2)
 
     # Headline in Instrument Serif, italic on the second line.
     column_right = 676

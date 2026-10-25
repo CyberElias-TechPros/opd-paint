@@ -247,7 +247,7 @@ export default function Products() {
         </div>
 
         <p className="mt-6 text-[0.72rem] text-ink/60">
-          {number(PRODUCTS.length)} products · all prices are indicative Lagos guides, excluding VAT and delivery
+          {number(PRODUCTS.length)} products · all prices are indicative Port Harcourt guides, excluding VAT and delivery
         </p>
       </div>
     </>

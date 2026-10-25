@@ -182,7 +182,7 @@ export default function ProductDetail() {
                 </table>
               </div>
               <p className="mt-2 text-[0.72rem] leading-relaxed text-ink/60">
-                Guide prices are indicative Lagos retail figures for the pack shown and are not a quotation. Your dealer
+                Guide prices are indicative Port Harcourt retail figures for the pack shown and are not a quotation. Your dealer
                 sets the price you pay.
               </p>
             </section>

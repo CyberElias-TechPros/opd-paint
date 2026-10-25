@@ -113,6 +113,12 @@ export const ORGANISATION_SCHEMA = {
   logo: `${ORIGIN}/brand/mark.svg`,
   description:
     'Nigerian paint manufacturer producing matt, silk, gloss and weather-resistant exterior coatings, with a five-year guarantee.',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Port Harcourt',
+    addressRegion: 'Rivers State',
+    addressCountry: 'NG',
+  },
 }
 
 export const localBusinessSchema = (dealer: { name: string; city: string; state: string; lat: number; lng: number; hours: string }) => ({

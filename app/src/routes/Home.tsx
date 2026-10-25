@@ -75,13 +75,13 @@ const FEATURED_COLOURS = ['lilac-room', 'palm-shadow', 'terracotta', 'atlantic-b
   .map((id) => COLORS.find((c) => c.id === id))
   .filter(Boolean)
 
-const HOME_PROJECTS = ['arched-villa-lekki', 'lilac-lounge-lekki', 'blue-boundary', 'lagoon-facade', 'modern-cube']
+const HOME_PROJECTS = ['arched-villa-gra', 'lilac-lounge-gra', 'blue-boundary', 'creek-facade', 'modern-cube']
 
 export default function Home() {
   usePageMeta({
     title: "OPUDA'S PAINT — Colour, made in Nigeria",
     description:
-      "Explore the OPUDA'S colour library, preview a shade on a photo of your own wall, calculate how much paint a room needs, and find a dealer. Matt and Silk emulsion, manufactured in Nigeria with a five-year guarantee.",
+      "Explore the OPUDA'S colour library, preview a shade on a photo of your own wall, calculate how much paint a room needs, and find a dealer. Matt and Silk emulsion, manufactured in Port Harcourt with a five-year guarantee.",
     path: '/',
     image: '/media/project-finished-villa.webp',
     jsonLd: [
@@ -109,7 +109,7 @@ export default function Home() {
         <div className="shell grid items-center gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,1fr)] lg:gap-14">
           <div className="relative z-10">
             <Kicker className="mb-6">
-              Manufactured in Nigeria · Matte &amp; Silk emulsions
+              Manufactured in Port Harcourt · Matt &amp; Silk emulsions
             </Kicker>
 
             <h1 id="hero-title" className="display text-[clamp(2.9rem,6.6vw,5.6rem)]">
@@ -120,7 +120,7 @@ export default function Home() {
                 <PaintSwash className="absolute inset-x-[-3%] bottom-[-0.055em] z-0 h-[0.2em] w-[106%] -rotate-[0.5deg]" />
               </span>
               <br />
-              in Lagos light.
+              in Port Harcourt light.
             </h1>
 
             <p className="mt-6 max-w-lg text-[1.02rem] leading-relaxed text-ink/70">
@@ -205,7 +205,7 @@ export default function Home() {
                   })}
                 </div>
                 <Link
-                  to="/inspiration/arched-villa-lekki"
+                  to="/inspiration/arched-villa-gra"
                   className="mt-2.5 inline-flex items-center gap-1 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-green hover:underline"
                 >
                   See the project <ArrowUpRight className="size-3" aria-hidden />
@@ -401,7 +401,7 @@ export default function Home() {
               Lilac Room, <span className="italic">OP-605</span>
             </h2>
             <p className="mt-4 max-w-md text-[0.98rem] leading-relaxed text-ink/70">
-              Taken from a finished lounge in Lekki Phase 1. Soft enough to take a whole room, unusual enough that guests
+              Taken from a finished lounge in GRA Phase 2. Soft enough to take a whole room, unusual enough that guests
               ask for the code. It reads warm under lamp light and distinctly cool in the morning — which is exactly
               why we photographed it in both.
             </p>

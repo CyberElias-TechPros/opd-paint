@@ -395,7 +395,7 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                   <span className="tabular font-sans text-[1.5rem] font-extrabold tracking-[-0.03em]">{cost != null ? naira(cost) : 'On request'}</span>
                 </div>
                 <p className="mt-1 text-[0.68rem] leading-relaxed text-paper-2/65">
-                  Indicative Lagos retail guide, excluding VAT and delivery. A quotation from your dealer may differ and
+                  Indicative Port Harcourt retail guide, excluding VAT and delivery. A quotation from your dealer may differ and
                   is the figure that counts.
                 </p>
               </div>

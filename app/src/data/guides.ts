@@ -214,7 +214,7 @@ export const GUIDES: Guide[] = [
       {
         heading: 'Light changes everything',
         paragraphs: [
-          'The same lilac reads cool in the flat, grey light of a rainy Lagos morning and warm under a 3000K bulb at 8pm. A west-facing wall at golden hour is a different colour from a north-facing wall at noon.',
+          'The same lilac reads cool in the flat, grey light of a rainy Port Harcourt morning and warm under a 3000K bulb at 8pm. A west-facing wall at golden hour is a different colour from a north-facing wall at noon.',
           'Sample, then live with it. Paint a 1 m² patch on two walls of the room, one that gets morning light and one that gets evening light, and look at both for a few days.',
         ],
       },

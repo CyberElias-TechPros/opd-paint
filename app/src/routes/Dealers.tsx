@@ -49,7 +49,7 @@ export default function Dealers() {
   usePageMeta({
     title: 'Where to buy',
     description:
-      'Find an OPUDA’S PAINT dealer or trade counter. Lagos, Abuja, Port Harcourt, Ibadan, Benin City, Enugu, Uyo and Kano. Call ahead to confirm stock and pack sizes.',
+      'Find an OPUDA’S PAINT dealer or trade counter. Port Harcourt, Bonny, Uyo, Calabar, Warri, Benin City, Owerri, Aba, Abuja and Lagos. Call ahead to confirm stock and pack sizes.',
     path: '/dealers',
     jsonLd: DEALERS.filter((d) => d.verified).map((dealer) => localBusinessSchema(dealer)),
   })
@@ -245,7 +245,7 @@ export default function Dealers() {
               <div className="mt-4">
                 <EmptyState
                   title="No dealer matches that search"
-                  body="Try a nearby state, or call the brand line — we can arrange delivery to most cities from Lagos."
+                  body="Try a nearby state, or call the brand line — we can arrange delivery to most cities from Port Harcourt."
                   action={<Button onClick={() => { setQuery(''); setState('All'); setService('All') }}>Reset filters</Button>}
                 />
               </div>

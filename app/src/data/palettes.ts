@@ -20,13 +20,13 @@ export type Palette = {
 
 export const PALETTES: Palette[] = [
   {
-    id: 'eko-evening',
-    name: 'Eko Evening',
-    season: 'The Lagos Edit',
+    id: 'bonny-evening',
+    name: 'Bonny Evening',
+    season: 'The Delta Edit',
     colors: ['atlantic-blue', 'bone', 'opuda-white', 'golden-hour'],
     roles: ['Feature wall', 'Main walls', 'Ceilings & trim', 'Accent'],
     story:
-      'A lagoon-facing living room at dusk: deep Atlantic on the wall behind the seating, bone on the remaining walls so the room still reads as light, and a single golden accent on the joinery.',
+      'A river-facing living room at dusk: deep Atlantic on the wall behind the seating, bone on the remaining walls so the room still reads as light, and a single golden accent on the joinery.',
     bestFor: 'Living rooms with west-facing glazing',
     image: 'project-finished-villa',
   },
@@ -44,11 +44,11 @@ export const PALETTES: Palette[] = [
   {
     id: 'lilac-lounge',
     name: 'Lilac Lounge',
-    season: 'The Lagos Edit',
+    season: 'The Delta Edit',
     colors: ['lilac-room', 'dusty-grape', 'opuda-white', 'pebble'],
     roles: ['Main walls', 'Feature alcove', 'Ceilings & cornice', 'Floor tone reference'],
     story:
-      'Taken directly from a finished OPUDA’S job in Lekki: lilac across the main walls, a deeper grape in the recessed alcove, and white cornices doing the structural work.',
+      'Taken directly from a finished OPUDA’S job in GRA Phase 2, Port Harcourt: lilac across the main walls, a deeper grape in the recessed alcove, and white cornices doing the structural work.',
     bestFor: 'Bedrooms and small lounges',
     image: 'interior-lilac-lounge',
   },
@@ -99,11 +99,11 @@ export const PALETTES: Palette[] = [
   {
     id: 'blue-fence',
     name: 'Blue Fence',
-    season: 'The Lagos Edit',
+    season: 'The Delta Edit',
     colors: ['blue-fence', 'stone-white', 'slate-grey', 'window-black'],
     roles: ['Boundary wall', 'Facade', 'Piers', 'Fence & gate'],
     story:
-      'The turquoise boundary wall seen on an estate in Ajah, paired with stone-white render and black steel so the blue reads as a deliberate architectural decision rather than a whim.',
+      'The turquoise boundary wall seen on an estate in Rumuola, paired with stone-white render and black steel so the blue reads as a deliberate architectural decision rather than a whim.',
     bestFor: 'Exteriors and boundary walls',
     image: 'project-blue-fence',
   },

@@ -31,7 +31,7 @@ export default function Inspiration() {
   usePageMeta({
     title: 'Inspiration — real OPUDA’S sites',
     description:
-      'Photographs from OPUDA’S PAINT sites across Lagos: finished villas, boundary walls, interior schemes and concept studies. Each project lists the palette and the products used.',
+      'Photographs from OPUDA’S PAINT sites across Port Harcourt and Rivers State: finished villas, boundary walls, interior schemes and concept studies. Each project lists the palette and the products used.',
     path: '/inspiration',
     image: '/media/project-finished-villa.webp',
   })
@@ -63,7 +63,7 @@ export default function Inspiration() {
             that had been screeded two days earlier.
           </p>
           <ul className="mt-6 space-y-2 text-[0.85rem] text-ink/70">
-            <li>· Filmed on an OPUDA&rsquo;S site in Lagos, not in a studio</li>
+            <li>· Filmed on an OPUDA&rsquo;S site in Port Harcourt, not in a studio</li>
             <li>· No audio, no music, no voiceover</li>
             <li>· Portrait, because that is how the painter sent it to us</li>
           </ul>

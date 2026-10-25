@@ -45,7 +45,7 @@ c({
   family: 'Green',
   undertone: 'Cool',
   rooms: ['Living', 'Exterior'],
-  collection: 'The Lagos Edit',
+  collection: 'The Delta Edit',
   note: 'One or two sentences on how it behaves in a real room.',
 })
 ```
@@ -68,7 +68,7 @@ media manifest.
 
 The `packs` array drives the calculator and the price display:
 
-- `guidePrice` is an indicative Lagos retail guide **excluding VAT and
+- `guidePrice` is an indicative Port Harcourt retail guide **excluding VAT and
   delivery**. Use `null` to render "Ask dealer". Every surface that shows it
   labels it a guide price.
 - `inStock` is deliberately not a stock system: leave `false` unless the
@@ -86,7 +86,7 @@ check that every `tds` link resolves to a real PDF.
 ## Dealers — `dealers.ts`
 
 Every entry carries `verified`. `verified: false` renders a "call ahead" note
-rather than a confident pin, because sending a customer across Lagos to an empty
+rather than a confident pin, because sending a customer across Port Harcourt to an empty
 shelf costs more than an honest phone number. Replace this file with the
 commercial team's export, set `verified: true` only for confirmed stock, and the
 state/service filters and distance sort update themselves.

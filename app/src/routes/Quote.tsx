@@ -266,7 +266,7 @@ export default function Quote() {
                   autoComplete="address-level2"
                   aria-invalid={invalid}
                   aria-describedby={describedBy}
-                  placeholder="Lekki Phase 1, Lagos"
+                  placeholder="GRA Phase 2, Port Harcourt"
                 />
               )}
             </Field>

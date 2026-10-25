@@ -45,7 +45,7 @@ const cases: Array<{ pattern: string; path: string; Page: () => JSX.Element }> =
   { pattern: '/room-preview', path: '/room-preview?colour=lilac-room', Page: RoomPreview },
   { pattern: '/calculator', path: '/calculator?product=silk', Page: Calculator },
   { pattern: '/inspiration', path: '/inspiration', Page: Inspiration },
-  { pattern: '/inspiration/:id', path: '/inspiration/arched-villa-lekki', Page: ProjectDetail },
+  { pattern: '/inspiration/:id', path: '/inspiration/arched-villa-gra', Page: ProjectDetail },
   { pattern: '/advice', path: '/advice', Page: Advice },
   { pattern: '/advice/:id', path: '/advice/how-much-paint', Page: GuideDetail },
   { pattern: '/dealers', path: '/dealers?q=lekki', Page: Dealers },

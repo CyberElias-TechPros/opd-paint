@@ -9,7 +9,7 @@
  * manufacturer at this scale supplies and must be confirmed by the technical
  * owner before publication — see /data for the live provenance table.
  *
- * PRICES: `guidePrice` is an indicative Lagos retail guide, excluding VAT and
+ * PRICES: `guidePrice` is an indicative Port Harcourt retail guide, excluding VAT and
  * delivery, for the pack shown. It is *not* a quotation and it is not wired to
  * an inventory system yet. Every price surface in the UI is labelled
  * "Guide price". The commercial owner must replace this block with a feed from
@@ -228,7 +228,7 @@ export const PRODUCTS: Product[] = [
     line: "OPUDA'S",
     tagline: 'Exterior protection for the rainy season — textured, breathable, colour-stable.',
     description:
-      'A textured exterior coating for rendered walls, boundary walls and facades. It bridges hairline cracks, sheds water, and stays colour-stable under UV, which matters when a facade faces the lagoon and the sun all day.',
+      'A textured exterior coating for rendered walls, boundary walls and facades. It bridges hairline cracks, sheds water, and stays colour-stable under UV, which matters when a facade faces the creek and the sun all day.',
     finish: 'Texture',
     surfaces: ['Exterior walls'],
     sheenLevel: 5,

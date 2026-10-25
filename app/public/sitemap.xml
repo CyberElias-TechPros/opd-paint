@@ -131,7 +131,7 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://opudapaint.com/colours/lagos-fog</loc>
+    <loc>https://opudapaint.com/colours/bonny-haze</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -151,7 +151,7 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://opudapaint.com/colours/eko-emerald</loc>
+    <loc>https://opudapaint.com/colours/delta-emerald</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -411,17 +411,17 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://opudapaint.com/inspiration/arched-villa-lekki</loc>
+    <loc>https://opudapaint.com/inspiration/arched-villa-gra</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://opudapaint.com/inspiration/lagoon-facade</loc>
+    <loc>https://opudapaint.com/inspiration/creek-facade</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://opudapaint.com/inspiration/lilac-lounge-lekki</loc>
+    <loc>https://opudapaint.com/inspiration/lilac-lounge-gra</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>

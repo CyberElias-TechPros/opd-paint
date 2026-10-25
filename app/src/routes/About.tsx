@@ -22,7 +22,7 @@ const PRINCIPLES = [
   {
     icon: Sun,
     title: 'Built for this light and this weather',
-    body: 'Harmattan dust, salt air, intense UV, months of rain. Our palettes and products are tested against a Nigerian site, not a European brochure.',
+    body: 'Port Harcourt is one of the wettest cities in the country. Salt air off the creeks, harmattan dust in December, hard UV the rest of the year. Our palettes and products are specified for that, not for a European brochure.',
   },
   {
     icon: ShieldCheck,
@@ -45,7 +45,7 @@ export default function About() {
   usePageMeta({
     title: 'About OPUDA’S PAINT',
     description:
-      'OPUDA’S PAINT manufactures matt, silk, gloss and weather-resistant coatings in Nigeria. Our approach to specification, colour accuracy, preparation and the five-year guarantee.',
+      'OPUDA’S PAINT manufactures matt, silk, gloss and weather-resistant coatings in Port Harcourt, Rivers State. Our approach to specification, colour accuracy, preparation and the five-year guarantee.',
     path: '/about',
     image: '/media/project-porch-blue.webp',
     jsonLd: ORGANISATION_SCHEMA,
@@ -63,9 +63,9 @@ export default function About() {
               <span className="italic">reads the wall first.</span>
             </h1>
             <p className="mt-5 max-w-xl text-[1rem] leading-relaxed text-ink/70">
-              OPUDA’S PAINT is a Nigerian manufacturer of decorative coatings. We supply matt and silk emulsions for
-              interiors, weather-resistant coatings for facades and boundary walls, gloss for joinery and steel, and the
-              primer and screeding that make all of them last.
+              OPUDA’S PAINT is a Nigerian manufacturer of decorative coatings, made in Port Harcourt. We supply matt
+              and silk emulsions for interiors, weather-resistant coatings for facades and boundary walls, gloss for
+              joinery and steel, and the primer and screeding that make all of them last.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <ButtonLink to="/products">See the range</ButtonLink>
@@ -167,7 +167,7 @@ export default function About() {
               <DataRow label="Dealer locations" value={DEALERS.length} />
               <DataRow label="States covered" value={STATES.length} />
               <DataRow label="Guarantee (Matt & Silk)" value="5 years" />
-              <DataRow label="Base" value="Lagos, Nigeria" />
+              <DataRow label="Base" value="Port Harcourt, Nigeria" />
               <DataRow label="Colour desk" value={BRAND_PHONE_DISPLAY} />
             </dl>
             <div className="mt-4 flex flex-wrap gap-2">

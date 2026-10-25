@@ -134,7 +134,7 @@ def cover(pdf: Deck, colours: list[dict], fonts: dict[str, Path]) -> None:
     pdf.cell(0, 8, "OPUDA'S PAINT", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Sans", "B", 7.5)
     pdf.set_text_color(*MOSS)
-    pdf.cell(0, 4, "M A N U F A C T U R E D   I N   L A G O S", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 4, "M A D E   I N   P O R T   H A R C O U R T", new_x="LMARGIN", new_y="NEXT")
 
     pdf.set_xy(14, 62)
     pdf.set_font("Serif", "", 46)
@@ -191,7 +191,7 @@ def how_to_use(pdf: Deck) -> None:
         (
             "LRV is the light reflectance value.",
             "0 is absolute black, 100 is absolute white. Above 70 a wall bounces light around a room; below 30 "
-            "it absorbs it. In a north-facing Lagos room, a mid-tone reads darker than it looks on paper.",
+            "it absorbs it. In a north-facing Port Harcourt room, a mid-tone reads darker than it looks on paper.",
         ),
         (
             "Undertone matters more than the family.",

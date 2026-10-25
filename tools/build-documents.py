@@ -194,7 +194,7 @@ PRODUCTS = {
 
 SDS_BODY = [
     ("1. Identification",
-     "Product as named above. Manufacturer: OPUDA'S PAINT, Lagos, Nigeria. "
+     "Product as named above. Manufacturer: OPUDA'S PAINT, Port Harcourt, Nigeria. "
      "Emergency telephone: 0902 642 4350 (Monday to Saturday, 08:00-18:00 WAT)."),
     ("2. Hazards identification",
      "Water-based products are not classified as hazardous under GHS. Solvent-based gloss contains "

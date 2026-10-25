@@ -48,7 +48,7 @@ const DOMAINS: Array<{
   },
   {
     domain: 'Guide prices',
-    source: 'Indicative Lagos retail guide',
+    source: 'Indicative Port Harcourt retail guide',
     status: 'pending',
     note: 'Excludes VAT and delivery, and is not a quotation. Must be replaced by a feed from the authoritative price list before launch.',
   },

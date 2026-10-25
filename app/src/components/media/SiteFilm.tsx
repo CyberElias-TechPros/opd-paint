@@ -53,7 +53,7 @@ export function SiteFilm({ className }: { className?: string }) {
             }}
             onPause={() => setPlaying(false)}
             onEnded={() => setPlaying(false)}
-            aria-label="OPUDA'S PAINT site film: a painter rolling a wall on a Lagos site."
+            aria-label="OPUDA'S PAINT site film: a painter rolling a wall on a Port Harcourt site."
           >
             <source src="/media/project-film.mp4" type="video/mp4" />
             Your browser cannot play this video. The same work is documented in the photographs on this page.

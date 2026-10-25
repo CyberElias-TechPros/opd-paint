@@ -34,8 +34,8 @@ import { track } from '../../lib/analytics'
 import { cn } from '../../lib/cn'
 
 const DEMO_ROOMS = [
-  { id: 'interior-mauve-peach', label: 'Empty room', note: 'Lagos apartment, before furnishing' },
-  { id: 'interior-lilac-lounge', label: 'Finished lounge', note: 'Lekki Phase 1, in lilac' },
+  { id: 'interior-mauve-peach', label: 'Empty room', note: 'Port Harcourt apartment, before furnishing' },
+  { id: 'interior-lilac-lounge', label: 'Finished lounge', note: 'GRA Phase 2, in lilac' },
   { id: 'project-cream-scaffold', label: 'Exterior wall', note: 'Site photograph, mid-paint' },
 ]
 

@@ -29,7 +29,7 @@ const routes: Array<[string, string, any]> = [
   ['/room-preview', '/room-preview', RoomPreview],
   ['/calculator', '/calculator', Calculator],
   ['/inspiration', '/inspiration', Inspiration],
-  ['/inspiration/:id', '/inspiration/arched-villa-lekki', ProjectDetail],
+  ['/inspiration/:id', '/inspiration/arched-villa-gra', ProjectDetail],
   ['/advice', '/advice', Advice],
   ['/advice/:id', '/advice/how-much-paint', GuideDetail],
   ['/dealers', '/dealers', Dealers],

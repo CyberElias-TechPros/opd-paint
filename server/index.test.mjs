@@ -47,7 +47,7 @@ const post = (path, body, headers = {}) =>
 const validEnquiry = {
   name: 'Ade Balogun',
   phone: '0803 123 4567',
-  city: 'Lekki',
+  city: 'Port Harcourt',
   projectType: 'interior',
   rooms: '4',
   message: 'Whole flat repaint, moving in on the 14th.',

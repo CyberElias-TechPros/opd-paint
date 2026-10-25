@@ -103,7 +103,7 @@ export function Footer() {
                 <Mail className="size-4 shrink-0" aria-hidden /> hello@opudapaint.com
               </a>
               <p className="flex items-center gap-2.5">
-                <MapPin className="size-4 shrink-0" aria-hidden /> Lagos, Nigeria · dealers nationwide
+                <MapPin className="size-4 shrink-0" aria-hidden /> Port Harcourt, Nigeria · dealers nationwide
               </p>
             </div>
           </div>

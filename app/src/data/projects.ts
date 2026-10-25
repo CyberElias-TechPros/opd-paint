@@ -29,9 +29,9 @@ export type Project = {
 
 export const PROJECTS: Project[] = [
   {
-    id: 'arched-villa-lekki',
+    id: 'arched-villa-gra',
     title: 'The arched villa',
-    location: 'Lekki, Lagos',
+    location: 'GRA Phase 2, Port Harcourt',
     year: '2025',
     stage: 'completed',
     kind: 'Exterior',
@@ -50,9 +50,9 @@ export const PROJECTS: Project[] = [
     takeaway: 'Off-white plus a grey pier and a brick plinth — three colours, no more.',
   },
   {
-    id: 'lagoon-facade',
-    title: 'Lagoon-facing facade',
-    location: 'Ikoyi, Lagos',
+    id: 'creek-facade',
+    title: 'Creek-facing facade',
+    location: 'Woji, Port Harcourt',
     year: '2025',
     stage: 'completed',
     kind: 'Exterior',
@@ -70,9 +70,9 @@ export const PROJECTS: Project[] = [
     takeaway: 'Cut in the light bands first, then bring the body colour to them.',
   },
   {
-    id: 'lilac-lounge-lekki',
+    id: 'lilac-lounge-gra',
     title: 'The lilac lounge',
-    location: 'Lekki Phase 1, Lagos',
+    location: 'GRA Phase 2, Port Harcourt',
     year: '2024',
     stage: 'completed',
     kind: 'Interior',
@@ -93,7 +93,7 @@ export const PROJECTS: Project[] = [
   {
     id: 'peach-corridor',
     title: 'Peach corridor',
-    location: 'Ajah, Lagos',
+    location: 'Rumuokoro, Port Harcourt',
     year: '2024',
     stage: 'in progress',
     kind: 'Interior',
@@ -113,14 +113,14 @@ export const PROJECTS: Project[] = [
   {
     id: 'blue-boundary',
     title: 'Blue boundary wall',
-    location: 'Ajah, Lagos',
+    location: 'Rumuola, Port Harcourt',
     year: '2025',
     stage: 'completed',
     kind: 'Boundary & gate',
     summary:
       'A turquoise boundary wall with black steel spikes, stone-white render and rusticated brick piers.',
     story: [
-      'A boundary wall is the largest painted surface most Lagos homes own, and the one most often left grey. This one was specified in a saturated outdoor blue that holds its colour under UV.',
+      'A boundary wall is the largest painted surface most Port Harcourt homes own, and the one most often left grey. This one was specified in a saturated outdoor blue that holds its colour under UV.',
       'The ironwork was finished in Window Black rather than a pure black: under direct sun, pure black reads as a hole, while a soft black keeps the detail of the spikes and scrollwork visible.',
     ],
     cover: 'project-blue-fence',
@@ -133,7 +133,7 @@ export const PROJECTS: Project[] = [
   {
     id: 'modern-cube',
     title: 'Modern cube study',
-    location: 'Concept — Ikoyi',
+    location: 'Concept — GRA, Port Harcourt',
     year: '2026',
     stage: 'concept',
     kind: 'Concept design',

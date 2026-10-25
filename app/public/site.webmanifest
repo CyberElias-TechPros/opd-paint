@@ -1,7 +1,7 @@
 {
   "name": "OPUDA'S PAINT",
   "short_name": "OPUDA'S",
-  "description": "Colour library, product guides, paint calculator and dealer finder for OPUDA'S PAINT, Lagos.",
+  "description": "Colour library, product guides, paint calculator and dealer finder for OPUDA'S PAINT, Port Harcourt.",
   "start_url": "/?utm_source=pwa",
   "scope": "/",
   "display": "standalone",

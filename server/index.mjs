@@ -129,7 +129,7 @@ function routeFor(projectType) {
     case 'exterior':
       return 'Technical desk — exterior specification'
     default:
-      return 'Colour desk — Lagos'
+      return 'Colour desk — Port Harcourt'
   }
 }
 

@@ -81,7 +81,7 @@ const DOCS: Doc[] = [
         heading: 'Colour, product and price information',
         body: [
           'Colours displayed on this site are digital approximations of physical products. They cannot guarantee a match. Light reflectance values shown with “≈” are calculated from the digital value, not measured from a dried film.',
-          'Prices marked “guide price” are indicative Lagos retail figures, exclude VAT and delivery, and are not a quotation. The price you pay is the price agreed with your dealer.',
+          'Prices marked “guide price” are indicative Port Harcourt retail figures, exclude VAT and delivery, and are not a quotation. The price you pay is the price agreed with your dealer.',
           'Product coverage, drying times and recoat intervals come from the technical data sheet for the product. Where a data sheet is under review, the product page says so.',
         ],
       },
