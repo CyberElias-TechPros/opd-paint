@@ -89,10 +89,11 @@ is a honeypot that returns a fake success and stores nothing.
 python3 tools/build-media.py       # photographs -> WebP + manifest + film poster
 python3 tools/build-documents.py   # technical and safety data sheets (PDF)
 python3 tools/build-icons.py       # app icons from the brand mark geometry
+python3 tools/build-og.py          # 1200x630 social sharing card
 node tools/build-sitemap.mjs       # sitemap.xml from the data files
 ```
 
-All four are idempotent and safe to re-run. `npm run build` runs the sitemap
+All five are idempotent and safe to re-run. `npm run build` runs the sitemap
 step automatically so it can never describe a colour that has been deleted.
 
 Requirements: `python3` with Pillow (`pip install --break-system-packages
