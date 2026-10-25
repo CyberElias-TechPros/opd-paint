@@ -159,6 +159,9 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+    defaults:
+      run:
+        working-directory: app
     steps:
       - uses: actions/checkout@v4
         with:
@@ -170,9 +173,9 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
 
-      # There is no package.json at the repository root: the app lives in app/.
+      # There is no package.json at the repository root: the app lives in app/,
+      # which is the default working directory for this job.
       - run: npm ci
-        working-directory: app
 
       - name: No high or critical advisories in what actually ships
         run: |
@@ -199,7 +202,6 @@ jobs:
           gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/audit-report.md
 
       - name: Full advisory report (informational)
-        working-directory: app
         # Dev dependencies are not shipped, so an advisory in a build tool is a
         # maintenance note rather than a release blocker — but it should still be
         # visible in the run, and the summary makes it impossible to miss.
@@ -230,14 +232,16 @@ jobs:
           /tmp/gitleaks version
 
       - name: No secrets in the repository or its history
+        # `--source` is explicit: this job's working directory is app/, and a
+        # scan of app/ alone would be a comforting lie.
         run: |
           /tmp/gitleaks detect \
-            --source . \
+            --source "$GITHUB_WORKSPACE" \
             --redact \
             --verbose \
-            --config .gitleaks.toml \
+            --config "$GITHUB_WORKSPACE/.gitleaks.toml" \
             --report-format sarif \
-            --report-path gitleaks.sarif
+            --report-path "$GITHUB_WORKSPACE/gitleaks.sarif"
 
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -273,26 +277,14 @@ jobs:
           name: site-build
           path: app/dist
 
-      # The bundled browser is preferable — it is the one the dependency pins.
-      # But a failed browser download must not be the reason an accessibility
-      # gate cannot run, so the audit falls back to the Chrome that GitHub's
-      # runner image already has.
-      - name: Install Chromium
-        id: chromium
-        continue-on-error: true
-        run: npx playwright install --with-deps chromium
-
-      - name: Which browser the audit will use
-        env:
-          OUTCOME: ${{ steps.chromium.outcome }}
+      # The runner image ships Google Chrome, so there is nothing to download.
+      # That matters: a `playwright install` step that hangs or fails is a gate
+      # that never runs its checks, which is worse than a slightly different
+      # browser. axe's rules do not depend on the browser build.
+      - name: Use the browser already on the runner
         run: |
-          if [ "$OUTCOME" = "success" ]; then
-            echo "OPD_BROWSER_CHANNEL=chromium" >> "$GITHUB_ENV"
-            echo "Using the Playwright-managed Chromium."
-          else
-            echo "OPD_BROWSER_CHANNEL=chrome" >> "$GITHUB_ENV"
-            echo "::warning::Chromium install failed; falling back to the runner's Google Chrome."
-          fi
+          google-chrome --version
+          echo "OPD_BROWSER_CHANNEL=chrome" >> "$GITHUB_ENV"
 
       - name: Serve the build exactly as production does
         working-directory: .
@@ -347,10 +339,28 @@ jobs:
           path: app/dist
 
       - name: Lighthouse CI
+        id: lighthouse
         uses: treosh/lighthouse-ci-action@v12
         with:
           configPath: ./.lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: false
           runs: 1
+
+      - name: Post the missed budgets to the pull request
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ASSERTIONS: ${{ steps.lighthouse.outputs.assertionResults }}
+        run: |
+          node tools/lighthouse-report.mjs "$ASSERTIONS" > /tmp/lighthouse-report.md
+          cat /tmp/lighthouse-report.md >> "$GITHUB_STEP_SUMMARY"
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/lighthouse-report.md
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: lighthouse-reports
+          retention-days: 14
 

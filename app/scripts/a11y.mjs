@@ -72,7 +72,7 @@ async function main() {
     browser = await chromium.launch(CHANNEL ? { channel: CHANNEL } : {})
   } catch (error) {
     process.stderr.write(
-      '\nCould not launch a browser. Install one with:\n\n  npx playwright install chromium\n\n' +
+      '\nCould not launch a browser. Either install one with:\n\n  npx playwright install chromium\n\n' +
         'Or point OPD_BROWSER_CHANNEL=chrome at a Chrome already on the machine.\n\n' +
         `${String(error).split('\n')[0]}\n`,
     )
