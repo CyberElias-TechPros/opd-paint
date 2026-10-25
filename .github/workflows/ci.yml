@@ -81,7 +81,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install fonttools brotli fpdf2 Pillow
+      # Pinned, not floating. These scripts rasterise type and compress images,
+      # so a library upgrade can change the bytes of a PDF, PNG or JPEG without
+      # anyone touching the design. Pinning keeps the check below meaningful and
+      # stops a Dependabot-style bump from turning the build red for no reason.
+      - run: pip install 'fonttools==4.67.0' 'brotli==1.2.1' 'fpdf2==2.8.9' 'Pillow==13.0.0'
 
       - name: Regenerate icons, social card, documents and sitemap
         working-directory: app
@@ -95,4 +99,36 @@ jobs:
           python3 tools/build-fandeck.py
 
       - name: The committed artefacts match the scripts
-        run: git diff --exit-code -- app/public/sitemap.xml app/public/documents app/public/brand app/public/media/og-card.jpg
+        run: |
+          PATHS="app/public/sitemap.xml app/public/documents app/public/brand app/public/media/og-card.jpg"
+          if git diff --exit-code -- $PATHS; then
+            echo "committed artefacts match their scripts"
+            exit 0
+          fi
+          # A red cross with no explanation wastes everyone's afternoon, so write
+          # down exactly what drifted and what to run.
+          {
+            echo "### Brand assets are out of date"
+            echo
+            echo '```'
+            git status --short -- $PATHS
+            git diff --stat -- $PATHS
+            echo '```'
+            echo
+            echo "Regenerate and commit:"
+            echo
+            echo '```bash'
+            echo "node tools/build-sitemap.mjs"
+            echo "python3 tools/build-documents.py"
+            echo "python3 tools/build-icons.py"
+            echo "python3 tools/build-og.py"
+            echo "python3 tools/build-fandeck.py"
+            echo '```'
+          } | tee "$GITHUB_STEP_SUMMARY" > /tmp/asset-report.md
+          exit 1
+
+      - name: Post the drift to the pull request
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/asset-report.md
