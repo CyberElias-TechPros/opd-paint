@@ -10,6 +10,7 @@ still a placeholder.
 | [running.md](running.md) | You want to run the site, the enquiry API, the tests or a production build. |
 | [content-editing.md](content-editing.md) | You need to add a colour, product, guide, dealer or project — without touching React. |
 | [qa-checklist.md](qa-checklist.md) | You are reviewing a release against the README's gates, or you need to know what is *not* real yet. |
+| [brochure.md](brochure.md) | You are regenerating or editing the printed colour book, or briefing a printer. |
 | [deploying.md](deploying.md) | You are putting it on a server: Docker, systemd, nginx, env vars, backups, post-deploy smoke test. |
 | [operations.md](operations.md) | You are on call: notifications, error reports, log events, what to alert on, backup and restore, incident playbooks. |
 | [remaining-work.md](remaining-work.md) | You are planning what is left: a gate-by-gate gap analysis against the root README roadmap, with the business blockers named. |

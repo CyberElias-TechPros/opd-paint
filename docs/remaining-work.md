@@ -207,6 +207,15 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 Five stages, each ending in a gate that the README defines. Do not skip a gate
 to hit a date — the README is explicit about that.
 
+**Print collateral — ✅ the colour book**
+A dealer-facing A5 brochure, 32 pages, generated from the same data the website
+serves: nine family chapters, eight palettes with a role per wall, the jobs on the
+wall, one colour under four lights, the specification table and the arithmetic for
+sizing a job, an index by room, and a colophon. Byte-reproducible, so the assets
+check treats it like any other committed artefact. Evidence:
+`tools/{build-brochure,brochure_copy}.py`, `app/public/documents/opudas-colour-book.pdf`,
+`docs/brochure.md`. Linked from the colour library.
+
 **Stage 1 — Make the current build trustworthy — ✅ done, all nine checks green**
 Fix the Vercel configuration · enquiry notifications · error monitoring · restore
 test · dependency scanning · Lighthouse CI · axe · browser smoke tests.

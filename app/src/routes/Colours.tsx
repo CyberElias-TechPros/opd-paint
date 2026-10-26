@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Check, FileDown, LayoutGrid, Printer, Search, SlidersHorizontal, X } from 'lucide-react'
+import { BookOpen, Check, FileDown, LayoutGrid, Printer, Search, SlidersHorizontal, X } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
 import { COLORS, COLLECTIONS, COLOR_LRV, FAMILIES, FAMILY_SWATCH, ROOMS, type Family, type Room, type Undertone } from '../data/colors'
 import { PALETTES } from '../data/palettes'
@@ -152,9 +152,23 @@ export default function Colours() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              {/* Two documents, two jobs. The book is the brochure a customer keeps;
+                  the fan deck is the one-page-a-family reference a painter works
+                  from. Both are generated from the data on this page, so neither
+                  can list a colour the page has dropped. */}
+              <a
+                href="/documents/opudas-colour-book.pdf"
+                download
+                onClick={() => track('cta_click', { target: 'colours-book' })}
+                className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-2 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
+              >
+                <BookOpen className="size-3.5" aria-hidden /> Colour book
+                <span className="text-[0.66rem] font-normal opacity-60">PDF · 32pp</span>
+              </a>
               <a
                 href="/documents/opudas-fan-deck.pdf"
                 download
+                onClick={() => track('cta_click', { target: 'colours-fandeck' })}
                 className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
               >
                 <FileDown className="size-3.5" aria-hidden /> Fan deck

@@ -1,3 +1,7 @@
+# Python bytecode from the document generators
+__pycache__/
+*.pyc
+
 # OS noise
 .DS_Store
 Thumbs.db

@@ -100,7 +100,7 @@ jobs:
       # stops a Dependabot-style bump from turning the build red for no reason.
       - run: pip install 'fonttools==4.67.0' 'brotli==1.2.1' 'fpdf2==2.8.9' 'Pillow==13.0.0'
 
-      - name: Regenerate icons, social card, documents and sitemap
+      - name: Regenerate icons, social card, documents, book and sitemap
         working-directory: app
         run: |
           npm ci
@@ -110,6 +110,7 @@ jobs:
           python3 tools/build-icons.py
           python3 tools/build-og.py
           python3 tools/build-fandeck.py
+          python3 tools/build-brochure.py
 
       - name: The committed artefacts match the scripts
         run: |
