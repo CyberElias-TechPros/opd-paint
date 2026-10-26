@@ -85,22 +85,18 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 /**
  * Route loading state.
  *
- * Absolutely positioned on purpose. A route chunk arriving late replaces this
- * element with a whole page, and anything in normal flow that is swapped like
- * that moves every element below it — cumulative layout shift, measured at 0.15
- * on the calculator page before this change. Out of flow, the swap cannot move
- * anything that is on screen.
+ * In normal flow, and that is deliberate: it reserves roughly a screen of space
+ * so the document is taller than the viewport from the first paint. Taking it
+ * out of flow made the page shorter than the screen, so the scrollbar appeared
+ * when the route arrived and shifted every element sideways — 0.73 CLS, far
+ * worse than the shift it was meant to fix.
  *
- * The chunk itself is also preloaded per route at build time (scripts/prerender),
- * so on a normal connection this is rarely seen at all.
+ * The route's own chunk is preloaded at build time (scripts/prerender), so on a
+ * normal connection this is rarely seen at all.
  */
 function RouteFallback() {
   return (
-    <div
-      className="absolute inset-x-0 top-16 flex min-h-[60vh] flex-col justify-center py-20 sm:top-[4.5rem]"
-      role="status"
-      aria-live="polite"
-    >
+    <div className="flex min-h-[60vh] flex-col justify-center py-20" role="status" aria-live="polite">
       <div className="shell">
         <p className="kicker text-moss">Loading</p>
         <p className="mt-3 max-w-md font-[var(--font-display)] text-[clamp(1.4rem,3vw,2rem)] text-ink/72">

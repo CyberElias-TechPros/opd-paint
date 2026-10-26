@@ -122,6 +122,16 @@
     color: inherit;
   }
 
+  /*
+    The scrollbar gutter is always reserved. On a short page (the loading state,
+    an empty project board) the scrollbar is absent; the moment content grows it
+    appears and the whole document shifts sideways by its width — measured as
+    cumulative layout shift, and it is the single biggest cause on this site.
+  */
+  html {
+    overflow-y: scroll;
+  }
+
   :focus-visible {
     outline: 2.5px solid var(--color-green);
     outline-offset: 3px;
