@@ -102,13 +102,13 @@ export default function Dealers() {
               <h1 className="display text-[clamp(2.3rem,4.8vw,3.8rem)]">
                 {DEALERS.length} counters. <span className="italic">{STATES.length} states.</span>
               </h1>
-              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/65">
+              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/75">
                 Brand trade counters and authorised dealers stock the full range. Call ahead to confirm the pack size and
                 colour — we would rather you arrived certain than hopeful.
               </p>
             </div>
             <div className="rounded-sm border border-ink/12 bg-paper-2/70 p-4">
-              <p className="kicker mb-2 text-ink/60">Straight to a human</p>
+              <p className="kicker mb-2 text-ink/72">Straight to a human</p>
               <div className="flex flex-wrap gap-2">
                 <ButtonLink to={`tel:${BRAND_PHONE_TEL}`} external size="sm">
                   <Phone className="size-3.5" aria-hidden /> {BRAND_PHONE_DISPLAY}
@@ -122,18 +122,21 @@ export default function Dealers() {
                   WhatsApp
                 </ButtonLink>
               </div>
-              <p className="mt-2 text-[0.72rem] text-ink/60">Monday to Saturday, 8am – 6pm.</p>
+              <p className="mt-2 text-[0.72rem] text-ink/72">Monday to Saturday, 8am – 6pm.</p>
             </div>
           </div>
         </div>
       </header>
 
       <div className="shell py-8">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        {/* grid-cols-1 on mobile, not the implicit auto column: an auto column is
+            sized by its content's min-content width, and a <select> is as wide as
+            its longest option. */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative min-w-[13rem] flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/60" aria-hidden />
+              <div className="relative min-w-0 flex-1 sm:min-w-[13rem]">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/72" aria-hidden />
                 <input
                   type="search"
                   value={query}
@@ -147,7 +150,10 @@ export default function Dealers() {
                 value={state}
                 onChange={(event) => setState(event.target.value)}
                 aria-label="Filter by state"
-                className="field w-auto py-2 text-[0.82rem]"
+                // `w-auto` sizes a select to its longest option, which is
+                // 670px of Nigerian state names and pushes the page sideways on
+                // a phone. Full width until there is room for it to be inline.
+                className="field w-full min-w-0 py-2 text-[0.82rem] sm:w-auto"
               >
                 <option value="All">All states</option>
                 {STATES.map((option) => (
@@ -174,12 +180,12 @@ export default function Dealers() {
             </div>
 
             {locationError ? (
-              <p role="status" className="mt-3 rounded-sm border border-ink/15 bg-paper-2/70 px-3 py-2 text-[0.78rem] text-ink/60">
+              <p role="status" className="mt-3 rounded-sm border border-ink/15 bg-paper-2/70 px-3 py-2 text-[0.78rem] text-ink/72">
                 {locationError}
               </p>
             ) : null}
 
-            <p className="mt-4 text-[0.8rem] text-ink/60" aria-live="polite">
+            <p className="mt-4 text-[0.8rem] text-ink/72" aria-live="polite">
               {results.length} location{results.length === 1 ? '' : 's'}
               {origin ? ' — nearest first' : ''}
             </p>
@@ -201,11 +207,11 @@ export default function Dealers() {
                               <ShieldCheck className="size-2.5" aria-hidden /> Verified
                             </Badge>
                           ) : null}
-                          {distance != null ? <span className="text-[0.7rem] text-ink/60">{distance} km away</span> : null}
+                          {distance != null ? <span className="text-[0.7rem] text-ink/72">{distance} km away</span> : null}
                         </div>
                         <h2 className="mt-2 font-[var(--font-display)] text-[1.15rem] leading-tight">{dealer.name}</h2>
-                        <p className="mt-0.5 flex items-center gap-1.5 text-[0.8rem] text-ink/60">
-                          <MapPin className="size-3.5 text-ink/60" aria-hidden />
+                        <p className="mt-0.5 flex items-center gap-1.5 text-[0.8rem] text-ink/72">
+                          <MapPin className="size-3.5 text-ink/72" aria-hidden />
                           {dealer.area}, {dealer.city} · {dealer.state}
                         </p>
                       </div>
@@ -220,10 +226,10 @@ export default function Dealers() {
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                      <span className="text-[0.72rem] text-ink/60">{dealer.hours}</span>
+                      <span className="text-[0.72rem] text-ink/72">{dealer.hours}</span>
                       <span className="flex flex-wrap gap-1">
                         {dealer.services.map((s) => (
-                          <span key={s} className="rounded-full bg-ink/6 px-2 py-0.5 text-[0.64rem] font-semibold text-ink/60">
+                          <span key={s} className="rounded-full bg-ink/6 px-2 py-0.5 text-[0.64rem] font-semibold text-ink/72">
                             {s}
                           </span>
                         ))}
@@ -231,7 +237,7 @@ export default function Dealers() {
                     </div>
 
                     {!dealer.verified ? (
-                      <p className="mt-2 flex items-start gap-1.5 text-[0.72rem] text-ink/60">
+                      <p className="mt-2 flex items-start gap-1.5 text-[0.72rem] text-ink/72">
                         <TriangleAlert className="mt-px size-3 shrink-0" aria-hidden />
                         Stock and opening hours for this counter are being confirmed. Please call before travelling.
                       </p>
@@ -315,8 +321,8 @@ export default function Dealers() {
             </div>
 
             <div className="mt-4 rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-              <p className="kicker mb-2 text-ink/60">Stocking the range?</p>
-              <p className="text-[0.82rem] leading-relaxed text-ink/60">
+              <p className="kicker mb-2 text-ink/72">Stocking the range?</p>
+              <p className="text-[0.82rem] leading-relaxed text-ink/72">
                 Dealer and distributor enquiries are handled by the commercial team. Tell us your area and current lines.
               </p>
               <ButtonLink to="/quote?type=dealer" size="sm" variant="paper" className="mt-3">
@@ -330,7 +336,7 @@ export default function Dealers() {
           </aside>
         </div>
 
-        <p id="dealer-list" className="mt-10 max-w-3xl text-[0.72rem] leading-relaxed text-ink/60">
+        <p id="dealer-list" className="mt-10 max-w-3xl text-[0.72rem] leading-relaxed text-ink/72">
           Dealer locations are maintained by the commercial team and reviewed monthly. Addresses and opening hours can
           change without notice; the entry marked “verified” has been confirmed in the current review cycle. If a
           counter has moved, tell us on {BRAND_PHONE_DISPLAY} and we will correct it.{" "}

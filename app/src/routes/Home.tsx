@@ -145,7 +145,7 @@ export default function Home() {
               ].map((stat) => (
                 <div key={stat.label}>
                   <dt className="tabular font-sans text-[1.55rem] font-extrabold leading-none tracking-[-0.03em]">{stat.value}</dt>
-                  <dd className="mt-1.5 text-[0.7rem] leading-snug text-ink/60">{stat.label}</dd>
+                  <dd className="mt-1.5 text-[0.7rem] leading-snug text-ink/72">{stat.label}</dd>
                 </div>
               ))}
             </dl>
@@ -188,7 +188,7 @@ export default function Home() {
                 className="absolute -right-2 top-6 w-[11.5rem] rounded-sm border border-ink/10 bg-paper-2/95 p-3 shadow-[0_24px_50px_-30px_rgba(11,26,19,0.6)] backdrop-blur sm:-right-6"
                 style={{ transform: 'translate3d(0, calc(var(--hero-shift, 0) * 0.8px), 0)' }}
               >
-                <p className="kicker text-ink/60">From this elevation</p>
+                <p className="kicker text-ink/72">From this elevation</p>
                 <div className="mt-2 flex gap-1.5">
                   {['bone', 'pebble', 'brick-lane', 'graphite'].map((id) => {
                     const colour = COLORS.find((c) => c.id === id)
@@ -225,7 +225,7 @@ export default function Home() {
               <Link
                 key={`${family}-${index}`}
                 to={`/colours?family=${encodeURIComponent(family)}`}
-                className="flex shrink-0 items-center gap-2.5 text-[0.72rem] font-bold uppercase tracking-[0.16em] text-ink/60 transition-colors hover:text-ink"
+                className="flex shrink-0 items-center gap-2.5 text-[0.72rem] font-bold uppercase tracking-[0.16em] text-ink/72 transition-colors hover:text-ink"
               >
                 <span className="flex">
                   {COLORS.filter((c) => c.family === family)
@@ -311,7 +311,7 @@ export default function Home() {
                 </div>
                 <div className="flex flex-1 flex-col p-5">
                   <h3 className="font-[var(--font-display)] text-[1.35rem] leading-tight">{card.title}</h3>
-                  <p className="mt-2 flex-1 text-[0.85rem] leading-relaxed text-ink/60">{card.body}</p>
+                  <p className="mt-2 flex-1 text-[0.85rem] leading-relaxed text-ink/72">{card.body}</p>
                   <span className="mt-4 inline-flex items-center gap-1.5 text-[0.72rem] font-bold uppercase tracking-[0.13em] text-green">
                     {card.cta}
                     <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden />
@@ -413,7 +413,7 @@ export default function Home() {
                 { k: 'Undertone', v: 'Cool' },
               ].map((row) => (
                 <div key={row.k} className="border-t border-ink/12 pt-2">
-                  <dt className="text-[0.66rem] font-bold uppercase tracking-[0.14em] text-ink/60">{row.k}</dt>
+                  <dt className="text-[0.66rem] font-bold uppercase tracking-[0.14em] text-ink/72">{row.k}</dt>
                   <dd className="mt-0.5 text-[0.9rem] font-semibold">{row.v}</dd>
                 </div>
               ))}
@@ -435,11 +435,11 @@ export default function Home() {
                 <SmartImage name="interior-mauve-peach" aspect={3 / 4} sizes="(max-width: 768px) 46vw, 28vw" />
               </Reveal>
               <div className="rounded-sm border border-ink/12 bg-paper-2/70 p-3">
-                <p className="text-[0.64rem] font-bold uppercase tracking-[0.14em] text-ink/60">The palette</p>
+                <p className="text-[0.64rem] font-bold uppercase tracking-[0.14em] text-ink/72">The palette</p>
                 <div className="mt-2 h-10 overflow-hidden rounded-[2px]">
                   <ColourStrip hexes={['#D1BFD5', '#8C6D85', '#F8F5EE', '#A8A69C']} className="h-full rounded-none" />
                 </div>
-                <p className="mt-2 text-[0.7rem] leading-snug text-ink/60">
+                <p className="mt-2 text-[0.7rem] leading-snug text-ink/72">
                   Lilac Room · Dusty Grape · Opuda White · Pebble
                 </p>
               </div>
@@ -481,12 +481,12 @@ export default function Home() {
                         </Badge>
                       </div>
                       <h3 className="mt-2 font-[var(--font-display)] text-[1.25rem] leading-tight">{product.shortName}</h3>
-                      <p className="mt-1.5 line-clamp-2 flex-1 text-[0.8rem] leading-relaxed text-ink/60">{product.tagline}</p>
+                      <p className="mt-1.5 line-clamp-2 flex-1 text-[0.8rem] leading-relaxed text-ink/72">{product.tagline}</p>
                       <div className="mt-3 flex items-end justify-between border-t border-ink/10 pt-2.5">
-                        <span className="text-[0.72rem] text-ink/60">
+                        <span className="text-[0.72rem] text-ink/72">
                           From <span className="font-semibold text-ink">{from.length ? naira(Math.min(...from)) : 'on request'}</span>
                         </span>
-                        <span className="text-[0.66rem] text-ink/60">guide</span>
+                        <span className="text-[0.66rem] text-ink/72">guide</span>
                       </div>
                     </div>
                   </Link>
@@ -681,13 +681,13 @@ export default function Home() {
                   imgClassName="transition-transform duration-[1.2s] group-hover:scale-[1.04]"
                 />
                 <div className="flex flex-1 flex-col p-5">
-                  <div className="flex items-center gap-2 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-ink/60">
+                  <div className="flex items-center gap-2 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-ink/72">
                     <span className="text-green">{guide.category}</span>
                     <span aria-hidden>·</span>
                     <span>{guide.readMinutes} min</span>
                   </div>
                   <h3 className="mt-2 font-[var(--font-display)] text-[1.2rem] leading-snug">{guide.title}</h3>
-                  <p className="mt-2 flex-1 line-clamp-2 text-[0.82rem] leading-relaxed text-ink/60">{guide.summary}</p>
+                  <p className="mt-2 flex-1 line-clamp-2 text-[0.82rem] leading-relaxed text-ink/72">{guide.summary}</p>
                   <span className="mt-3 inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-green">
                     Read <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden />
                   </span>
@@ -707,7 +707,7 @@ export default function Home() {
               <h2 id="dealers-title" className="display text-[clamp(1.6rem,3vw,2.3rem)]">
                 {DEALERS.length} counters, {STATES.length} states, one phone number.
               </h2>
-              <p className="mt-3 max-w-xl text-[0.9rem] leading-relaxed text-ink/60">
+              <p className="mt-3 max-w-xl text-[0.9rem] leading-relaxed text-ink/72">
                 Brand trade counters and authorised dealers stock the full range. Call ahead to confirm the pack size and
                 the colour you need — we would rather you arrived certain.
               </p>
@@ -729,7 +729,7 @@ export default function Home() {
                 </a>
               </div>
             </div>
-            <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[0.8rem] text-ink/60 sm:grid-cols-3">
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[0.8rem] text-ink/72 sm:grid-cols-3">
               {STATES.map((state) => (
                 <li key={state} className="flex items-center gap-1.5">
                   <span aria-hidden className="size-1 rounded-full bg-green" /> {state}
@@ -773,7 +773,7 @@ export default function Home() {
               </Link>
             ))}
           </div>
-          <div className="flex items-center gap-2 text-[0.72rem] text-ink/60">
+          <div className="flex items-center gap-2 text-[0.72rem] text-ink/72">
             <BadgeCheck className="size-3.5 text-green" aria-hidden />
             Every colour has a permanent code and an estimated LRV
           </div>

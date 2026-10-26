@@ -416,7 +416,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
         </div>
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[0.76rem] text-ink/60">
+          <p className="text-[0.76rem] text-ink/72">
             {uploadedName ? uploadedName : DEMO_ROOMS.find((r) => r.id === roomId)?.note}
             {ready ? ` · ${coverage}% of the frame selected` : null}
           </p>
@@ -442,10 +442,10 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
         {/* 01 room */}
         <section aria-labelledby="step-room" className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
           <div className="flex items-baseline justify-between">
-            <h3 id="step-room" className="kicker text-ink/60">
+            <h3 id="step-room" className="kicker text-ink/72">
               01 — Choose a room
             </h3>
-            <span className="text-[0.68rem] text-ink/60">or upload your own</span>
+            <span className="text-[0.68rem] text-ink/72">or upload your own</span>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2">
             {DEMO_ROOMS.map((room) => (
@@ -477,7 +477,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
             <span className="flex items-center gap-2">
               <ImagePlus className="size-4" aria-hidden /> Upload a photo
             </span>
-            <span className="text-[0.66rem] font-medium text-ink/60">JPG · PNG · WebP · ≤12 MB</span>
+            <span className="text-[0.66rem] font-medium text-ink/72">JPG · PNG · WebP · ≤12 MB</span>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -493,7 +493,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
 
         {/* 02 mask */}
         <section aria-labelledby="step-mask" className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-          <h3 id="step-mask" className="kicker text-ink/60">
+          <h3 id="step-mask" className="kicker text-ink/72">
             02 — Select the wall
           </h3>
           <div className="mt-3 grid grid-cols-3 gap-1.5" role="group" aria-label="Selection tool">
@@ -524,7 +524,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
             <div className="mt-4">
               <label htmlFor="tolerance" className="flex items-center justify-between text-[0.74rem] font-semibold text-ink/70">
                 Tolerance
-                <span className="tabular text-ink/60">{tolerance}</span>
+                <span className="tabular text-ink/72">{tolerance}</span>
               </label>
               <input
                 id="tolerance"
@@ -535,7 +535,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
                 onChange={(event) => setTolerance(Number(event.target.value))}
                 aria-describedby="tolerance-help"
               />
-              <p id="tolerance-help" className="text-[0.72rem] text-ink/60">
+              <p id="tolerance-help" className="text-[0.72rem] text-ink/72">
                 Higher values catch more of a shadowed or uneven wall; lower values keep the selection tight.
               </p>
             </div>
@@ -543,7 +543,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
             <div className="mt-4">
               <label htmlFor="brush" className="flex items-center justify-between text-[0.74rem] font-semibold text-ink/70">
                 Brush size
-                <span className="tabular text-ink/60">{brushSize}px</span>
+                <span className="tabular text-ink/72">{brushSize}px</span>
               </label>
               <input
                 id="brush"
@@ -553,7 +553,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
                 value={brushSize}
                 onChange={(event) => setBrushSize(Number(event.target.value))}
               />
-              <p className="text-[0.72rem] text-ink/60">Paint over the remaining bands, edges and reveals by hand.</p>
+              <p className="text-[0.72rem] text-ink/72">Paint over the remaining bands, edges and reveals by hand.</p>
             </div>
           )}
 
@@ -573,7 +573,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
                 style={{ width: `${Math.min(100, coverage)}%` }}
               />
             </div>
-            <p className="mt-1.5 flex items-center gap-1.5 text-[0.7rem] text-ink/60">
+            <p className="mt-1.5 flex items-center gap-1.5 text-[0.7rem] text-ink/72">
               <Wand2 className="size-3" aria-hidden /> {coverage}% selected. A wall is usually 25–60% of the frame.
             </p>
           </div>
@@ -582,7 +582,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
         {/* 03 colour */}
         <section aria-labelledby="step-colour" className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
           <div className="flex items-center justify-between gap-3">
-            <h3 id="step-colour" className="kicker text-ink/60">
+            <h3 id="step-colour" className="kicker text-ink/72">
               03 — Choose a colour
             </h3>
             <span
@@ -594,7 +594,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
 
           <div className="mt-3 flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-ink/60" aria-hidden />
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-ink/72" aria-hidden />
               <input
                 type="search"
                 value={query}
@@ -640,7 +640,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
 
           <div className="mt-3 rounded-[3px] border border-ink/10 bg-white/50 p-3">
             <p className="text-[0.88rem] font-semibold">{colour.name}</p>
-            <p className="text-[0.72rem] text-ink/60">
+            <p className="text-[0.72rem] text-ink/72">
               {colour.code} · {colour.family} · LRV ≈ {COLOR_LRV(colour)}
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -662,7 +662,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
           </div>
 
           <fieldset className="mt-3">
-            <legend className="text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink/60">Finish</legend>
+            <legend className="text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink/72">Finish</legend>
             <div className="mt-1.5 grid grid-cols-2 gap-1.5">
               {(['matt', 'silk'] as FinishLook[]).map((f) => (
                 <button
@@ -682,7 +682,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
           </fieldset>
 
           <div className="mt-3">
-            <p className="kicker mb-1.5 text-ink/60">Or start from a palette</p>
+            <p className="kicker mb-1.5 text-ink/72">Or start from a palette</p>
             <div className="flex flex-wrap gap-1.5">
               {PALETTES.slice(0, 5).map((palette) => (
                 <button
@@ -708,7 +708,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
           </div>
         </section>
 
-        <p className="text-[0.72rem] leading-relaxed text-ink/60">
+        <p className="text-[0.72rem] leading-relaxed text-ink/72">
           Your photograph is processed in this browser tab and is never uploaded. The preview is a simulation: it
           preserves the light and shadow in your photo, but it cannot reproduce how a real film looks in your room.{' '}
           <Link to="/advice/colour-on-screen" className="underline hover:text-green">

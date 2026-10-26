@@ -7,6 +7,10 @@ Verify that the committed brand assets match what the scripts produce.
     python3 tools/build-icons.py
     python3 tools/build-og.py
     python3 tools/build-fandeck.py
+    python3 tools/build-brochure.py
+    python3 tools/build-roombook.py
+    python3 tools/build-colorwheel.py
+    python3 tools/build-specsheet.py
     python3 tools/check-assets.py
 
 Why this exists rather than `git diff --exit-code`: a JPEG is not a document,
@@ -138,6 +142,30 @@ def compare(path: str) -> str | None:
     return f"{path}: {len(old)} -> {len(new)} bytes"
 
 
+def uncommitted(paths: list[str], committed: list[str]) -> list[str]:
+    """
+    Generated files that exist but are not in the last commit.
+
+    A drift check that only reads `git ls-tree` cannot see a *new* artefact: the
+    file the generator just wrote is untracked, so it is compared to nothing and
+    the check passes while the website links to a document that is not in the
+    repository. This is the other half of the same question — not "does the
+    committed file match its script" but "is every generated file committed".
+    """
+    known = set(committed)
+    found = []
+    for path in paths:
+        target = ROOT / path
+        candidates = sorted(target.rglob("*")) if target.is_dir() else [target]
+        for candidate in candidates:
+            if not candidate.is_file():
+                continue
+            relative = candidate.relative_to(ROOT).as_posix()
+            if relative not in known:
+                found.append(relative)
+    return found
+
+
 def main(argv: list[str]) -> int:
     paths = argv[1:] or DEFAULT_PATHS
     files = committed_files(paths)
@@ -146,6 +174,10 @@ def main(argv: list[str]) -> int:
         return 1
 
     problems = [note for note in (compare(path) for path in files) if note]
+    problems += [
+        f"{path}: generated but not committed — add it to the same commit"
+        for path in uncommitted(paths, files)
+    ]
 
     if problems:
         print("Brand assets are out of date:\n")
@@ -158,6 +190,10 @@ def main(argv: list[str]) -> int:
             "  python3 tools/build-icons.py\n"
             "  python3 tools/build-og.py\n"
             "  python3 tools/build-fandeck.py\n"
+            "  python3 tools/build-brochure.py\n"
+            "  python3 tools/build-roombook.py\n"
+            "  python3 tools/build-colorwheel.py\n"
+            "  python3 tools/build-specsheet.py\n"
         )
         return 1
 

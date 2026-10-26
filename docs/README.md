@@ -10,7 +10,10 @@ still a placeholder.
 | [running.md](running.md) | You want to run the site, the enquiry API, the tests or a production build. |
 | [content-editing.md](content-editing.md) | You need to add a colour, product, guide, dealer or project — without touching React. |
 | [qa-checklist.md](qa-checklist.md) | You are reviewing a release against the README's gates, or you need to know what is *not* real yet. |
-| [deploying.md](deploying.md) | You are putting it on a server: Docker, systemd, nginx, env vars, backups, monitoring, post-deploy smoke test. |
+| [brochure.md](brochure.md) | You are regenerating or editing the printed colour book, or briefing a printer. |
+| [deploying.md](deploying.md) | You are putting it on a server: Docker, systemd, nginx, env vars, backups, post-deploy smoke test. |
+| [operations.md](operations.md) | You are on call: notifications, error reports, log events, what to alert on, backup and restore, incident playbooks. |
+| [remaining-work.md](remaining-work.md) | You are planning what is left: a gate-by-gate gap analysis against the root README roadmap, with the business blockers named. |
 
 ## Layout
 
@@ -41,10 +44,19 @@ npm run server     # enquiry API on http://localhost:8787
 npm test           # calculator, colour-mask and content integrity tests
 npm run test:server # enquiry API: validation, routing, auth, rate limits
 npm run test:routes # every one of the 21 routes renders through the real router
+npm run test:browser # quote form and calculator, driven in a DOM against the real service
+npm run test:a11y  # axe + keyboard + reduced motion + 360px, in real Chromium
 npm run check      # lint, all of the above, production build
 ```
 
-Continuous integration runs exactly these steps, plus a job that regenerates the
+Backups are drilled, not assumed: `bash tools/verify-restore.sh` runs the real
+`backup.sh` and `restore.sh` against throwaway data, including the damaged
+archive a full disk produces, and checks the service serves what was restored.
+
+Continuous integration runs exactly these steps, plus an accessibility job (axe
+on Chromium, keyboard operability, reduced motion, 360 px layout), a Lighthouse
+budget check, a backup/restore drill, a dependency and secret scan, and a job
+that regenerates the
 brand assets, documents, fan deck, social card and sitemap, then runs
 `tools/check-assets.py` — so a design change cannot land without its artefacts.
 

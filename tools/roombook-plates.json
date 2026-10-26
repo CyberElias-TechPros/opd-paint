@@ -1,0 +1,213 @@
+{
+  "_readme": [
+    "Wall planes for the room-scheme plates.",
+    "",
+    "Each plate is one real OPUDA'S photograph. Each plane is a surface that can be",
+    "repainted: a clip polygon in fractions of the image, plus flood-fill seeds and a",
+    "colour tolerance. The fill follows cornices, sockets and door frames, so the edge",
+    "on the page follows the edge of the wall.",
+    "",
+    "The polygons were traced against each photograph with a 100-pixel grid overlay.",
+    "If a mask ever comes out empty the build stops: a silently unpainted wall is worse",
+    "than a failed build. Add 'whole': true for a surface with no flat region to fill.",
+    "",
+    "Order matters: schema entries are painted in this order, and each scheme supplies",
+    "one hex per plane in the same order."
+  ],
+  "living": {
+    "image": "interior-lilac-lounge",
+    "title": "The feature wall at GRA Phase 2",
+    "note": "One wall changed, everything else left alone",
+    "planes": [
+      {
+        "name": "Feature wall",
+        "clip": [
+          [
+            0.275,
+            0.36
+          ],
+          [
+            0.42,
+            0.36
+          ],
+          [
+            0.42,
+            0.69
+          ],
+          [
+            0.275,
+            0.69
+          ]
+        ],
+        "seeds": [
+          [
+            330,
+            450
+          ],
+          [
+            370,
+            600
+          ]
+        ],
+        "tolerance": 30
+      }
+    ]
+  },
+  "bedroom": {
+    "image": "interior-mauve-peach",
+    "title": "The bedroom at Rumuokoro",
+    "note": "Three planes, one light source",
+    "planes": [
+      {
+        "name": "Main wall",
+        "clip": [
+          [
+            0.07,
+            0.25
+          ],
+          [
+            0.385,
+            0.245
+          ],
+          [
+            0.385,
+            0.76
+          ],
+          [
+            0.07,
+            0.76
+          ]
+        ],
+        "seeds": [
+          [
+            150,
+            500
+          ],
+          [
+            200,
+            700
+          ]
+        ],
+        "tolerance": 42
+      }
+    ]
+  },
+  "boundary": {
+    "image": "project-finished-villa",
+    "title": "The boundary wall at GRA Phase 2",
+    "note": "The surface a street actually judges you by",
+    "planes": [
+      {
+        "name": "Wall panels",
+        "clip": [
+          [
+            0.0,
+            0.655
+          ],
+          [
+            1.0,
+            0.655
+          ],
+          [
+            1.0,
+            0.8
+          ],
+          [
+            0.0,
+            0.8
+          ]
+        ],
+        "seeds": [
+          [
+            150,
+            560
+          ],
+          [
+            500,
+            570
+          ],
+          [
+            900,
+            560
+          ]
+        ],
+        "tolerance": 24
+      },
+      {
+        "name": "Brick base",
+        "clip": [
+          [
+            0.0,
+            0.795
+          ],
+          [
+            1.0,
+            0.795
+          ],
+          [
+            1.0,
+            0.875
+          ],
+          [
+            0.0,
+            0.875
+          ]
+        ],
+        "seeds": [
+          [
+            150,
+            630
+          ],
+          [
+            500,
+            640
+          ]
+        ],
+        "tolerance": 30
+      }
+    ]
+  },
+  "gate": {
+    "image": "project-gate",
+    "title": "The gate on a Rumuola boundary",
+    "note": "Ironwork is a colour decision too",
+    "planes": [
+      {
+        "name": "Ironwork",
+        "clip": [
+          [
+            0.08,
+            0.1
+          ],
+          [
+            0.92,
+            0.1
+          ],
+          [
+            0.92,
+            0.6
+          ],
+          [
+            0.08,
+            0.6
+          ]
+        ],
+        "seeds": [
+          [
+            480,
+            300
+          ],
+          [
+            520,
+            350
+          ],
+          [
+            200,
+            250
+          ]
+        ],
+        "tolerance": 40
+      }
+    ]
+  }
+}

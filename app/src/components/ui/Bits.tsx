@@ -126,7 +126,7 @@ export function Rule({ className }: { className?: string }) {
 
 export function IndexNumber({ n, className }: { n: number | string; className?: string }) {
   return (
-    <span className={cn('tabular text-[0.68rem] font-bold tracking-[0.18em] text-ink/60', className)}>
+    <span className={cn('tabular text-[0.68rem] font-bold tracking-[0.18em] text-ink/72', className)}>
       {String(n).padStart(2, '0')}
     </span>
   )
@@ -152,13 +152,13 @@ export function Pill({ children, active, onClick, dot }: { children: ReactNode; 
 }
 
 export function FieldNote({ children }: { children: ReactNode }) {
-  return <p className="text-[0.78rem] leading-relaxed text-ink/60">{children}</p>
+  return <p className="text-[0.78rem] leading-relaxed text-ink/72">{children}</p>
 }
 
 export function DataRow({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-6 border-b border-ink/10 py-2.5 last:border-0">
-      <dt className="text-[0.78rem] text-ink/60">{label}</dt>
+      <dt className="text-[0.78rem] text-ink/72">{label}</dt>
       <dd className="text-right text-[0.85rem] font-semibold text-ink">{value}</dd>
     </div>
   )

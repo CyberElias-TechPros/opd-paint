@@ -44,6 +44,11 @@ jobs:
       - name: Every route renders
         run: npm run test:routes
 
+      # The route test renders to a string; this one drives the quote form and
+      # the calculator in a DOM against the real enquiry service.
+      - name: Forms and calculator work in a browser DOM
+        run: npm run test:browser
+
       - name: Production build
         run: npm run build
 
@@ -56,6 +61,9 @@ jobs:
           test -f dist/documents/opudas-fan-deck.pdf
           test -f dist/sw.js
           test -f dist/offline.html
+          test -f dist/404.html
+          grep -q 'Page not found' dist/404.html
+          grep -q 'noindex' dist/404.html
           test -f dist/colours/index.html
           grep -q '<title>Colour library' dist/colours/index.html
           grep -q 'canonical" href="https://opudapaint.com/colours/palm-shadow"' dist/colours/palm-shadow/index.html
@@ -90,9 +98,12 @@ jobs:
       # so a library upgrade can change the bytes of a PDF, PNG or JPEG without
       # anyone touching the design. Pinning keeps the check below meaningful and
       # stops a Dependabot-style bump from turning the build red for no reason.
-      - run: pip install 'fonttools==4.67.0' 'brotli==1.2.1' 'fpdf2==2.8.9' 'Pillow==13.0.0'
+      # numpy is here because the room-scheme plates repaint a wall by scaling its
+      # luminance, which is a whole-image array operation. Pinned like the rest, so
+      # a bump cannot silently change a rendered plate.
+      - run: pip install 'fonttools==4.67.0' 'brotli==1.2.1' 'fpdf2==2.8.9' 'Pillow==13.0.0' 'numpy==2.4.6'
 
-      - name: Regenerate icons, social card, documents and sitemap
+      - name: Regenerate icons, social card, documents, books and sitemap
         working-directory: app
         run: |
           npm ci
@@ -102,6 +113,10 @@ jobs:
           python3 tools/build-icons.py
           python3 tools/build-og.py
           python3 tools/build-fandeck.py
+          python3 tools/build-brochure.py
+          python3 tools/build-roombook.py
+          python3 tools/build-colorwheel.py
+          python3 tools/build-specsheet.py
 
       - name: The committed artefacts match the scripts
         run: |
@@ -126,3 +141,261 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/asset-report.md
+
+  restore:
+    name: Backups restore
+    runs-on: ubuntu-latest
+    # An untested backup is a hypothesis. This drills the real backup.sh and
+    # restore.sh end to end against throwaway data, including the damaged-archive
+    # case that an actual incident produces.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Backup and restore drill
+        run: bash tools/verify-restore.sh
+
+  security:
+    name: Dependencies and secrets
+    runs-on: ubuntu-latest
+    # A security failure is the one a reviewer most needs spelled out, and the
+    # job log is not readable from everywhere. The findings go on the PR.
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # gitleaks scans history, not just the working tree
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      # There is no package.json at the repository root: the app lives in app/,
+      # which is the default working directory for this job.
+      - run: npm ci
+
+      - name: No high or critical advisories in what actually ships
+        run: |
+          set +e
+          npm audit --omit=dev --audit-level=high > /tmp/audit-prod.txt 2>&1
+          status=$?
+          cat /tmp/audit-prod.txt
+          exit $status
+
+      - name: Post the advisories to the pull request
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo '### Dependency advisories'
+            echo
+            echo 'High or critical advisories affect a dependency the site actually ships.'
+            echo
+            echo '```'
+            cat /tmp/audit-prod.txt
+            echo '```'
+          } > /tmp/audit-report.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/audit-report.md
+
+      - name: Full advisory report (informational)
+        # Dev dependencies are not shipped, so an advisory in a build tool is a
+        # maintenance note rather than a release blocker — but it should still be
+        # visible in the run, and the summary makes it impossible to miss.
+        continue-on-error: true
+        run: |
+          set +e
+          npm audit --audit-level=high > /tmp/audit.txt 2>&1
+          status=$?
+          {
+            echo '### npm audit (including dev dependencies)'
+            echo
+            echo '```'
+            tail -40 /tmp/audit.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $status
+
+      # Always runs, needs nothing downloaded, and scans the working tree *and*
+      # every line ever added to the history. This is the gate that cannot fail
+      # to run.
+      - name: Secret scan (built in)
+        working-directory: .
+        run: node tools/scan-secrets.mjs
+
+      - name: Install gitleaks
+        id: gitleaks
+        continue-on-error: true
+        env:
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          set -euo pipefail
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          curl -sSfL --retry 3 --retry-delay 2 -o /tmp/gitleaks.tar.gz \
+            "${base}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL --retry 3 --retry-delay 2 -o /tmp/gitleaks-sums.txt \
+            "${base}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          # Verify the download against the published checksum before running it.
+          (cd /tmp && grep " gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz$" gitleaks-sums.txt | sha256sum -c -)
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          chmod +x /tmp/gitleaks
+          /tmp/gitleaks version
+
+      - name: No secrets in the repository or its history (gitleaks)
+        # The deeper rule set, when its binary can be fetched. The built-in scan
+        # above is the one that is guaranteed to run; this one adds gitleaks'
+        # 150-odd credential patterns on top.
+        if: steps.gitleaks.outcome == 'success'
+        # `--source` is explicit: this job's working directory is app/, and a
+        # scan of app/ alone would be a comforting lie.
+        run: |
+          /tmp/gitleaks detect \
+            --source "$GITHUB_WORKSPACE" \
+            --redact \
+            --verbose \
+            --config "$GITHUB_WORKSPACE/.gitleaks.toml" \
+            --report-format sarif \
+            --report-path "$GITHUB_WORKSPACE/gitleaks.sarif"
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: secret-scan
+          path: gitleaks.sarif
+          retention-days: 7
+
+  a11y:
+    name: Accessibility — axe on real Chromium
+    runs-on: ubuntu-latest
+    needs: web
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+
+      - name: Reuse the build the web job produced
+        uses: actions/download-artifact@v4
+        with:
+          name: site-build
+          path: app/dist
+
+      # The runner image ships Google Chrome, so there is nothing to download.
+      # That matters: a `playwright install` step that hangs or fails is a gate
+      # that never runs its checks, which is worse than a slightly different
+      # browser. axe's rules do not depend on the browser build.
+      - name: Use the browser already on the runner
+        run: |
+          google-chrome --version
+          echo "OPD_BROWSER_CHANNEL=chrome" >> "$GITHUB_ENV"
+
+      - name: Serve the build exactly as production does
+        working-directory: .
+        run: |
+          OPD_STATIC_DIR=app/dist OPD_LOG_LEVEL=warn PORT=8788             node server/index.mjs > /tmp/server.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8788/api/health > /dev/null 2>&1; then exit 0; fi
+            sleep 0.5
+          done
+          echo "the site server never came up" >&2
+          cat /tmp/server.log >&2
+          exit 1
+
+      - name: axe, keyboard, reduced motion, 360px
+        run: npm run test:a11y
+
+      - name: Post the audit to the pull request
+        if: failure() && github.event_name == 'pull_request'
+        working-directory: app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/a11y-report.mjs reports/a11y.json > /tmp/a11y-report.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/a11y-report.md
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a11y-report
+          path: app/reports/a11y.json
+          retention-days: 14
+
+  lighthouse:
+    name: Lighthouse budgets
+    runs-on: ubuntu-latest
+    needs: web
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+        working-directory: app
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-build
+          path: app/dist
+
+      # `lhci autorun` is run directly rather than through a third-party action:
+      # it keeps the browser choice explicit, and it means the report files exist
+      # on disk for the summary below to read.
+      - name: Lighthouse CI
+        id: lighthouse
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          set +e
+          npx --yes @lhci/cli@0.15.1 autorun
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit $status
+
+      # Always, not only on failure: when a budget passes by 1% it is worth
+      # knowing, and when it fails the reason has to be in the report itself.
+      - name: What was measured, and what moved
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node tools/lighthouse-report.mjs lighthouse-reports > /tmp/lighthouse.md
+          cat /tmp/lighthouse.md >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.lighthouse.outputs.status }}" != "0" ] && [ "${{ github.event_name }}" = "pull_request" ]; then
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/lighthouse.md
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: lighthouse-reports
+          retention-days: 14
+

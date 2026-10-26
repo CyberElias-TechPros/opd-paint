@@ -26,5 +26,13 @@ export default defineConfig({
     },
   },
   preview: { host: '0.0.0.0', port: 4173, allowedHosts: true },
+  // A stable release stamp reaches the client as `VITE_RELEASE`, so every error
+  // report names the deploy it came from. Vercel supplies the commit SHA; a
+  // local build says `dev` rather than pretending to be a release.
   build: { target: 'es2022', cssMinify: true },
+  define: {
+    'import.meta.env.VITE_RELEASE': JSON.stringify(
+      (process.env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 12) || 'dev',
+    ),
+  },
 })

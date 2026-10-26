@@ -111,7 +111,11 @@ export function Footer() {
           <div className="grid gap-10 sm:grid-cols-3">
             {COLUMNS.map((column) => (
               <nav key={column.title} aria-label={column.title}>
-                <h3 className="kicker text-paper-2/65">{column.title}</h3>
+                {/* A footer column is a section of the page, so it belongs at h2.
+                    At h3 it skipped a level after a page whose content stops at
+                    h1 — which is exactly what Lighthouse's heading-order audit
+                    reports, and what a screen-reader user hears as a hole. */}
+                <h2 className="kicker text-paper-2/65">{column.title}</h2>
                 <ul className="mt-4 space-y-2.5">
                   {column.links.map((link) => (
                     <li key={link.to + link.label}>
@@ -128,7 +132,7 @@ export function Footer() {
 
         <div className="mt-14 grid gap-8 border-t border-paper-2/12 pt-8 lg:grid-cols-[1fr_1.1fr] lg:items-end">
           <div>
-            <h3 className="font-[var(--font-display)] text-xl">Colour Notes</h3>
+            <h2 className="font-[var(--font-display)] text-xl">Colour Notes</h2>
             <p className="mt-1.5 max-w-sm text-[0.82rem] leading-relaxed text-paper-2/60">
               New collections, site photographs and practical guides. Sent when there is something worth sending — not on a schedule.
             </p>

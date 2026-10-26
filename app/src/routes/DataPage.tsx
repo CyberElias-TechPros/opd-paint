@@ -101,7 +101,7 @@ export default function DataPage() {
           <h1 className="display max-w-3xl text-[clamp(2.2rem,4.6vw,3.5rem)]">
             What we know, what we <span className="italic">estimate</span>, and what we do not publish.
           </h1>
-          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-ink/65">
+          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-ink/75">
             A paint website is full of numbers that look authoritative. This page states, field by field, where each
             one comes from and how much weight it can carry. It exists because colour trust is the whole product.
           </p>
@@ -114,7 +114,7 @@ export default function DataPage() {
           <div className="mt-4 overflow-x-auto rounded-sm border border-ink/12">
             <table className="w-full min-w-[42rem] border-collapse text-left text-[0.82rem]">
               <caption className="sr-only">Data domains with their source and verification status</caption>
-              <thead className="bg-plaster/50 text-[0.62rem] uppercase tracking-[0.12em] text-ink/60">
+              <thead className="bg-plaster/50 text-[0.62rem] uppercase tracking-[0.12em] text-ink/72">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-bold">Field</th>
                   <th scope="col" className="px-4 py-3 font-bold">Source</th>
@@ -130,13 +130,13 @@ export default function DataPage() {
                       <th scope="row" className="px-4 py-3 font-semibold">
                         {row.domain}
                       </th>
-                      <td className="px-4 py-3 text-ink/60">{row.source}</td>
+                      <td className="px-4 py-3 text-ink/72">{row.source}</td>
                       <td className="px-4 py-3">
                         <Badge tone={meta.tone}>
                           <meta.icon className="size-2.5" aria-hidden /> {meta.label}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-ink/60">{row.note}</td>
+                      <td className="px-4 py-3 text-ink/72">{row.note}</td>
                     </tr>
                   )
                 })}
@@ -198,7 +198,7 @@ export default function DataPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-3 text-[0.82rem] leading-relaxed text-ink/60">
+            <p className="mt-3 text-[0.82rem] leading-relaxed text-ink/72">
               Manual screen-reader passes and an independent audit are still outstanding before launch. If something
               here is unusable for you, call {`0902 642 4350`} and we will complete the task with you directly — that is
               the fallback we are accountable for.{' '}
@@ -224,7 +224,7 @@ export default function DataPage() {
               ].map(([label, value]) => (
                 <div key={label} className="grid gap-1 border-b border-ink/8 px-4 py-3 last:border-0 sm:grid-cols-[1fr_1.4fr]">
                   <p className="text-[0.8rem] font-semibold">{label}</p>
-                  <p className="text-[0.8rem] text-ink/60">{value}</p>
+                  <p className="text-[0.8rem] text-ink/72">{value}</p>
                 </div>
               ))}
             </div>
@@ -233,7 +233,7 @@ export default function DataPage() {
 
         <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
-            <p className="kicker mb-3 text-ink/60">In the library</p>
+            <p className="kicker mb-3 text-ink/72">In the library</p>
             <dl>
               <DataRow label="Colour records" value={COLORS.length} />
               <DataRow label="Products" value={PRODUCTS.length} />
@@ -247,7 +247,7 @@ export default function DataPage() {
             <p className="flex items-center gap-2 text-[0.86rem] font-semibold">
               <FileJson className="size-4 text-green" aria-hidden /> Structured data
             </p>
-            <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink/60">
+            <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink/72">
               Pages emit schema.org markup for the organisation, product offers, colour records, guides and verified
               dealer locations. Markup is only emitted for fields that are also visible on the page.
             </p>
@@ -257,7 +257,7 @@ export default function DataPage() {
             <p className="flex items-center gap-2 text-[0.86rem] font-semibold">
               <ShieldCheck className="size-4 text-green" aria-hidden /> Privacy
             </p>
-            <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink/60">
+            <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink/72">
               Photographs uploaded to the room preview are processed in the browser and never transmitted. Saved colours
               live in this browser’s local storage. Nothing is measured until you opt in.
             </p>
@@ -291,7 +291,7 @@ export default function DataPage() {
             <h2 className="display text-[clamp(1.7rem,3.4vw,2.5rem)]">
               A screen cannot settle a colour. A chip can.
             </h2>
-            <p className="mt-3 max-w-xl text-[0.92rem] leading-relaxed text-ink/65">
+            <p className="mt-3 max-w-xl text-[0.92rem] leading-relaxed text-ink/75">
               Everything on this page exists to be honest about that limit: the hex value is a digital proof, the LRV is
               an estimate until a dried film is measured, and the photograph on your wall is not the wall. Ask for a
               sample pot, or hold the fan deck against the light in the room.

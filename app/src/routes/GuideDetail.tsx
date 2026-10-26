@@ -46,7 +46,7 @@ export default function GuideDetail() {
   return (
     <>
       <nav aria-label="Breadcrumb" className="shell pt-6">
-        <ol className="flex flex-wrap items-center gap-2 text-[0.72rem] text-ink/60">
+        <ol className="flex flex-wrap items-center gap-2 text-[0.72rem] text-ink/72">
           <li>
             <Link to="/advice" className="hover:text-ink">
               Advice
@@ -64,7 +64,7 @@ export default function GuideDetail() {
           <Badge tone="green">{guide.category}</Badge>
           <h1 className="display mt-4 max-w-3xl text-[clamp(2rem,4.4vw,3.4rem)]">{guide.title}</h1>
           <p className="mt-4 max-w-2xl text-[1rem] leading-relaxed text-ink/70">{guide.summary}</p>
-          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.74rem] text-ink/60">
+          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.74rem] text-ink/72">
             <span className="flex items-center gap-1.5">
               <Clock className="size-3.5" aria-hidden /> {guide.readMinutes} min read
             </span>
@@ -138,13 +138,13 @@ export default function GuideDetail() {
                 {guide.faq.map((item) => (
                   <div key={item.q}>
                     <dt className="text-[0.9rem] font-semibold">{item.q}</dt>
-                    <dd className="mt-1 text-[0.88rem] leading-relaxed text-ink/65">{item.a}</dd>
+                    <dd className="mt-1 text-[0.88rem] leading-relaxed text-ink/75">{item.a}</dd>
                   </div>
                 ))}
               </dl>
             </section>
 
-            <p className="mt-8 rounded-sm bg-plaster/40 p-4 text-[0.76rem] leading-relaxed text-ink/60">
+            <p className="mt-8 rounded-sm bg-plaster/40 p-4 text-[0.76rem] leading-relaxed text-ink/72">
               This guide is general technical guidance for a Nigerian site. It does not replace the product data sheet
               or a site assessment. Where a wall is damp, salt-bloomed or structurally unsound, fix the cause before
               specifying a finish.
@@ -154,14 +154,14 @@ export default function GuideDetail() {
           <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
             {products.length ? (
               <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-                <p className="kicker mb-2 text-ink/60">Products mentioned</p>
+                <p className="kicker mb-2 text-ink/72">Products mentioned</p>
                 <ul className="space-y-2">
                   {products.map((product) =>
                     product ? (
                       <li key={product.id}>
                         <Link to={`/products/${product.id}`} className="group flex items-center justify-between gap-2 text-[0.84rem]">
                           <span className="font-semibold group-hover:text-green">{product.shortName}</span>
-                          <span className="text-ink/60">{product.finish}</span>
+                          <span className="text-ink/72">{product.finish}</span>
                         </Link>
                       </li>
                     ) : null,
@@ -175,7 +175,7 @@ export default function GuideDetail() {
 
             {colours.length ? (
               <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
-                <p className="kicker mb-2 text-ink/60">Colours mentioned</p>
+                <p className="kicker mb-2 text-ink/72">Colours mentioned</p>
                 <div className="grid grid-cols-3 gap-2">
                   {colours.map((colour) => (colour ? <ColourCard key={colour.id} colour={colour} height="compact" showMeta={false} /> : null))}
                 </div>
@@ -216,7 +216,7 @@ export default function GuideDetail() {
                   <span className="block text-[0.62rem] font-bold uppercase tracking-[0.12em] text-green">{item.category}</span>
                   <span className="mt-0.5 block text-[0.9rem] font-semibold leading-snug group-hover:text-green">{item.title}</span>
                 </span>
-                <ArrowRight className="ml-auto size-4 shrink-0 text-ink/60 transition-transform group-hover:translate-x-1" aria-hidden />
+                <ArrowRight className="ml-auto size-4 shrink-0 text-ink/72 transition-transform group-hover:translate-x-1" aria-hidden />
               </Link>
             ))}
           </div>

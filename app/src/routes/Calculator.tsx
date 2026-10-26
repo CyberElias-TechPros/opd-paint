@@ -33,12 +33,12 @@ export default function CalculatorPage() {
               <h1 className="display text-[clamp(2.3rem,4.8vw,3.8rem)]">
                 The right number of <span className="italic">litres.</span>
               </h1>
-              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/65">
+              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/75">
                 Measure the room, deduct the openings, add a trim allowance. We round up to real pack sizes and show you
                 every line of the arithmetic, so nobody has to guess on site.
               </p>
             </div>
-            <p className="text-[0.8rem] leading-relaxed text-ink/60">
+            <p className="text-[0.8rem] leading-relaxed text-ink/72">
               Assumes a sound, sealed surface. New plaster absorbs more paint — add one extra coat on a first
               decoration, and never skip primer.
             </p>
@@ -53,20 +53,22 @@ export default function CalculatorPage() {
       <section className="shell pb-16">
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            { title: 'Why two coats', body: 'The first coat builds opacity into porous plaster. The second provides the continuous film that can be washed and lasts the guarantee period.', to: '/advice/matt-or-silk' },
-            { title: 'Do not forget primer', body: 'One coat of alkali-resisting primer on new render is the single biggest factor in whether a finish lasts five years.', to: '/products/primer' },
-            { title: 'The maths, in full', body: 'A worked example with real numbers, including how the handling allowance and pack rounding change the answer.', to: '/advice/how-much-paint' },
+            { title: 'Why two coats', cta: 'Why two coats, in practice', body: 'The first coat builds opacity into porous plaster. The second provides the continuous film that can be washed and lasts the guarantee period.', to: '/advice/matt-or-silk' },
+            { title: 'Do not forget primer', cta: 'Read the primer data sheet', body: 'One coat of alkali-resisting primer on new render is the single biggest factor in whether a finish lasts five years.', to: '/products/primer' },
+            { title: 'The maths, in full', cta: 'Work through the example', body: 'A worked example with real numbers, including how the handling allowance and pack rounding change the answer.', to: '/advice/how-much-paint' },
           ].map((card) => (
             <div key={card.title} className="rounded-sm border border-ink/12 bg-paper-2/50 p-5">
               <h2 className="font-[var(--font-display)] text-[1.1rem]">{card.title}</h2>
-              <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink/60">{card.body}</p>
+              <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink/72">{card.body}</p>
+              {/* Named, not "Read more": three identical links give a screen
+                  reader — and a crawler — three useless destinations. */}
               <ArrowLink to={card.to} className="mt-3 text-green">
-                Read more
+                {card.cta}
               </ArrowLink>
             </div>
           ))}
         </div>
-        <p className="mt-8 text-[0.72rem] text-ink/60">
+        <p className="mt-8 text-[0.72rem] text-ink/72">
           Related reading: {GUIDES.slice(0, 2).map((g) => g.title).join(' · ')}
         </p>
       </section>

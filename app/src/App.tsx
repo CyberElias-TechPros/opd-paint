@@ -8,6 +8,8 @@ import { ProjectBoard } from './components/layout/ProjectBoard'
 import { ConsentBar } from './components/layout/ConsentBar'
 import { SearchPalette } from './components/search/SearchPalette'
 import { track } from './lib/analytics'
+import { reportBoundaryError } from './lib/telemetry'
+import type { ErrorInfo as ReactErrorInfo } from 'react'
 import { ButtonLink } from './components/ui/Button'
 
 import { lazy, Suspense } from 'react'
@@ -42,9 +44,12 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
     return { error }
   }
 
-  componentDidCatch(error: Error) {
-    // In production this is where the error reporter attaches (roadmap 17.03.02).
-    console.error('[boundary]', error)
+  componentDidCatch(error: Error, info: ReactErrorInfo) {
+    // The boundary is the one place that knows a *page* failed, as distinct
+    // from a request failing. It reports with the component stack, which is
+    // what makes a production crash reproducible.
+    reportBoundaryError(error, info.componentStack ?? error.stack)
+    if (import.meta.env.DEV) console.error('[boundary]', error)
   }
 
   render() {
@@ -55,7 +60,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
           <h1 className="display mt-4 max-w-2xl text-[clamp(2rem,5vw,3.5rem)]">
             This page hit a problem. Nothing you saved has been lost.
           </h1>
-          <p className="mt-4 max-w-xl text-ink/65">
+          <p className="mt-4 max-w-xl text-ink/75">
             Your project board is stored in this browser, so your colours are still there. Try reloading, or continue
             browsing.
           </p>
@@ -77,15 +82,39 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
+/**
+ * Route loading state.
+ *
+ * In normal flow, and exactly one screen tall (less the header). Two things were
+ * learned the hard way here: out of flow, the page was shorter than the screen
+ * and the arriving scrollbar shifted everything sideways (0.73 CLS); and at 60vh
+ * the footer sat inside the first viewport, so when the real page replaced the
+ * loading state the footer was pushed off screen — 0.15–0.19 on /colours,
+ * /calculator and every colour detail page. Reserving the full fold keeps the
+ * footer below it in both states.
+ *
+ * The route's own chunk is preloaded at build time (scripts/prerender), so on a
+ * normal connection this is rarely seen at all.
+ */
 function RouteFallback() {
   return (
-    <div className="shell flex min-h-[60vh] flex-col justify-center py-20" role="status" aria-live="polite">
-      <p className="kicker text-moss">Loading</p>
-      <p className="mt-3 max-w-md font-[var(--font-display)] text-[clamp(1.4rem,3vw,2rem)] text-ink/60">
-        Mixing the colour…
-      </p>
-      <div className="mt-6 flex h-2 w-40 overflow-hidden rounded-full bg-ink/10">
-        <span className="h-full w-1/3 rounded-full bg-green/60 animate-[shimmer_1.4s_ease-in-out_infinite]" />
+    <div
+      // A full screen minus the header, not 60vh: with a shorter box the footer
+      // sits inside the first viewport, and when the route arrives it is pushed
+      // off screen — which Lighthouse measures as 0.15–0.19 of layout shift on
+      // every page whose content is taller than the loading state.
+      className="flex min-h-[calc(100svh-5rem)] flex-col justify-center py-20"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="shell">
+        <p className="kicker text-moss">Loading</p>
+        <p className="mt-3 max-w-md font-[var(--font-display)] text-[clamp(1.4rem,3vw,2rem)] text-ink/72">
+          Mixing the colour…
+        </p>
+        <div className="mt-6 flex h-2 w-40 overflow-hidden rounded-full bg-ink/10">
+          <span className="h-full w-1/3 rounded-full bg-green/60 animate-[shimmer_1.4s_ease-in-out_infinite]" />
+        </div>
       </div>
     </div>
   )

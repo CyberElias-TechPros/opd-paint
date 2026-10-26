@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Menu, Search, X, Phone, Layers, ChevronRight } from 'lucide-react'
 import { LogoLockup } from '../brand/Logo'
@@ -58,11 +58,6 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [menuOpen])
-
-  const boardLabel = useMemo(
-    () => (savedCount === 0 ? 'Your project' : `Your project (${savedCount})`),
-    [savedCount],
-  )
 
   return (
     <>
@@ -143,21 +138,25 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
             <button
               type="button"
               onClick={onOpenSearch}
-              className="group flex items-center gap-2 rounded-full border border-ink/12 px-2.5 py-2 text-ink/60 transition-colors hover:border-ink/35 hover:text-ink sm:px-3"
+              className="group flex items-center gap-2 rounded-full border border-ink/12 px-2.5 py-2 text-ink/72 transition-colors hover:border-ink/35 hover:text-ink sm:px-3"
               aria-label="Search the site"
+              // The shortcut belongs in the accessibility tree as a shortcut, not
+              // as decorative text beside the word "Search" — that is what made
+              // the visible text stop matching the accessible name. It is
+              // announced by the palette itself once opened.
+              aria-keyshortcuts="Control+K Meta+K"
             >
               <Search className="size-4" aria-hidden />
               <span className="hidden text-[0.75rem] font-medium sm:inline">Search</span>
-              <kbd className="hidden rounded border border-ink/15 px-1 py-0.5 text-[0.6rem] font-semibold text-ink/60 lg:inline">
-                ⌘K
-              </kbd>
             </button>
 
             <button
               type="button"
               onClick={() => setBoardOpen(true)}
               className="relative flex items-center gap-2 rounded-full border border-ink/12 px-2.5 py-2 text-ink/70 transition-colors hover:border-ink/35 hover:text-ink sm:px-3"
-              aria-label={`${boardLabel} — open project board`}
+              // The visible text is "Project" plus, when it exists, the saved
+              // count. The name has to contain both.
+              aria-label={savedCount > 0 ? `Your project, ${savedCount} saved — open project board` : 'Your project — open project board'}
             >
               <Layers className="size-4" aria-hidden />
               <span className="hidden text-[0.75rem] font-medium md:inline">Project</span>
@@ -237,14 +236,14 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
                   >
                     <span>
                       <span className="flex items-baseline gap-2.5">
-                        <span className="tabular text-[0.6rem] font-bold text-ink/60">
+                        <span className="tabular text-[0.6rem] font-bold text-ink/72">
                           {String(index + 1).padStart(2, '0')}
                         </span>
                         <span className="display text-[1.5rem]">{item.label}</span>
                       </span>
-                      <span className="mt-0.5 block pl-6 text-[0.75rem] text-ink/60">{item.note}</span>
+                      <span className="mt-0.5 block pl-6 text-[0.75rem] text-ink/72">{item.note}</span>
                     </span>
-                    <ChevronRight className="size-4 text-ink/60 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                    <ChevronRight className="size-4 text-ink/72 transition-transform group-hover:translate-x-0.5" aria-hidden />
                   </Link>
                 </li>
               ))}

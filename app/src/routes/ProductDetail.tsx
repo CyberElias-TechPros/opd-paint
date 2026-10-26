@@ -70,7 +70,7 @@ export default function ProductDetail() {
   return (
     <>
       <nav aria-label="Breadcrumb" className="shell pt-6">
-        <ol className="flex flex-wrap items-center gap-2 text-[0.72rem] text-ink/60">
+        <ol className="flex flex-wrap items-center gap-2 text-[0.72rem] text-ink/72">
           <li>
             <Link to="/" className="hover:text-ink">
               Home
@@ -136,7 +136,7 @@ export default function ProductDetail() {
             </div>
             <h1 className="display mt-4 text-[clamp(2rem,4.4vw,3.4rem)]">{product.name}</h1>
             <p className="mt-3 text-[1.05rem] font-medium leading-relaxed text-ink/75">{product.tagline}</p>
-            <p className="mt-4 text-[0.94rem] leading-relaxed text-ink/65">{product.description}</p>
+            <p className="mt-4 text-[0.94rem] leading-relaxed text-ink/75">{product.description}</p>
 
             <ul className="mt-6 grid gap-2 sm:grid-cols-2">
               {product.features.map((feature) => (
@@ -152,12 +152,12 @@ export default function ProductDetail() {
                 <h2 id="packs-title" className="text-[1.1rem] font-semibold">
                   Pack sizes
                 </h2>
-                <span className="text-[0.68rem] uppercase tracking-[0.1em] text-ink/60">Guide price · excl. VAT</span>
+                <span className="text-[0.68rem] uppercase tracking-[0.1em] text-ink/72">Guide price · excl. VAT</span>
               </div>
               <div className="mt-3 overflow-hidden rounded-sm border border-ink/12">
                 <table className="w-full text-left text-[0.84rem]">
                   <caption className="sr-only">Available pack sizes and indicative prices</caption>
-                  <thead className="bg-plaster/40 text-[0.64rem] uppercase tracking-[0.12em] text-ink/60">
+                  <thead className="bg-plaster/40 text-[0.64rem] uppercase tracking-[0.12em] text-ink/72">
                     <tr>
                       <th scope="col" className="px-4 py-2.5 font-bold">Pack</th>
                       <th scope="col" className="px-4 py-2.5 font-bold">Covers (one coat)</th>
@@ -170,7 +170,7 @@ export default function ProductDetail() {
                         <th scope="row" className="px-4 py-2.5 font-semibold">
                           {pack.size} {pack.unit}
                         </th>
-                        <td className="tabular px-4 py-2.5 text-ink/60">
+                        <td className="tabular px-4 py-2.5 text-ink/72">
                           {Math.round(pack.size * product.coveragePerUnit)} m²
                         </td>
                         <td className="tabular px-4 py-2.5 text-right font-semibold">
@@ -181,7 +181,7 @@ export default function ProductDetail() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-2 text-[0.72rem] leading-relaxed text-ink/60">
+              <p className="mt-2 text-[0.72rem] leading-relaxed text-ink/72">
                 Guide prices are indicative Port Harcourt retail figures for the pack shown and are not a quotation. Your dealer
                 sets the price you pay.
               </p>
@@ -217,7 +217,7 @@ export default function ProductDetail() {
                     </span>
                     <div>
                       <p className="text-[0.86rem] font-semibold">{step.step}</p>
-                      <p className="text-[0.82rem] leading-relaxed text-ink/60">{step.detail}</p>
+                      <p className="text-[0.82rem] leading-relaxed text-ink/72">{step.detail}</p>
                     </div>
                   </li>
                 ))}
@@ -237,9 +237,9 @@ export default function ProductDetail() {
                       download
                     >
                       <span className="flex items-center gap-2">
-                        <FileText className="size-4 text-ink/60" aria-hidden /> {doc.label}
+                        <FileText className="size-4 text-ink/72" aria-hidden /> {doc.label}
                       </span>
-                      <Download className="size-4 text-ink/60" aria-hidden />
+                      <Download className="size-4 text-ink/72" aria-hidden />
                     </a>
                   </li>
                 ))}
@@ -249,7 +249,7 @@ export default function ProductDetail() {
             <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-ink/12 pt-5">
               <div>
                 <p className="text-[0.9rem] font-semibold">Ready to specify it?</p>
-                <p className="text-[0.78rem] text-ink/60">Send the room dimensions with your colour and we will quote it.</p>
+                <p className="text-[0.78rem] text-ink/72">Send the room dimensions with your colour and we will quote it.</p>
               </div>
               <ButtonLink to={`/quote?product=${product.id}`} size="sm">
                 Request a quote
@@ -266,7 +266,7 @@ export default function ProductDetail() {
                   <h2 id="pairs-title" className="display text-[1.6rem]">
                     Colours that suit {product.shortName}
                   </h2>
-                  <p className="mt-1 text-[0.84rem] text-ink/60">
+                  <p className="mt-1 text-[0.84rem] text-ink/72">
                     Every colour in the library can be mixed in this product. These are our starting points.
                   </p>
                 </div>

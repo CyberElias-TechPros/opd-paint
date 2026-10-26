@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Check, FileDown, LayoutGrid, Printer, Search, SlidersHorizontal, X } from 'lucide-react'
+import { BookOpen, Check, FileDown, Layers, LayoutGrid, Printer, Search, SlidersHorizontal, X } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
 import { COLORS, COLLECTIONS, COLOR_LRV, FAMILIES, FAMILY_SWATCH, ROOMS, type Family, type Room, type Undertone } from '../data/colors'
 import { PALETTES } from '../data/palettes'
@@ -146,15 +146,49 @@ export default function Colours() {
               <h1 className="display text-[clamp(2.4rem,5vw,4rem)]">
                 {COLORS.length} colours, <span className="italic">coded for life.</span>
               </h1>
-              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/65">
+              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/75">
                 Every colour carries a permanent code, a family, an undertone and an estimated light reflectance value.
                 Save the ones you like — they will be waiting when you come back.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              {/* Four documents, four jobs, one source of data. The colour book is the
+                  brochure a customer keeps; the room book shows the same colours doing
+                  actual work on real walls; the wheel is the wall chart a trade counter
+                  pins up; the fan deck is the one-page-a-family reference a painter
+                  works from. All four are generated from the data on this page, so none
+                  of them can list a colour the page has dropped. */}
+              <a
+                href="/documents/opudas-colour-book.pdf"
+                download
+                onClick={() => track('cta_click', { target: 'colours-book' })}
+                className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-2 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
+              >
+                <BookOpen className="size-3.5" aria-hidden /> Colour book
+                <span className="text-[0.66rem] font-normal opacity-60">PDF · 32pp</span>
+              </a>
+              <a
+                href="/documents/opudas-room-book.pdf"
+                download
+                onClick={() => track('cta_click', { target: 'colours-room-book' })}
+                className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
+              >
+                <Layers className="size-3.5" aria-hidden /> Room book
+                <span className="text-[0.66rem] font-normal opacity-60">PDF · 20pp</span>
+              </a>
+              <a
+                href="/documents/opudas-colour-wheel.pdf"
+                download
+                onClick={() => track('cta_click', { target: 'colours-wheel' })}
+                className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
+              >
+                <LayoutGrid className="size-3.5" aria-hidden /> Colour wheel
+                <span className="text-[0.66rem] font-normal opacity-60">PDF · wall chart</span>
+              </a>
               <a
                 href="/documents/opudas-fan-deck.pdf"
                 download
+                onClick={() => track('cta_click', { target: 'colours-fandeck' })}
                 className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
               >
                 <FileDown className="size-3.5" aria-hidden /> Fan deck
@@ -217,8 +251,8 @@ export default function Colours() {
                           <Badge tone="green">{palette.season}</Badge>
                         </div>
                         <h2 className="mt-2 font-[var(--font-display)] text-[1.5rem] leading-tight">{palette.name}</h2>
-                        <p className="mt-2 text-[0.82rem] leading-relaxed text-ink/60">{palette.story}</p>
-                        <p className="mt-2 text-[0.74rem] text-ink/60">Best for: {palette.bestFor}</p>
+                        <p className="mt-2 text-[0.82rem] leading-relaxed text-ink/72">{palette.story}</p>
+                        <p className="mt-2 text-[0.74rem] text-ink/72">Best for: {palette.bestFor}</p>
                       </div>
                     </div>
                     <div className="border-t border-ink/10">
@@ -234,7 +268,7 @@ export default function Colours() {
                             <span className="size-7 shrink-0 rounded-[2px] ring-1 ring-inset ring-black/10" style={{ background: colour.hex }} aria-hidden />
                             <span className="min-w-0 flex-1">
                               <span className="block truncate text-[0.84rem] font-semibold">{colour.name}</span>
-                              <span className="block text-[0.68rem] text-ink/60">
+                              <span className="block text-[0.68rem] text-ink/72">
                                 {palette.roles[i]} · {colour.code}
                               </span>
                             </span>
@@ -248,7 +282,7 @@ export default function Colours() {
               </li>
             ))}
           </ul>
-          <p className="mt-8 max-w-2xl text-[0.78rem] leading-relaxed text-ink/60">
+          <p className="mt-8 max-w-2xl text-[0.78rem] leading-relaxed text-ink/72">
             Palettes are editorial recommendations by our colour desk, not colour-matching guarantees. Photographs on
             this page show the finishes as photographed on site.{' '}
             <Link to="/advice/colour-on-screen" className="underline hover:text-green">
@@ -264,7 +298,7 @@ export default function Colours() {
             <div className="shell py-3">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="relative min-w-[13rem] flex-1">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/60" aria-hidden />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/72" aria-hidden />
                   <input
                     type="search"
                     value={query}
@@ -289,7 +323,7 @@ export default function Colours() {
                   ) : null}
                 </button>
 
-                <label className="hidden items-center gap-2 text-[0.74rem] text-ink/60 lg:flex">
+                <label className="hidden items-center gap-2 text-[0.74rem] text-ink/72 lg:flex">
                   Sort
                   <select
                     value={sort}
@@ -309,7 +343,7 @@ export default function Colours() {
                   <button
                     type="button"
                     onClick={clearAll}
-                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[0.76rem] font-semibold text-ink/60 hover:text-ink"
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[0.76rem] font-semibold text-ink/72 hover:text-ink"
                   >
                     <X className="size-3.5" aria-hidden /> Clear
                   </button>
@@ -330,7 +364,7 @@ export default function Colours() {
                   ))}
                 </div>
                 <div className="mt-2 grid gap-3 border-t border-ink/8 pt-2 sm:grid-cols-2 lg:grid-cols-4">
-                  <label className="flex items-center justify-between gap-2 text-[0.72rem] font-semibold text-ink/60">
+                  <label className="flex items-center justify-between gap-2 text-[0.72rem] font-semibold text-ink/72">
                     Undertone
                     <select
                       value={undertone}
@@ -344,7 +378,7 @@ export default function Colours() {
                       ))}
                     </select>
                   </label>
-                  <label className="flex items-center justify-between gap-2 text-[0.72rem] font-semibold text-ink/60">
+                  <label className="flex items-center justify-between gap-2 text-[0.72rem] font-semibold text-ink/72">
                     Room
                     <select
                       value={room}
@@ -359,7 +393,7 @@ export default function Colours() {
                       ))}
                     </select>
                   </label>
-                  <label className="flex items-center justify-between gap-2 text-[0.72rem] font-semibold text-ink/60">
+                  <label className="flex items-center justify-between gap-2 text-[0.72rem] font-semibold text-ink/72">
                     Collection
                     <select
                       value={collection}
@@ -374,10 +408,10 @@ export default function Colours() {
                       ))}
                     </select>
                   </label>
-                  <div className="text-[0.72rem] font-semibold text-ink/60">
+                  <div className="text-[0.72rem] font-semibold text-ink/72">
                     <span className="flex items-center justify-between">
                       LRV ≈
-                      <span className="tabular text-ink/60">
+                      <span className="tabular text-ink/72">
                         {lrv[0]}–{lrv[1]}
                       </span>
                     </span>
@@ -410,12 +444,12 @@ export default function Colours() {
           {/* ------------------------------------------------------------ grid */}
           <section className="shell py-8" aria-live="polite">
             <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
-              <p className="text-[0.82rem] text-ink/60">
+              <p className="text-[0.82rem] text-ink/72">
                 <span className="tabular text-[1.05rem] font-semibold text-ink">{filtered.length}</span> colour
                 {filtered.length === 1 ? '' : 's'}
                 {families.length ? ` in ${families.join(', ')}` : ''}
               </p>
-              <p className="text-[0.72rem] text-ink/60">LRV values are estimated from the digital value</p>
+              <p className="text-[0.72rem] text-ink/72">LRV values are estimated from the digital value</p>
             </div>
 
             {filtered.length ? (
@@ -432,7 +466,7 @@ export default function Colours() {
                           'absolute right-2 top-12 rounded-full border px-2 py-1 text-[0.6rem] font-bold uppercase tracking-[0.1em] transition-all',
                           compare.includes(colour.id)
                             ? 'border-ink bg-ink text-paper-2'
-                            : 'border-ink/20 bg-paper-2/85 text-ink/60 opacity-0 hover:border-ink hover:text-ink group-hover/compare:opacity-100 focus-visible:opacity-100',
+                            : 'border-ink/20 bg-paper-2/85 text-ink/72 opacity-0 hover:border-ink hover:text-ink group-hover/compare:opacity-100 focus-visible:opacity-100',
                         )}
                       >
                         {compare.includes(colour.id) ? 'Comparing' : 'Compare'}
@@ -457,7 +491,7 @@ export default function Colours() {
         <div className="sticky bottom-4 z-40 mx-auto w-[min(94vw,64rem)]">
           <div className="rounded-sm border border-ink/20 bg-paper-2/97 p-3 shadow-[0_30px_80px_-40px_rgba(11,26,19,0.8)] backdrop-blur">
             <div className="flex items-center justify-between gap-3">
-              <p className="kicker text-ink/60">Comparing {compare.length}/4</p>
+              <p className="kicker text-ink/72">Comparing {compare.length}/4</p>
               <div className="flex gap-2">
                 <Button
                   size="sm"
@@ -484,12 +518,12 @@ export default function Colours() {
                     <div className="mt-1 flex items-start justify-between gap-1">
                       <div className="min-w-0">
                         <p className="truncate text-[0.7rem] font-semibold">{colour.name}</p>
-                        <p className="text-[0.62rem] text-ink/60">LRV ≈ {COLOR_LRV(colour)}</p>
+                        <p className="text-[0.62rem] text-ink/72">LRV ≈ {COLOR_LRV(colour)}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => toggleCompare(id)}
-                        className="grid size-5 shrink-0 place-items-center rounded-full text-ink/60 hover:bg-ink/10 hover:text-ink"
+                        className="grid size-5 shrink-0 place-items-center rounded-full text-ink/72 hover:bg-ink/10 hover:text-ink"
                         aria-label={`Remove ${colour.name} from comparison`}
                       >
                         <X className="size-3" aria-hidden />

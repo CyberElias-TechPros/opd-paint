@@ -34,7 +34,7 @@ export function ConsentBar() {
           </span>
           <div>
             <p className="text-[0.86rem] font-semibold">Cookies on this site</p>
-            <p className="mt-1 text-[0.78rem] leading-relaxed text-ink/60">
+            <p className="mt-1 text-[0.78rem] leading-relaxed text-ink/72">
               We use one cookie-free local store for your saved colours, and optional measurement cookies to understand
               which pages help people choose. Nothing is measured until you agree.{' '}
               <Link to="/legal/privacy" className="underline hover:text-green">

@@ -16,7 +16,7 @@ const DOCS: Doc[] = [
   {
     slug: 'privacy',
     title: 'Privacy notice',
-    updated: '2026-09-01',
+    updated: '2026-10-26',
     intro:
       'This notice explains what OPUDA’S PAINT collects through this website, why, and what you can ask us to do about it. It is written to be read, not to be survived.',
     sections: [
@@ -34,6 +34,13 @@ const DOCS: Doc[] = [
         body: [
           'Analytics is off by default. Nothing is measured until you accept measurement in the cookie panel. If you decline, the site works identically and no measurement events are sent.',
           'When measurement is enabled we record page views and interaction events such as opening a colour, saving a colour, or completing the calculator. Events carry the colour or product reference and nothing that identifies you — no name, no email, no phone number, no free text.',
+        ],
+      },
+      {
+        heading: 'Fault reports',
+        body: [
+          'When a page breaks, your browser sends us a technical report so we can fix it: the error message, the page it happened on (without the part after the ? in the address), which version of the site it was, and your browser’s name. These reports are diagnostics, not measurement — they are sent whether or not you accept analytics, because there is no way to keep a broken page working otherwise.',
+          'A fault report contains no name, no email address, no phone number and no form contents. Email addresses and long digit strings are stripped out before the report is stored, and reports are deleted with the rest of our server logs.',
         ],
       },
       {
@@ -191,21 +198,21 @@ export default function Legal() {
         <div className="shell py-10 sm:py-14">
           <Kicker className="mb-4">Legal</Kicker>
           <h1 className="display text-[clamp(2rem,4.4vw,3.2rem)]">{doc.title}</h1>
-          <p className="mt-3 text-[0.76rem] uppercase tracking-[0.12em] text-ink/60">Version {doc.updated}</p>
-          <p className="mt-4 max-w-2xl text-[0.96rem] leading-relaxed text-ink/65">{doc.intro}</p>
+          <p className="mt-3 text-[0.76rem] uppercase tracking-[0.12em] text-ink/72">Version {doc.updated}</p>
+          <p className="mt-4 max-w-2xl text-[0.96rem] leading-relaxed text-ink/75">{doc.intro}</p>
         </div>
       </header>
 
       <div className="shell grid gap-10 py-10 lg:grid-cols-[minmax(0,0.35fr)_minmax(0,1fr)]">
         <nav aria-label="Legal documents" className="lg:sticky lg:top-24 lg:self-start">
-          <p className="kicker mb-3 text-ink/60">Documents</p>
+          <p className="kicker mb-3 text-ink/72">Documents</p>
           <ul className="space-y-1.5">
             {DOCS.map((item) => (
               <li key={item.slug}>
                 <Link
                   to={`/legal/${item.slug}`}
                   className={`block rounded-sm px-3 py-2 text-[0.84rem] font-semibold transition-colors ${
-                    item.slug === slug ? 'bg-ink text-paper-2' : 'text-ink/65 hover:bg-ink/5'
+                    item.slug === slug ? 'bg-ink text-paper-2' : 'text-ink/75 hover:bg-ink/5'
                   }`}
                 >
                   {item.title}
@@ -219,7 +226,7 @@ export default function Legal() {
           {doc.sections.map((section, index) => (
             <section key={section.heading} className="mb-8">
               <h2 className="font-[var(--font-display)] text-[1.4rem]">
-                <span className="mr-2 tabular text-[0.8rem] text-ink/60">{String(index + 1).padStart(2, '0')}</span>
+                <span className="mr-2 tabular text-[0.8rem] text-ink/72">{String(index + 1).padStart(2, '0')}</span>
                 {section.heading}
               </h2>
               {section.body.map((paragraph) => (
@@ -230,7 +237,7 @@ export default function Legal() {
               {section.list ? (
                 <ul className="mt-3 space-y-1.5 border-l-2 border-green/25 pl-4">
                   {section.list.map((item) => (
-                    <li key={item} className="text-[0.9rem] leading-relaxed text-ink/65">
+                    <li key={item} className="text-[0.9rem] leading-relaxed text-ink/75">
                       {item}
                     </li>
                   ))}
@@ -238,7 +245,7 @@ export default function Legal() {
               ) : null}
             </section>
           ))}
-          <p className="mt-10 border-t border-ink/12 pt-4 text-[0.78rem] text-ink/60">
+          <p className="mt-10 border-t border-ink/12 pt-4 text-[0.78rem] text-ink/72">
             Questions about this document? Email hello@opudapaint.com or call {BRAND_PHONE_DISPLAY}.
           </p>
           <ArrowLink to="/data" className="mt-4">

@@ -55,11 +55,18 @@ export function LogoLockup({ tone = 'ink', className }: { tone?: 'ink' | 'paper'
   return (
     <Link
       to="/"
-      aria-label="OPUDA'S PAINT — home"
+      // No aria-label. The name comes from the wordmark itself, so it matches
+      // the text on screen exactly — which is what a voice-control user reads
+      // out, and what the label-in-name rule requires. The house mark is
+      // decorative here because the wordmark already says the same thing; the
+      // `sr-only` tail adds the destination without changing the visible text.
       className={cn('group flex items-center gap-2.5 outline-offset-4', className)}
     >
-      <Mark className="h-8 w-auto transition-transform duration-500 ease-[var(--ease-spring)] group-hover:-rotate-3 group-hover:scale-105 sm:h-9" />
+      <span aria-hidden>
+        <Mark className="h-8 w-auto transition-transform duration-500 ease-[var(--ease-spring)] group-hover:-rotate-3 group-hover:scale-105 sm:h-9" />
+      </span>
       <Wordmark tone={tone} />
+      <span className="sr-only">— home page</span>
     </Link>
   )
 }

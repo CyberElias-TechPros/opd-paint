@@ -17,7 +17,7 @@
  * Run automatically by `npm run build` (through vite's SSR build, since this
  * file contains JSX).
  */
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { renderToString } from 'react-dom/server'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -41,6 +41,7 @@ import About from '../src/routes/About'
 import DataPage from '../src/routes/DataPage'
 import StyleGuide from '../src/routes/StyleGuide'
 import Legal from '../src/routes/Legal'
+import NotFound from '../src/routes/NotFound'
 
 import { COLORS } from '../src/data/colors'
 import { PRODUCTS } from '../src/data/products'
@@ -48,28 +49,73 @@ import { PROJECTS } from '../src/data/projects'
 import { GUIDES } from '../src/data/guides'
 
 const DIST = join(process.cwd(), 'dist')
-const template = readFileSync(join(DIST, 'index.html'), 'utf8')
+let template = readFileSync(join(DIST, 'index.html'), 'utf8')
 
-type Page = { pattern: string; url: string; Page: () => React.ReactElement }
+/**
+ * Preload the two font files the first paint needs.
+ *
+ * Both families are self-hosted with `font-display: swap`, which trades an
+ * invisible page for a visible one that reflows when the font arrives — and that
+ * reflow is cumulative layout shift, which is what Lighthouse was reporting at
+ * 0.15–0.19 on the text-heavy pages. The files are hashed by the build, so the
+ * links are generated here rather than written by hand.
+ */
+const assets = readdirSync(join(DIST, 'assets'))
+const fonts = assets
+// The italic matters as much as the roman: the display serif is set in italic
+// for the second half of most headlines, and a face that arrives late reflows
+// the largest text on the page. That was the whole of the remaining CLS.
+const wanted = [
+  'archivo-latin-wght-normal',
+  'instrument-serif-latin-400-normal',
+  'instrument-serif-latin-400-italic',
+]
+const preloads = wanted
+  .map((prefix) => fonts.find((file) => file.startsWith(prefix) && file.endsWith('.woff2')))
+  .filter((file): file is string => Boolean(file))
+  .map(
+    (file) =>
+      `    <link rel="preload" as="font" type="font/woff2" href="/assets/${file}" crossorigin />`,
+  )
+
+if (preloads.length !== wanted.length) {
+  console.warn(`  warn only ${preloads.length} of ${wanted.length} font preloads could be generated`)
+} else {
+  template = template.replace('</head>', `${preloads.join('\n')}\n  </head>`)
+}
+
+type Page = {
+  pattern: string
+  url: string
+  Page: () => React.ReactElement
+  file?: string
+  /** Vite's chunk name for the route, preloaded so the fallback is never seen. */
+  chunk?: string
+}
 
 const pages: Page[] = [
   { pattern: '/', url: '/', Page: Home },
-  { pattern: '/colours', url: '/colours', Page: Colours },
-  { pattern: '/products', url: '/products', Page: Products },
-  { pattern: '/room-preview', url: '/room-preview', Page: RoomPreview },
-  { pattern: '/calculator', url: '/calculator', Page: Calculator },
-  { pattern: '/inspiration', url: '/inspiration', Page: Inspiration },
-  { pattern: '/advice', url: '/advice', Page: Advice },
-  { pattern: '/dealers', url: '/dealers', Page: Dealers },
-  { pattern: '/quote', url: '/quote', Page: Quote },
-  { pattern: '/about', url: '/about', Page: About },
-  { pattern: '/data', url: '/data', Page: DataPage },
-  { pattern: '/style-guide', url: '/style-guide', Page: StyleGuide },
-  ...COLORS.map((colour) => ({ pattern: '/colours/:id', url: `/colours/${colour.id}`, Page: ColourDetail })),
-  ...PRODUCTS.map((product) => ({ pattern: '/products/:id', url: `/products/${product.id}`, Page: ProductDetail })),
-  ...PROJECTS.map((project) => ({ pattern: '/inspiration/:id', url: `/inspiration/${project.id}`, Page: ProjectDetail })),
-  ...GUIDES.map((guide) => ({ pattern: '/advice/:id', url: `/advice/${guide.id}`, Page: GuideDetail })),
-  ...['privacy', 'terms', 'accessibility'].map((slug) => ({ pattern: '/legal/:slug', url: `/legal/${slug}`, Page: Legal })),
+  { pattern: '/colours', url: '/colours', Page: Colours, chunk: 'Colours' },
+  { pattern: '/products', url: '/products', Page: Products, chunk: 'Products' },
+  { pattern: '/room-preview', url: '/room-preview', Page: RoomPreview, chunk: 'RoomPreview' },
+  { pattern: '/calculator', url: '/calculator', Page: Calculator, chunk: 'Calculator' },
+  { pattern: '/inspiration', url: '/inspiration', Page: Inspiration, chunk: 'Inspiration' },
+  { pattern: '/advice', url: '/advice', Page: Advice, chunk: 'Advice' },
+  { pattern: '/dealers', url: '/dealers', Page: Dealers, chunk: 'Dealers' },
+  { pattern: '/quote', url: '/quote', Page: Quote, chunk: 'Quote' },
+  { pattern: '/about', url: '/about', Page: About, chunk: 'About' },
+  { pattern: '/data', url: '/data', Page: DataPage, chunk: 'DataPage' },
+  { pattern: '/style-guide', url: '/style-guide', Page: StyleGuide, chunk: 'StyleGuide' },
+  ...COLORS.map((colour) => ({ pattern: '/colours/:id', url: `/colours/${colour.id}`, Page: ColourDetail, chunk: 'ColourDetail' })),
+  ...PRODUCTS.map((product) => ({ pattern: '/products/:id', url: `/products/${product.id}`, Page: ProductDetail, chunk: 'ProductDetail' })),
+  ...PROJECTS.map((project) => ({ pattern: '/inspiration/:id', url: `/inspiration/${project.id}`, Page: ProjectDetail, chunk: 'ProjectDetail' })),
+  ...GUIDES.map((guide) => ({ pattern: '/advice/:id', url: `/advice/${guide.id}`, Page: GuideDetail, chunk: 'GuideDetail' })),
+  ...['privacy', 'terms', 'accessibility'].map((slug) => ({ pattern: '/legal/:slug', url: `/legal/${slug}`, Page: Legal, chunk: 'Legal' })),
+  // A real 404 document, not the home page with a different URL. Vercel and
+  // nginx both serve `404.html` for an unmatched path, which is what makes the
+  // status code honest; a catch-all rewrite to index.html answers 200 and tells
+  // a crawler that every typo is a page.
+  { pattern: '*', url: '/404', Page: NotFound, file: '404.html' },
 ]
 
 const escape = (value: string) =>
@@ -87,8 +133,9 @@ const metaPattern = (key: string) => new RegExp('<meta\\s+(?=[^>]*' + key + ')[^
 
 let written = 0
 const orphans: string[] = []
+const missingChunks: string[] = []
 
-for (const { pattern, url, Page } of pages) {
+for (const { pattern, url, Page, file: fileOverride, chunk } of pages) {
   const body = renderToString(
     <MemoryRouter initialEntries={[url]}>
       <AppProvider>
@@ -146,8 +193,28 @@ for (const { pattern, url, Page } of pages) {
     )
   }
 
-  // `/` stays dist/index.html; everything else gets its own directory.
-  const file = url === '/' ? join(DIST, 'index.html') : join(DIST, url.replace(/^\//, ''), 'index.html')
+  // Preload the route's own chunk. Without this the browser discovers the
+  // dynamic import only after the entry bundle has parsed and executed, which
+  // is exactly when the fallback appears and the page reflows underneath it.
+  if (chunk) {
+    const file = assets.find((asset) => asset.startsWith(`${chunk}-`) && asset.endsWith('.js'))
+    if (!file) {
+      missingChunks.push(`${url} (${chunk})`)
+    } else {
+      html = html.replace(
+        '</head>',
+        `    <link rel="modulepreload" href="/assets/${file}" />\n  </head>`,
+      )
+    }
+  }
+
+  // `/` stays dist/index.html; everything else gets its own directory, except
+  // the 404 document, which the server looks for by name.
+  const file = fileOverride
+    ? join(DIST, fileOverride)
+    : url === '/'
+      ? join(DIST, 'index.html')
+      : join(DIST, url.replace(/^\//, ''), 'index.html')
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, html)
   written += 1
@@ -168,6 +235,12 @@ for (const [label, pattern] of [
   ['og:type', /property="og:type"/],
 ] as const) {
   if (!pattern.test(template)) console.warn(`  warn index.html has no ${label}`)
+}
+
+if (missingChunks.length) {
+  // Not fatal — the page still works, it just fetches its chunk the old way —
+  // but it means a chunk was renamed and this list is out of date.
+  console.warn(`  warn no chunk found for: ${missingChunks.join(', ')}`)
 }
 
 console.log(`prerendered ${written} page head(s) into dist/`)

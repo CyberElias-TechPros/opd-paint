@@ -108,7 +108,7 @@ export function ProjectBoard() {
               aria-label="Project name"
               className="mt-2 w-full border-b border-transparent bg-transparent pb-1 font-[var(--font-display)] text-2xl font-medium tracking-[-0.02em] transition-colors hover:border-ink/20 focus:border-green"
             />
-            <p className="mt-1.5 text-[0.74rem] text-ink/60">
+            <p className="mt-1.5 text-[0.74rem] text-ink/72">
               Saved on this device · {colours.length} colour{colours.length === 1 ? '' : 's'} ·{' '}
               {products.length} product{products.length === 1 ? '' : 's'}
             </p>
@@ -134,7 +134,7 @@ export function ProjectBoard() {
 
           {colours.length > 0 ? (
             <section aria-labelledby="board-colours" className="mb-6">
-              <h3 id="board-colours" className="kicker mb-3 text-ink/60">
+              <h3 id="board-colours" className="kicker mb-3 text-ink/72">
                 Colours
               </h3>
               <ul className="space-y-2">
@@ -158,7 +158,7 @@ export function ProjectBoard() {
                       >
                         {colour.name}
                       </Link>
-                      <p className="truncate text-[0.7rem] text-ink/60">
+                      <p className="truncate text-[0.7rem] text-ink/72">
                         {colour.code} · LRV ≈ {COLOR_LRV(colour)}
                       </p>
                     </div>
@@ -173,7 +173,7 @@ export function ProjectBoard() {
                       <button
                         type="button"
                         onClick={() => removeColor(colour.id)}
-                        className="grid size-8 place-items-center rounded-full text-ink/60 transition-colors hover:bg-crimson/10 hover:text-crimson"
+                        className="grid size-8 place-items-center rounded-full text-ink/72 transition-colors hover:bg-crimson/10 hover:text-crimson"
                         aria-label={`Remove ${colour.name} from project`}
                       >
                         <X className="size-3.5" aria-hidden />
@@ -187,7 +187,7 @@ export function ProjectBoard() {
 
           {products.length > 0 ? (
             <section aria-labelledby="board-products" className="mb-6">
-              <h3 id="board-products" className="kicker mb-3 text-ink/60">
+              <h3 id="board-products" className="kicker mb-3 text-ink/72">
                 Products
               </h3>
               <ul className="space-y-2">
@@ -205,14 +205,14 @@ export function ProjectBoard() {
                         >
                           {product.name}
                         </Link>
-                        <p className="text-[0.7rem] text-ink/60">
+                        <p className="text-[0.7rem] text-ink/72">
                           {product.finish} · {product.coveragePerUnit} m² per litre
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => toggleProduct(product.id)}
-                        className="grid size-8 shrink-0 place-items-center rounded-full text-ink/60 transition-colors hover:bg-crimson/10 hover:text-crimson"
+                        className="grid size-8 shrink-0 place-items-center rounded-full text-ink/72 transition-colors hover:bg-crimson/10 hover:text-crimson"
                         aria-label={`Remove ${product.name} from project`}
                       >
                         <X className="size-3.5" aria-hidden />
@@ -226,7 +226,7 @@ export function ProjectBoard() {
 
           {colours.length > 0 ? (
             <section aria-labelledby="board-scheme" className="mb-4">
-              <h3 id="board-scheme" className="kicker mb-3 text-ink/60">
+              <h3 id="board-scheme" className="kicker mb-3 text-ink/72">
                 Your scheme as a band
               </h3>
               <div className="flex h-14 overflow-hidden rounded-[3px] ring-1 ring-inset ring-black/10">
@@ -239,7 +239,7 @@ export function ProjectBoard() {
                   />
                 ))}
               </div>
-              <p className="mt-2 text-[0.72rem] text-ink/60">
+              <p className="mt-2 text-[0.72rem] text-ink/72">
                 Screens cannot guarantee a physical match. Confirm with a sample pot or dealer chip.
               </p>
             </section>
@@ -263,7 +263,7 @@ export function ProjectBoard() {
               <Trash2 className="size-3.5" aria-hidden /> Clear
             </Button>
           </div>
-          <p className={cn('flex items-center justify-center gap-1.5 pt-1 text-[0.68rem] text-ink/60')}>
+          <p className={cn('flex items-center justify-center gap-1.5 pt-1 text-[0.68rem] text-ink/72')}>
             <Copy className="size-3" aria-hidden /> Stored only in this browser
           </p>
         </footer>

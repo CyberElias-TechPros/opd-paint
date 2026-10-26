@@ -1,0 +1,72 @@
+# Dependency updates.
+#
+# Two ecosystems matter here: the npm packages the site is built from, and the
+# Actions the CI runs on. Both are updated weekly, in one pull request per
+# ecosystem rather than one per package — a paint company's site does not need
+# fifteen notifications on a Monday.
+#
+# CI is the gate: `npm run check`, the asset reproducibility job, and the
+# security job all run on every Dependabot PR. A bump that changes the bytes of
+# a generated PDF or social card will fail the asset check, which is the correct
+# outcome — it forces whoever merges to look.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /app
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Africa/Lagos
+    open-pull-requests-limit: 4
+    groups:
+      # Fonts and styling move together and are the most likely to change the
+      # look of the site, so they arrive as one reviewable change.
+      styling:
+        patterns:
+          - tailwindcss
+          - '@tailwindcss/*'
+          - '@fontsource*/*'
+      icons:
+        patterns:
+          - lucide-react
+      tooling:
+        patterns:
+          - vite
+          - '@vitejs/*'
+          - typescript
+          - oxlint
+          - '@types/*'
+      testing:
+        patterns:
+          - jsdom
+          - '@types/jsdom'
+          - playwright
+          - '@axe-core/*'
+    labels:
+      - dependencies
+    commit-message:
+      prefix: 'deps'
+    # React, React DOM and the router are pinned to a tested combination; a
+    # major bump needs a human to read the changelog, not a green CI run.
+    ignore:
+      - dependency-name: react
+        update-types: ['version-update:semver-major']
+      - dependency-name: react-dom
+        update-types: ['version-update:semver-major']
+      - dependency-name: react-router-dom
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Africa/Lagos
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: 'ci'

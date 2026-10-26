@@ -12,6 +12,11 @@ import '@fontsource/instrument-serif/400-italic.css'
 import '@fontsource-variable/archivo/wght.css'
 import './styles/theme.css'
 import { App } from './App'
+import { installErrorReporting } from './lib/telemetry'
+
+// Before the first render: an error thrown while mounting is exactly the kind
+// we most need to hear about.
+installErrorReporting()
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>

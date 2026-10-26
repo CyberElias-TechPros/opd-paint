@@ -44,7 +44,7 @@ export default function Inspiration() {
           <h1 className="display max-w-3xl text-[clamp(2.3rem,4.8vw,3.8rem)]">
             Our photography, <span className="italic">not a stock library.</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-ink/65">
+          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-ink/75">
             Every frame here was photographed on an OPUDA’S site. We publish the stage honestly — some are finished,
             some are mid-build, and two are concept studies with no paint applied yet.
           </p>
@@ -57,7 +57,7 @@ export default function Inspiration() {
           <h2 className="display max-w-lg text-[clamp(1.9rem,3.6vw,2.9rem)]">
             What the work actually looks like at 9am.
           </h2>
-          <p className="mt-4 max-w-md text-[0.95rem] leading-relaxed text-ink/65">
+          <p className="mt-4 max-w-md text-[0.95rem] leading-relaxed text-ink/75">
             Photographs get curated. A 26-second clip does not. This was shot on a phone during a
             topcoat run — the same emulsion and the same roller you would be quoted for, on a wall
             that had been screeded two days earlier.
@@ -90,7 +90,7 @@ export default function Inspiration() {
           ))}
         </div>
 
-        <p className="mt-3 text-[0.8rem] text-ink/60" aria-live="polite">
+        <p className="mt-3 text-[0.8rem] text-ink/72" aria-live="polite">
           {list.length} project{list.length === 1 ? '' : 's'}
         </p>
 
@@ -111,17 +111,17 @@ export default function Inspiration() {
                     <Badge tone={project.stage === 'completed' ? 'green' : project.stage === 'concept' ? 'line' : 'gold'}>
                       {STAGE_LABEL[project.stage]}
                     </Badge>
-                    <span className="text-[0.66rem] uppercase tracking-[0.12em] text-ink/60">{project.kind}</span>
+                    <span className="text-[0.66rem] uppercase tracking-[0.12em] text-ink/72">{project.kind}</span>
                   </div>
                   <h2 className="mt-2 font-[var(--font-display)] text-[1.45rem] leading-tight">
                     <Link to={`/inspiration/${project.id}`} className="hover:text-green">
                       {project.title}
                     </Link>
                   </h2>
-                  <p className="text-[0.74rem] text-ink/60">
+                  <p className="text-[0.74rem] text-ink/72">
                     {project.location} · {project.year}
                   </p>
-                  <p className="mt-2 text-[0.86rem] leading-relaxed text-ink/60">{project.summary}</p>
+                  <p className="mt-2 text-[0.86rem] leading-relaxed text-ink/72">{project.summary}</p>
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <div className="flex gap-1.5">
                       {project.colorIds.slice(0, 6).map((cid) => {

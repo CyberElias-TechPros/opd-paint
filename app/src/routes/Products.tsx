@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Check, Droplet, Layers, ShieldCheck, Timer } from 'lucide-react'
+import { ArrowRight, Check, Droplet, FileDown, Layers, ShieldCheck, Timer } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
+import { track } from '../lib/analytics'
 import { PRODUCTS, FINISH_SHEEN_LABEL, type Finish, type Surface } from '../data/products'
 import { SmartImage } from '../components/media/SmartImage'
 import { PlankWall } from '../components/brand/Devices'
@@ -58,7 +59,7 @@ export default function Products() {
               <h1 className="display text-[clamp(2.4rem,5vw,4rem)]">
                 The right paint for <span className="italic">the wall you have.</span>
               </h1>
-              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/65">
+              <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-ink/75">
                 One colour library, several systems. Matt and Silk for interiors, Weathershield for anything that faces
                 the rain, Gloss for joinery and steel, plus the primer and screeding that make all of it last.
               </p>
@@ -71,9 +72,9 @@ export default function Products() {
               ].map((item) => (
                 <div key={item.k} className="rounded-sm border border-ink/12 bg-paper-2/70 p-3">
                   <item.icon className="size-4 text-green" aria-hidden />
-                  <dt className="mt-2 text-[0.6rem] font-bold uppercase tracking-[0.12em] text-ink/60">{item.k}</dt>
+                  <dt className="mt-2 text-[0.6rem] font-bold uppercase tracking-[0.12em] text-ink/72">{item.k}</dt>
                   <dd className="font-[var(--font-display)] text-[1.15rem] leading-none">{item.v}</dd>
-                  <dd className="mt-1 text-[0.6rem] leading-tight text-ink/60">{item.d}</dd>
+                  <dd className="mt-1 text-[0.6rem] leading-tight text-ink/72">{item.d}</dd>
                 </div>
               ))}
             </dl>
@@ -97,7 +98,7 @@ export default function Products() {
           ))}
         </div>
 
-        <p className="mt-4 text-[0.82rem] text-ink/60" aria-live="polite">
+        <p className="mt-4 text-[0.82rem] text-ink/72" aria-live="polite">
           {list.length} product{list.length === 1 ? '' : 's'}
         </p>
 
@@ -126,7 +127,7 @@ export default function Products() {
                           {product.name}
                         </Link>
                       </h2>
-                      <p className="mt-2 line-clamp-2 text-[0.84rem] leading-relaxed text-ink/60">{product.tagline}</p>
+                      <p className="mt-2 line-clamp-2 text-[0.84rem] leading-relaxed text-ink/72">{product.tagline}</p>
 
                       <dl className="mt-4 grid grid-cols-3 gap-2 border-y border-ink/10 py-2.5 text-center">
                         {[
@@ -135,7 +136,7 @@ export default function Products() {
                           { k: 'Recoat', v: `${product.recoatHours} h` },
                         ].map((stat) => (
                           <div key={stat.k}>
-                            <dt className="text-[0.58rem] font-bold uppercase tracking-[0.1em] text-ink/60">{stat.k}</dt>
+                            <dt className="text-[0.58rem] font-bold uppercase tracking-[0.1em] text-ink/72">{stat.k}</dt>
                             <dd className="tabular text-[0.8rem] font-semibold">{stat.v}</dd>
                           </div>
                         ))}
@@ -143,7 +144,7 @@ export default function Products() {
 
                       <div className="mt-auto flex items-end justify-between gap-3 pt-3">
                         <div>
-                          <p className="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-ink/60">From · guide</p>
+                          <p className="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-ink/72">From · guide</p>
                           <p className="text-[0.95rem] font-semibold">
                             {from.length ? naira(Math.min(...from)) : 'On request'}
                           </p>
@@ -174,7 +175,7 @@ export default function Products() {
             <table className="w-full min-w-[46rem] border-collapse text-left text-[0.82rem]">
               <caption className="sr-only">Comparison of OPUDA’S PAINT products by finish, coverage, coats and areas of use</caption>
               <thead>
-                <tr className="bg-plaster/50 text-[0.66rem] uppercase tracking-[0.12em] text-ink/60">
+                <tr className="bg-plaster/50 text-[0.66rem] uppercase tracking-[0.12em] text-ink/72">
                   <th scope="col" className="px-4 py-3 font-bold">Product</th>
                   <th scope="col" className="px-4 py-3 font-bold">Finish</th>
                   <th scope="col" className="px-4 py-3 font-bold">Sheen</th>
@@ -192,20 +193,29 @@ export default function Products() {
                       </Link>
                     </th>
                     <td className="px-4 py-3">{product.finish}</td>
-                    <td className="px-4 py-3 text-ink/60">{FINISH_SHEEN_LABEL[product.finish]}</td>
+                    <td className="px-4 py-3 text-ink/72">{FINISH_SHEEN_LABEL[product.finish]}</td>
                     <td className="tabular px-4 py-3">{product.coveragePerUnit} m²/{product.packs[0]?.unit === 'kg' ? 'kg' : 'L'}</td>
                     <td className="tabular px-4 py-3">{product.coatsRecommended}</td>
-                    <td className="px-4 py-3 text-ink/60">{product.surfaces.join(' · ')}</td>
+                    <td className="px-4 py-3 text-ink/72">{product.surfaces.join(' · ')}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="mt-3 max-w-3xl text-[0.74rem] leading-relaxed text-ink/60">
+          <p className="mt-3 max-w-3xl text-[0.74rem] leading-relaxed text-ink/72">
             Coverage figures assume a sound, sealed surface and one coat. Porous new plaster absorbs more: budget 7–8 m²
             per litre for the first coat. Figures are transcribed from the product data sheets; where a sheet is still
             in technical review the row is marked <em>spec pending</em> on the product page.
           </p>
+          <a
+            href="/documents/opudas-spec-sheet.pdf"
+            download
+            onClick={() => track('cta_click', { target: 'products-spec-sheet' })}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-2 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
+          >
+            <FileDown className="size-3.5" aria-hidden /> Download the specification sheet
+            <span className="text-[0.66rem] font-normal opacity-60">PDF · this table, printable</span>
+          </a>
         </section>
 
         {/* guidance */}
@@ -230,7 +240,7 @@ export default function Products() {
             <div key={card.title} className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
               <card.icon className="size-5 text-green" aria-hidden />
               <h3 className="mt-3 font-[var(--font-display)] text-[1.15rem]">{card.title}</h3>
-              <p className="mt-1.5 text-[0.84rem] leading-relaxed text-ink/60">{card.body}</p>
+              <p className="mt-1.5 text-[0.84rem] leading-relaxed text-ink/72">{card.body}</p>
             </div>
           ))}
         </section>
@@ -247,7 +257,7 @@ export default function Products() {
           </ArrowLink>
         </div>
 
-        <p className="mt-6 text-[0.72rem] text-ink/60">
+        <p className="mt-6 text-[0.72rem] text-ink/72">
           {number(PRODUCTS.length)} products · all prices are indicative Port Harcourt guides, excluding VAT and delivery
         </p>
       </div>

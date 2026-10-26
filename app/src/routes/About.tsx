@@ -95,7 +95,7 @@ export default function About() {
             <article key={principle.title} className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
               <principle.icon className="size-5 text-green" aria-hidden />
               <h3 className="mt-3 font-[var(--font-display)] text-[1.15rem] leading-snug">{principle.title}</h3>
-              <p className="mt-2 text-[0.85rem] leading-relaxed text-ink/60">{principle.body}</p>
+              <p className="mt-2 text-[0.85rem] leading-relaxed text-ink/72">{principle.body}</p>
             </article>
           ))}
         </div>
@@ -117,10 +117,10 @@ export default function About() {
                 { step: 'Verify', detail: 'After application we look at the work in daylight. If a wall reads patchy, we diagnose why before repainting.' },
               ].map((item, index) => (
                 <li key={item.step} className="flex gap-3">
-                  <span className="tabular mt-0.5 text-[0.7rem] font-bold text-ink/60">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="tabular mt-0.5 text-[0.7rem] font-bold text-ink/72">{String(index + 1).padStart(2, '0')}</span>
                   <div>
                     <p className="text-[0.9rem] font-semibold">{item.step}</p>
-                    <p className="text-[0.84rem] leading-relaxed text-ink/60">{item.detail}</p>
+                    <p className="text-[0.84rem] leading-relaxed text-ink/72">{item.detail}</p>
                   </div>
                 </li>
               ))}
@@ -154,13 +154,13 @@ export default function About() {
                 requirements matter more than any single formulation claim.
               </p>
             </div>
-            <p className="mt-4 rounded-sm border border-ink/12 bg-paper-2/60 p-4 text-[0.78rem] leading-relaxed text-ink/60">
+            <p className="mt-4 rounded-sm border border-ink/12 bg-paper-2/60 p-4 text-[0.78rem] leading-relaxed text-ink/72">
               We publish this in plain language because sustainability claims are easy to make and hard to verify. Where
               we quote a figure, it comes from the product data sheet. Where we do not have a figure, we say so.
             </p>
           </div>
           <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-5">
-            <p className="kicker mb-3 text-ink/60">At a glance</p>
+            <p className="kicker mb-3 text-ink/72">At a glance</p>
             <dl>
               <DataRow label="Products in the range" value={PRODUCTS.length} />
               <DataRow label="Colours in the launch library" value={String(COLORS.length)} />
