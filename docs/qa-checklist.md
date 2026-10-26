@@ -70,8 +70,8 @@ cd app && npm run check
 - `bash tools/verify-restore.sh` — the real backup and restore scripts, end to
   end, including a damaged archive and a traversal attempt.
 
-CI adds three jobs that need a browser binary or network access, so they run
-there rather than as part of `npm run check`:
+CI adds four jobs that need a browser binary or network access, so they run
+there rather than as part of `npm run check`. All four are green:
 
 - **Accessibility** — axe-core (WCAG 2.2 A/AA) on thirteen pages in Chromium,
   plus the things a rule cannot check: the skip link is the first Tab stop,
@@ -80,8 +80,9 @@ there rather than as part of `npm run check`:
 - **Lighthouse budgets** — accessibility 100, best practices ≥ 95, SEO ≥ 95,
   LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 300 ms, with script/CSS/image/font weight caps.
 - **Dependencies and secrets** — `npm audit` (blocking for production
-  dependencies at high/critical), plus gitleaks over the full history with a
-  pinned binary and checksum.
+  dependencies at high/critical), plus `tools/scan-secrets.mjs` over the working
+  tree and every line of history, plus gitleaks on top when its binary can be
+  fetched.
 - Production build with route-level code splitting, then a head prerender that
   writes one `dist/<path>/index.html` per URL with its own title, description,
   canonical, Open Graph tags and JSON-LD.

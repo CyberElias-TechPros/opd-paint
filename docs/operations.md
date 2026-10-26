@@ -47,6 +47,27 @@ than remembered:
 
 ---
 
+## 1b. The gates that run on every push
+
+Nine checks, and what to do when each one is red. A gate that nobody understands
+gets disabled, so the failure mode is written down here.
+
+| Check | Red means | First move |
+| --- | --- | --- |
+| **Site — lint, tests, routes, build** | lint error, a failed unit/content/server/browser test, or a route that no longer renders | the failing test names the behaviour; `npm run check` locally reproduces it |
+| **Accessibility — axe** | an AA violation, a keyboard stop with no visible focus, a page that overflows 360px, or a console error | the PR comment lists the rule, the selector, and for contrast the resolved colours and ratio |
+| **Lighthouse budgets** | LCP > 2.5 s, CLS > 0.1, TBT > 300 ms, a11y < 100, best practices or SEO < 95 | the PR comment lists every metric against its budget and, for CLS, the elements that moved |
+| **Dependencies and secrets** | a high/critical advisory in a shipped dependency, or a credential-shaped string in the tree or history | rotate the credential and remove it; never add it to an allowlist |
+| **Backups restore** | the drill failed — a restore that cannot verify, salvage or refuse correctly | run `bash tools/verify-restore.sh` locally; it uses throwaway data |
+| **Brand assets are reproducible** | a generator's output no longer matches the committed file | re-run the generator, and check whether a library upgrade changed the bytes |
+| **Vercel** | the build or the deployment failed | the config lives in `app/vercel.json` because the project's Root Directory is `app` |
+
+Thresholds are arguments, not laws. If a budget is genuinely unreachable on the
+hardware, change the number in `.lighthouserc.json` in its own commit, with the
+reason in the message — do not delete the assertion.
+
+---
+
 ## 2. When an enquiry arrives
 
 ```

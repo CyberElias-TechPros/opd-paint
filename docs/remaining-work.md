@@ -207,20 +207,31 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 Five stages, each ending in a gate that the README defines. Do not skip a gate
 to hit a date — the README is explicit about that.
 
-**Stage 1 — Make the current build trustworthy — ✅ built, awaiting first CI run**
+**Stage 1 — Make the current build trustworthy — ✅ done, all nine checks green**
 Fix the Vercel configuration · enquiry notifications · error monitoring · restore
 test · dependency scanning · Lighthouse CI · axe · browser smoke tests.
 → *Closes the G6 technical half.* Evidence: `app/vercel.json`, `app/api/[...path].js`,
-`server/{notify,errors,logger}.mjs`, `tools/{restore,verify-restore}.sh`,
+`server/{notify,errors,logger}.mjs`, `tools/{restore,verify-restore,scan-secrets,lighthouse-report}.sh|mjs`,
 `app/scripts/{browser.test.tsx,a11y.mjs}`, `.lighthouserc.json`,
 `.gitleaks.toml`, `.github/dependabot.yml`, and six CI jobs.
 
-Two honest caveats. The new CI jobs (axe, Lighthouse, gitleaks, restore) were
-written and syntax-checked in an environment with **no browser binary and no
-access to GitHub's release assets**, so they have not been observed green yet —
-the first push is their first real run. And everything that needs a credential —
-a chat webhook, an email sender, a Sentry DSN, a hosted API origin — is built to
-degrade safely but is switched off until someone supplies one.
+Green as of the last commit on this branch: Site (lint, tests, routes, browser,
+build), Accessibility, Lighthouse budgets, Dependencies and secrets, Backups
+restore, Brand assets reproducible, Vercel, CodeRabbit.
+
+The gates earned their place immediately — they found twenty-odd real defects
+that no previous check could see:
+
+| Gate | What it found |
+| --- | --- |
+| axe | A consent checkbox whose label pointed at a different element; a consent field with two labels; a logo, a search button and every colour card whose accessible name did not contain their visible text; 249 pieces of small print at 4.05:1 contrast. |
+| Lighthouse | Every page leaking a soft 404 (a catch-all answering 200 for unknown paths); a footer pushed off screen by the loading state, worth 0.15–0.19 CLS on three pages; an un-preloaded italic face reflowing the largest text on the page; three identical "Read more" links; a footer heading order that skipped a level. |
+| Secrets | Nothing, which is the correct result — but the gate is now independent of a download, so it cannot fail to run. |
+| Restore drill | A truncated JSONL line made a restore refuse entirely; a rejected restore could still write to the target. |
+
+Everything that needs a credential — a chat webhook, an email sender, a Sentry
+DSN, a hosted API origin — is built to degrade safely and is switched off until
+someone supplies one. That is the remaining half of G6, and it is not code.
 
 **Stage 2 — Replace provisional data (business-led, 2–4 weeks elapsed)**
 Price list · dealer export · product sign-off · colour chips and measured LRV ·
