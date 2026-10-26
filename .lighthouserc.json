@@ -21,7 +21,8 @@
           "uses-http2",
           "canonical",
           "uses-long-cache-ttl"
-        ]
+        ],
+        "chromeFlags": "--headless=new --no-sandbox"
       }
     },
     "assert": {

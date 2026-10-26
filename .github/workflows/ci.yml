@@ -358,24 +358,32 @@ jobs:
           name: site-build
           path: app/dist
 
+      # `lhci autorun` is run directly rather than through a third-party action:
+      # it keeps the browser choice explicit, and it means the report files exist
+      # on disk for the summary below to read.
       - name: Lighthouse CI
         id: lighthouse
-        uses: treosh/lighthouse-ci-action@v12
-        with:
-          configPath: ./.lighthouserc.json
-          uploadArtifacts: true
-          temporaryPublicStorage: false
-          runs: 1
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          set +e
+          npx --yes @lhci/cli@0.15.1 autorun
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit $status
 
-      - name: Post the missed budgets to the pull request
-        if: failure() && github.event_name == 'pull_request'
+      # Always, not only on failure: when a budget passes by 1% it is worth
+      # knowing, and when it fails the reason has to be in the report itself.
+      - name: What was measured, and what moved
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ASSERTIONS: ${{ steps.lighthouse.outputs.assertionResults }}
         run: |
-          node tools/lighthouse-report.mjs "$ASSERTIONS" > /tmp/lighthouse-report.md
-          cat /tmp/lighthouse-report.md >> "$GITHUB_STEP_SUMMARY"
-          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/lighthouse-report.md
+          node tools/lighthouse-report.mjs lighthouse-reports > /tmp/lighthouse.md
+          cat /tmp/lighthouse.md >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.lighthouse.outputs.status }}" != "0" ] && [ "${{ github.event_name }}" = "pull_request" ]; then
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/lighthouse.md
+          fi
 
       - uses: actions/upload-artifact@v4
         if: always()

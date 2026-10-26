@@ -1,63 +1,120 @@
 #!/usr/bin/env node
 /**
- * Turn Lighthouse CI's assertion results into a pull-request comment.
+ * Summarise Lighthouse reports: what missed a budget, and *what moved*.
  *
- * The budget is only useful if a failure says *which* number was missed, on
- * which page, and by how much. "Lighthouse budgets failed" after four minutes
- * of collection is not that.
+ * A failing CLS budget that says "0.147" is a number, not a diagnosis. The
+ * Lighthouse report already contains the answer — `layout-shift-elements` lists
+ * the nodes that moved, with selectors and the score they contributed — so this
+ * prints it. The same goes for LCP's element and the main-thread work that made
+ * TBT high.
  *
- *   node tools/lighthouse-report.mjs "$ASSERTION_RESULTS_JSON"
+ *   node tools/lighthouse-report.mjs lighthouse-reports
+ *
+ * Prints markdown, ready for a pull-request comment or a step summary.
  */
-const raw = process.argv[2] ?? ''
+import { readdirSync, readFileSync, existsSync } from 'node:fs'
+import { join } from 'node:path'
 
-let assertions
-try {
-  assertions = JSON.parse(raw)
-} catch {
-  assertions = null
+const dir = process.argv[2] ?? 'lighthouse-reports'
+
+const BUDGETS = {
+  'largest-contentful-paint': 2500,
+  'cumulative-layout-shift': 0.1,
+  'total-blocking-time': 300,
+  'first-contentful-paint': 1800,
 }
 
-if (!Array.isArray(assertions)) {
-  process.stdout.write(
-    '### Lighthouse budgets\n\nNo assertion results were produced, which means the run itself failed ' +
-      '(build, server or collection) rather than a budget being exceeded.\n',
-  )
+if (!existsSync(dir)) {
+  console.log('### Lighthouse\n\nNo reports were produced, so the run failed before collecting.\n')
   process.exit(0)
 }
 
-// `level` is the severity of the assertion, not its outcome: an error-level
-// budget that was met must not appear here.
-const failed = assertions.filter((entry) => entry.passed === false)
+const files = readdirSync(dir).filter((file) => file.endsWith('.report.json'))
 
-const rows = (list) =>
-  list
-    .map((entry) => {
-      const page = String(entry.url ?? '')
-        .replace(/^https?:\/\/[^/]+/, '')
-        .replace(/\/$/, '') || '/'
-      const expected = entry.expected === undefined ? '—' : JSON.stringify(entry.expected)
-      const actual = entry.actual === undefined ? '—' : JSON.stringify(entry.actual)
-      return `| \`${page}\` | ${entry.name ?? entry.auditId} | ${expected} | ${actual} | ${entry.level ?? 'error'} |`
-    })
-    .join('\n')
-
-const lines = ['### Lighthouse budgets', '']
-
-if (!failed.length) {
-  lines.push(`All ${assertions.length} assertions passed.`)
-} else {
-  lines.push(`${failed.length} of ${assertions.length} assertions failed.`)
-  lines.push('')
-  lines.push('| Page | Budget | Expected | Actual | Severity |')
-  lines.push('| --- | --- | --- | --- | --- |')
-  lines.push(rows(failed.slice(0, 40)))
-  if (failed.length > 40) lines.push('', `…and ${failed.length - 40} more.`)
-  lines.push('')
-  lines.push(
-    'Budgets live in `.lighthouserc.json`. Thresholds are deliberate: if one is ' +
-      'unreachable on this hardware, the fix is to argue for the number and change ' +
-      'it, not to delete it.',
-  )
+if (!files.length) {
+  console.log(`### Lighthouse\n\nNo report files in \`${dir}\`.\n`)
+  process.exit(0)
 }
 
-process.stdout.write(`${lines.join('\n')}\n`)
+const lines = ['### Lighthouse', '']
+const problems = []
+
+for (const file of files) {
+  const report = JSON.parse(readFileSync(join(dir, file), 'utf8'))
+  const url = new URL(report.finalDisplayedUrl ?? report.finalUrl ?? report.requestedUrl ?? 'http://localhost/')
+  const path = url.pathname + url.search
+  const scores = report.categories ?? {}
+  const audits = report.audits ?? {}
+
+  const score = (id) => {
+    const value = scores[id]?.score
+    return typeof value === 'number' ? Math.round(value * 100) : '—'
+  }
+
+  lines.push(`#### \`${path}\``)
+  lines.push('')
+  lines.push(
+    `performance **${score('performance')}** · accessibility **${score('accessibility')}** · ` +
+      `best-practices **${score('best-practices')}** · SEO **${score('seo')}**`,
+  )
+  lines.push('')
+
+  const metrics = ['first-contentful-paint', 'largest-contentful-paint', 'cumulative-layout-shift', 'total-blocking-time']
+  const rows = metrics
+    .map((id) => {
+      const audit = audits[id]
+      if (!audit) return null
+      const numeric = audit.numericValue ?? 0
+      const budget = BUDGETS[id]
+      const failed = budget !== undefined && numeric > budget
+      const shown = id === 'cumulative-layout-shift' ? numeric.toFixed(3) : `${Math.round(numeric)} ms`
+      return { id, shown, budget, failed, display: audit.displayValue ?? shown }
+    })
+    .filter(Boolean)
+
+  lines.push('| Metric | Value | Budget | |')
+  lines.push('| --- | --- | --- | --- |')
+  for (const row of rows) {
+    const budget = row.id === 'cumulative-layout-shift' ? row.budget : `${row.budget} ms`
+    lines.push(`| ${row.id} | ${row.display} | ${budget} | ${row.failed ? '❌' : '✅'} |`)
+    if (row.failed) problems.push(`${path}: ${row.id} ${row.display}`)
+  }
+  lines.push('')
+
+  // What moved — the only thing that makes a CLS failure fixable.
+  const shiftItems = audits['layout-shift-elements']?.details?.items ?? []
+  if (shiftItems.length) {
+    lines.push('Elements that moved:')
+    lines.push('')
+    for (const item of shiftItems.slice(0, 6)) {
+      const node = item.node ?? {}
+      const selector = node.selector ?? node.snippet ?? '(unknown)'
+      const contribution = typeof item.score === 'number' ? ` · ${item.score.toFixed(3)}` : ''
+      lines.push(`- \`${selector.slice(0, 140)}\`${contribution}`)
+    }
+    lines.push('')
+  }
+
+  const lcpItem = audits['largest-contentful-paint-element']?.details?.items?.[0]?.items?.[0]?.node
+  if (lcpItem?.selector) {
+    lines.push(`LCP element: \`${String(lcpItem.selector).slice(0, 140)}\``)
+    lines.push('')
+  }
+
+  const failing = Object.values(audits)
+    .filter((audit) => audit.score !== null && audit.score < 1 && audit.scoreDisplayMode === 'binary' && audit.score !== undefined)
+    .map((audit) => audit.id)
+
+  if (failing.length) {
+    lines.push(`Failed audits: ${[...new Set(failing)].slice(0, 12).join(', ')}`)
+    lines.push('')
+  }
+}
+
+if (problems.length) {
+  lines.push(`**${problems.length} budget(s) missed:** ${problems.join('; ')}`)
+} else {
+  lines.push('All measured budgets are met.')
+}
+
+console.log(`${lines.join('\n')}\n`)
