@@ -1,12 +1,20 @@
-# The printed colour book
+# The printed books
 
-`app/public/documents/opudas-colour-book.pdf` — A5 portrait, 32 pages, saddle
-stitched. It is the brochure a dealer hands across the counter, and it is
-**generated**, not laid out by hand.
+Two volumes, both A5 portrait and both **generated**, not laid out by hand:
+
+| Volume | File | Pages | Organised by |
+| --- | --- | --- | --- |
+| Colour Book | `app/public/documents/opudas-colour-book.pdf` | 32 | colour — nine families, 59 colours, 8 palettes |
+| Room Book | `app/public/documents/opudas-room-book.pdf` | 20 | the job the colour has to do — four methods, sixteen colourways |
+
+This document covers both. The Room Book has its own section at the end.
 
 ```
-python3 tools/build-brochure.py        # needs fpdf2, fonttools, brotli, Pillow
+python3 tools/build-brochure.py       # Colour Book
+python3 tools/build-roombook.py       # Room Book
 ```
+
+Both need fpdf2, fonttools, brotli and Pillow.
 
 The same four Python packages the other document generators need. CI pins their
 versions and rebuilds every committed artefact, so a library bump that changes
@@ -120,3 +128,104 @@ the honest thing for this brand, but it is not the aspirational interior
 photography the mass-market brochures use. If a print run is going to a dealer's
 counter, walk through the eight palettes and confirm each one has a photograph
 that shows the finished colours it names.
+
+
+---
+
+# The Room Book
+
+`app/public/documents/opudas-room-book.pdf` — 20 pages. The second volume of the
+same library, indexed the other way round: instead of "which colours are there",
+it answers "which surface is this, and what should it be".
+
+```
+python3 tools/build-roombook.py
+```
+
+## What is in it
+
+| Pages | Contents |
+| --- | --- |
+| 1 | Cover — one real room with one wall repainted |
+| 2 | The argument: a colour is not a scheme, and the two volumes |
+| 3–4 | Contents, and how to read a plate |
+| 5–8 | **01 Aperture** — the wall the light comes from, shown on the bedroom at Rumuokoro |
+| 9–12 | **02 Substrate** — when the surface is the problem, shown on the GRA Phase 2 feature wall |
+| 13–16 | **03 Threshold** — boundary walls and plinths, shown on the GRA Phase 2 villa |
+| 17–20 | **04 Depth** — ironwork and frames, shown on the Rumuola gate |
+| 21 | The four collections, with counts generated from the data |
+| 22 | Which surface takes which method |
+| 23 | The order to decide in |
+| 24 | Back cover |
+
+Each method gets three pages: an opening page of the method's lead colour with the
+problem and the principle, a colourways page with three renders, and a page
+showing the **untouched photograph** beside exactly what was and was not altered.
+
+## How a plate is made
+
+This is the part worth reading before editing anything.
+
+A painted wall in a photograph is, to a good approximation, its *reflectance
+multiplied by the light falling on it*. So for each wall plane the builder:
+
+1. traces a clip polygon around the plane, in fractions of the image
+   (`tools/roombook-plates.json`);
+2. flood-fills from seeds inside that clip with a colour tolerance, so the edge
+   follows the cornice, the socket and the shadow rather than a straight line;
+3. takes the photograph's luminance inside the mask, divides by its own mean and
+   clamps the ratio;
+4. multiplies the chosen paint by that ratio.
+
+Step 3 is what makes it believable and honest. A plain `color` blend keeps every
+photographic highlight, which turns Atlantic Blue into a pastel on a bright
+facade; a flat fill throws away the modelling. Scaling by the wall's *own*
+luminance keeps both, and because it is mean-preserving the rendered colour at
+mid-wall is the paint — the build asserts this.
+
+The plates are the masks that survived review. A plane whose flood fill leaked
+into a neighbouring surface was either re-traced with a tighter clip or dropped,
+because a mask that catches a door frame looks like a mistake in print, at
+300 dpi, in front of a customer.
+
+**If a mask ever comes out empty, the build stops.** A silently unpainted wall is
+worse than a failed build.
+
+## Adding a plate
+
+1. Choose a photograph in `app/public/media` that shows a wall with a clear
+   boundary — a finished room, a facade, a gate.
+2. Put a 100-pixel grid over it and trace the wall plane as fractions of the
+   image.
+3. Add an entry to `tools/roombook-plates.json`: clip polygon, seeds (pixel
+   coordinates inside the wall), tolerance.
+4. Build, render the affected pages, and look at them. If the fill crosses an
+   edge, tighten the clip. If it misses the plane, raise the tolerance.
+5. Add the plate key to a method in `tools/roombook_copy.py`, and give every
+   scheme one colour per plane.
+
+Schemes may also carry `pair`: extra colours shown as chips only. A chip is a
+claim about paint; a render is a claim about a photograph, and the book only
+makes it for surfaces it actually repainted.
+
+## The honest limits
+
+- **Nowhere does it claim a styled set.** There are no prop-and-cushion spreads,
+  because OPUDA'S has not photographed any and the book will not pass a stock
+  image off as one. Every plate is a real site, warts and all.
+- **A repainted photograph cannot model** the sheen of a finish at a grazing
+  angle, how an emulsion covers a patch, or the light at eight in the evening.
+  The book says so on the how-to-read page and again on the back.
+- **Coverage is printed.** Each plate page states what percentage of the frame
+  was repainted, so the reader can see how much of the image is a decision and
+  how much is a photograph.
+
+## Print
+
+Same trim, margins and type sizes as the Colour Book — the geometry, tokens,
+type scale and helper functions are **imported** from `build-brochure.py`, not
+copied. Two documents whose margins drift apart are two documents that look like
+two companies.
+
+Universal process, 40 pages would be a signature; at 20 it is a saddle stitch.
+The plate pages are photographic, so proof those first, not the swatches.

@@ -19,6 +19,7 @@ teams, not in a repository.
 | Technical documents | 12 generated PDFs (TD sheet and SDS per product) from one structured source. |
 | Fan deck | 19-page printable colour deck generated from `colors.ts`, linked from the colour library. |
 | Colour book | 32-page A5 brochure generated from `colors.ts`, `palettes.ts`, `projects.ts` and the product dictionary — see [brochure.md](brochure.md). |
+| Room book | 20-page A5 scheme book: four methods, sixteen colourways rendered on the company's own site photographs. |
 | Enquiry inbox | `GET /admin` and `/admin/enquiries.csv`, basic auth over a constant-time comparison, 404 unless credentials are set. |
 | Offline | Service worker: network-first pages, cached photography and fonts, branded offline page, API never cached. |
 | Printing | Print stylesheet keeps every swatch (`print-color-adjust: exact`) and drops the chrome. |
@@ -87,7 +88,7 @@ there rather than as part of `npm run check`. All four are green:
 - Production build with route-level code splitting, then a head prerender that
   writes one `dist/<path>/index.html` per URL with its own title, description,
   canonical, Open Graph tags and JSON-LD.
-- CI regenerates the icons, documents, fan deck, colour book, social card and sitemap and
+- CI regenerates the icons, documents, fan deck, both books, social card and sitemap and
   fails if the committed artefacts differ from their scripts.
 
 ## Manual pass before any release

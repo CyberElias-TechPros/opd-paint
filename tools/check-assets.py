@@ -187,6 +187,7 @@ def main(argv: list[str]) -> int:
             "  python3 tools/build-og.py\n"
             "  python3 tools/build-fandeck.py\n"
             "  python3 tools/build-brochure.py\n"
+            "  python3 tools/build-roombook.py\n"
         )
         return 1
 

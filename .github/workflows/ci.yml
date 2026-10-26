@@ -111,6 +111,7 @@ jobs:
           python3 tools/build-og.py
           python3 tools/build-fandeck.py
           python3 tools/build-brochure.py
+          python3 tools/build-roombook.py
 
       - name: The committed artefacts match the scripts
         run: |

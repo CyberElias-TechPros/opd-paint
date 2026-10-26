@@ -216,6 +216,14 @@ check treats it like any other committed artefact. Evidence:
 `tools/{build-brochure,brochure_copy}.py`, `app/public/documents/opudas-colour-book.pdf`,
 `docs/brochure.md`. Linked from the colour library.
 
+**Print collateral — ✅ the room-scheme book**
+The companion volume: 20 pages, four methods (aperture, substrate, threshold,
+depth) and sixteen colourways rendered onto the company's own site photographs by
+a mean-preserving luminance transfer, with the untouched frame printed beside each
+set and the repainted area stated as a percentage. Evidence:
+`tools/{build-roombook,roombook_copy,roombook_plates}.py`,
+`tools/roombook-plates.json`, `app/public/documents/opudas-room-book.pdf`.
+
 **Stage 1 — Make the current build trustworthy — ✅ done, all nine checks green**
 Fix the Vercel configuration · enquiry notifications · error monitoring · restore
 test · dependency scanning · Lighthouse CI · axe · browser smoke tests.
