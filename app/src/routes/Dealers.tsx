@@ -129,7 +129,10 @@ export default function Dealers() {
       </header>
 
       <div className="shell py-8">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        {/* grid-cols-1 on mobile, not the implicit auto column: an auto column is
+            sized by its content's min-content width, and a <select> is as wide as
+            its longest option. */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative min-w-0 flex-1 sm:min-w-[13rem]">

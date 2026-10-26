@@ -148,8 +148,12 @@ type Mounted = {
 async function render(element: import('react').ReactElement): Promise<Mounted> {
   const { createRoot } = await import('react-dom/client')
   const { act } = await import('react')
-  const container = document.getElementById('root') as HTMLElement
-  container.innerHTML = ''
+  const host = document.getElementById('root') as HTMLElement
+  // A fresh container per mount. Reusing one and calling createRoot on it again
+  // leaves React complaining about a container it already owns.
+  host.innerHTML = ''
+  const container = document.createElement('div')
+  host.appendChild(container)
   const root = createRoot(container)
   await act(async () => {
     root.render(element)
@@ -164,6 +168,7 @@ async function render(element: import('react').ReactElement): Promise<Mounted> {
       await act(async () => {
         root.unmount()
       })
+      container.remove()
     },
   }
 }
@@ -229,6 +234,59 @@ async function submit(form: Element | null): Promise<void> {
 
 const text = () => document.body.textContent ?? ''
 const input = (name: string) => document.querySelector(`[name="${name}"]`)
+
+
+/* ---------------------------------------------------------------- headings */
+
+/**
+ * Heading order and landmark sanity across the pages that carry the business.
+ *
+ * Lighthouse flags `heading-order` as a failed audit rather than a warning, and
+ * axe cannot see it in a page rendered to a string with no router context — so
+ * it is checked here, deterministically, on every run.
+ */
+async function headingAudit(path: string, pattern: string, Page: () => JSX.Element): Promise<void> {
+  const { createElement: h } = await import('react')
+  const { MemoryRouter, Route, Routes } = await import('react-router-dom')
+  const { AppProvider } = await import('../src/store/AppStore')
+  const { Footer } = await import('../src/components/layout/Footer')
+
+  // Page *and* the real footer, inside one router: heading order is a property
+  // of the whole document, and the footer is where the last skip hid.
+  const { unmount } = await render(
+    h(
+      MemoryRouter,
+      { initialEntries: [path] },
+      h(
+        AppProvider,
+        null,
+        h(Routes, null, h(Route, { path: pattern, element: h(Page) })),
+        h(Footer),
+      ),
+    ),
+  )
+  try {
+    const levels = [...document.querySelectorAll('h1, h2, h3, h4, h5, h6')].map((node) => ({
+      level: Number(node.tagName[1]),
+      text: (node.textContent ?? '').trim().slice(0, 60),
+    }))
+
+    assertEqual(levels.filter((entry) => entry.level === 1).length, 1, `${path} should have exactly one <h1>`)
+
+    // A jump from h2 to h4 is what a screen-reader user hears as a level skipped
+    // — and what Lighthouse reports as a failed heading-order audit.
+    let previous = 0
+    for (const heading of levels) {
+      assert(
+        heading.level <= previous + 1,
+        `${path}: <h${heading.level}> "${heading.text}" follows <h${previous}> — level skipped`,
+      )
+      previous = heading.level
+    }
+  } finally {
+    await unmount()
+  }
+}
 
 /* ------------------------------------------------------------------- test */
 
@@ -483,6 +541,26 @@ async function main(): Promise<void> {
         await unmount()
       }
     })
+    // Static imports so the bundler resolves them; the routes themselves are
+    // lazy in the app, which is a shipping concern, not a testing one.
+    const { default: ColoursPage } = await import('../src/routes/Colours')
+    const { default: CalculatorPage } = await import('../src/routes/Calculator')
+    const { default: QuotePage } = await import('../src/routes/Quote')
+    const { default: ProductsPage } = await import('../src/routes/Products')
+    const { default: DealersPage } = await import('../src/routes/Dealers')
+
+    for (const [path, pattern, Page] of [
+      ['/colours', '/colours', ColoursPage],
+      ['/calculator', '/calculator', CalculatorPage],
+      ['/quote', '/quote', QuotePage],
+      ['/products', '/products', ProductsPage],
+      ['/dealers', '/dealers', DealersPage],
+    ] as const) {
+      await check(`headings descend in order: ${path}`, async () => {
+        await headingAudit(path, pattern, Page)
+      })
+    }
+
   } finally {
     stopService()
     rmSync(dataDir, { recursive: true, force: true })

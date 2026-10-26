@@ -17,7 +17,7 @@
  * Run automatically by `npm run build` (through vite's SSR build, since this
  * file contains JSX).
  */
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { renderToString } from 'react-dom/server'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -49,7 +49,32 @@ import { PROJECTS } from '../src/data/projects'
 import { GUIDES } from '../src/data/guides'
 
 const DIST = join(process.cwd(), 'dist')
-const template = readFileSync(join(DIST, 'index.html'), 'utf8')
+let template = readFileSync(join(DIST, 'index.html'), 'utf8')
+
+/**
+ * Preload the two font files the first paint needs.
+ *
+ * Both families are self-hosted with `font-display: swap`, which trades an
+ * invisible page for a visible one that reflows when the font arrives — and that
+ * reflow is cumulative layout shift, which is what Lighthouse was reporting at
+ * 0.15–0.19 on the text-heavy pages. The files are hashed by the build, so the
+ * links are generated here rather than written by hand.
+ */
+const fonts = readdirSync(join(DIST, 'assets'))
+const wanted = ['archivo-latin-wght-normal', 'instrument-serif-latin-400-normal']
+const preloads = wanted
+  .map((prefix) => fonts.find((file) => file.startsWith(prefix) && file.endsWith('.woff2')))
+  .filter((file): file is string => Boolean(file))
+  .map(
+    (file) =>
+      `    <link rel="preload" as="font" type="font/woff2" href="/assets/${file}" crossorigin />`,
+  )
+
+if (preloads.length !== wanted.length) {
+  console.warn(`  warn only ${preloads.length} of ${wanted.length} font preloads could be generated`)
+} else {
+  template = template.replace('</head>', `${preloads.join('\n')}\n  </head>`)
+}
 
 type Page = { pattern: string; url: string; Page: () => React.ReactElement; file?: string }
 
