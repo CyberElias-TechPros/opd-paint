@@ -81,17 +81,27 @@ for (const file of files) {
   }
   lines.push('')
 
-  // What moved — the only thing that makes a CLS failure fixable.
-  const shiftItems = audits['layout-shift-elements']?.details?.items ?? []
+  // What moved — the only thing that makes a CLS failure fixable. Lighthouse has
+  // moved this detail between audits over versions, so look in both places.
+  const shiftItems = [
+    ...(audits['layout-shift-elements']?.details?.items ?? []),
+    ...(audits['layout-shifts']?.details?.items ?? []).flatMap((item) => item.subItems?.items ?? []),
+  ]
   if (shiftItems.length) {
     lines.push('Elements that moved:')
     lines.push('')
-    for (const item of shiftItems.slice(0, 6)) {
+    for (const item of shiftItems.slice(0, 8)) {
       const node = item.node ?? {}
       const selector = node.selector ?? node.snippet ?? '(unknown)'
       const contribution = typeof item.score === 'number' ? ` · ${item.score.toFixed(3)}` : ''
       lines.push(`- \`${selector.slice(0, 140)}\`${contribution}`)
     }
+    lines.push('')
+  } else if ((audits['cumulative-layout-shift']?.numericValue ?? 0) > 0.05) {
+    // Say so rather than silently omitting the section — the next person needs
+    // to know the diagnosis is missing, not that nothing moved.
+    const layoutAudits = Object.keys(audits).filter((id) => id.includes('layout'))
+    lines.push(`_(No element-level detail in this report. Layout audits present: ${layoutAudits.join(', ') || 'none'}.)_`)
     lines.push('')
   }
 

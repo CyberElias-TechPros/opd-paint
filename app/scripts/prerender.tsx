@@ -62,7 +62,14 @@ let template = readFileSync(join(DIST, 'index.html'), 'utf8')
  */
 const assets = readdirSync(join(DIST, 'assets'))
 const fonts = assets
-const wanted = ['archivo-latin-wght-normal', 'instrument-serif-latin-400-normal']
+// The italic matters as much as the roman: the display serif is set in italic
+// for the second half of most headlines, and a face that arrives late reflows
+// the largest text on the page. That was the whole of the remaining CLS.
+const wanted = [
+  'archivo-latin-wght-normal',
+  'instrument-serif-latin-400-normal',
+  'instrument-serif-latin-400-italic',
+]
 const preloads = wanted
   .map((prefix) => fonts.find((file) => file.startsWith(prefix) && file.endsWith('.woff2')))
   .filter((file): file is string => Boolean(file))
