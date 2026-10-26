@@ -43,6 +43,40 @@ const PAGES = [
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa']
 
+/**
+ * Let every animation and transition reach its end state before auditing.
+ *
+ * The reveal animation fades content in over ~900ms with a per-card delay, and
+ * axe measures the colour it can see *now*: auditing mid-fade reported
+ * `text-ink/72` as #6b726a on #f7f2e9 (4.44:1) on some cards and #747a72
+ * (3.94:1) on others — the same token, three different "failures", all of them
+ * a snapshot of a fade. At rest it is 7.3:1. Auditing the finished page is the
+ * only way to get a number that means anything.
+ */
+async function settle(page) {
+  await page.evaluate(() => {
+    for (const animation of document.getAnimations?.() ?? []) {
+      try {
+        animation.finish()
+      } catch {
+        /* infinite animations (the shimmer) cannot finish; leave them */
+      }
+    }
+  })
+  await page
+    .waitForFunction(
+      () =>
+        [...document.querySelectorAll('.reveal')].every(
+          (element) => Number(getComputedStyle(element).opacity) >= 0.999,
+        ),
+      undefined,
+      { timeout: 5000 },
+    )
+    .catch(() => {
+      /* if a reveal never completes the audit still runs, and will say so */
+    })
+}
+
 const results = []
 let failures = 0
 
@@ -130,6 +164,7 @@ async function main() {
     const status = response?.status() ?? 0
     record(`${entry.name} answers ${expectedStatus}`, status === expectedStatus, `got ${status}`)
 
+    await settle(page)
     const { violations } = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze()
     record(
       `${entry.name} — axe, WCAG 2.2 AA`,

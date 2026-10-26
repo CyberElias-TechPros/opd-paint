@@ -85,18 +85,28 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 /**
  * Route loading state.
  *
- * In normal flow, and that is deliberate: it reserves roughly a screen of space
- * so the document is taller than the viewport from the first paint. Taking it
- * out of flow made the page shorter than the screen, so the scrollbar appeared
- * when the route arrived and shifted every element sideways — 0.73 CLS, far
- * worse than the shift it was meant to fix.
+ * In normal flow, and exactly one screen tall (less the header). Two things were
+ * learned the hard way here: out of flow, the page was shorter than the screen
+ * and the arriving scrollbar shifted everything sideways (0.73 CLS); and at 60vh
+ * the footer sat inside the first viewport, so when the real page replaced the
+ * loading state the footer was pushed off screen — 0.15–0.19 on /colours,
+ * /calculator and every colour detail page. Reserving the full fold keeps the
+ * footer below it in both states.
  *
  * The route's own chunk is preloaded at build time (scripts/prerender), so on a
  * normal connection this is rarely seen at all.
  */
 function RouteFallback() {
   return (
-    <div className="flex min-h-[60vh] flex-col justify-center py-20" role="status" aria-live="polite">
+    <div
+      // A full screen minus the header, not 60vh: with a shorter box the footer
+      // sits inside the first viewport, and when the route arrives it is pushed
+      // off screen — which Lighthouse measures as 0.15–0.19 of layout shift on
+      // every page whose content is taller than the loading state.
+      className="flex min-h-[calc(100svh-5rem)] flex-col justify-center py-20"
+      role="status"
+      aria-live="polite"
+    >
       <div className="shell">
         <p className="kicker text-moss">Loading</p>
         <p className="mt-3 max-w-md font-[var(--font-display)] text-[clamp(1.4rem,3vw,2rem)] text-ink/72">
