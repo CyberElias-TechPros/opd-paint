@@ -82,15 +82,33 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
+/**
+ * Route loading state.
+ *
+ * Absolutely positioned on purpose. A route chunk arriving late replaces this
+ * element with a whole page, and anything in normal flow that is swapped like
+ * that moves every element below it — cumulative layout shift, measured at 0.15
+ * on the calculator page before this change. Out of flow, the swap cannot move
+ * anything that is on screen.
+ *
+ * The chunk itself is also preloaded per route at build time (scripts/prerender),
+ * so on a normal connection this is rarely seen at all.
+ */
 function RouteFallback() {
   return (
-    <div className="shell flex min-h-[60vh] flex-col justify-center py-20" role="status" aria-live="polite">
-      <p className="kicker text-moss">Loading</p>
-      <p className="mt-3 max-w-md font-[var(--font-display)] text-[clamp(1.4rem,3vw,2rem)] text-ink/72">
-        Mixing the colour…
-      </p>
-      <div className="mt-6 flex h-2 w-40 overflow-hidden rounded-full bg-ink/10">
-        <span className="h-full w-1/3 rounded-full bg-green/60 animate-[shimmer_1.4s_ease-in-out_infinite]" />
+    <div
+      className="absolute inset-x-0 top-16 flex min-h-[60vh] flex-col justify-center py-20 sm:top-[4.5rem]"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="shell">
+        <p className="kicker text-moss">Loading</p>
+        <p className="mt-3 max-w-md font-[var(--font-display)] text-[clamp(1.4rem,3vw,2rem)] text-ink/72">
+          Mixing the colour…
+        </p>
+        <div className="mt-6 flex h-2 w-40 overflow-hidden rounded-full bg-ink/10">
+          <span className="h-full w-1/3 rounded-full bg-green/60 animate-[shimmer_1.4s_ease-in-out_infinite]" />
+        </div>
       </div>
     </div>
   )

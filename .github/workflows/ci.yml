@@ -219,19 +219,36 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           exit $status
 
+      # Always runs, needs nothing downloaded, and scans the working tree *and*
+      # every line ever added to the history. This is the gate that cannot fail
+      # to run.
+      - name: Secret scan (built in)
+        working-directory: .
+        run: node tools/scan-secrets.mjs
+
       - name: Install gitleaks
+        id: gitleaks
+        continue-on-error: true
         env:
           GITLEAKS_VERSION: 8.30.1
         run: |
           set -euo pipefail
           base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
-          curl -sSfL -o /tmp/gitleaks.tar.gz "${base}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -sSfL -o /tmp/gitleaks-sums.txt "${base}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          curl -sSfL --retry 3 --retry-delay 2 -o /tmp/gitleaks.tar.gz \
+            "${base}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL --retry 3 --retry-delay 2 -o /tmp/gitleaks-sums.txt \
+            "${base}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          # Verify the download against the published checksum before running it.
           (cd /tmp && grep " gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz$" gitleaks-sums.txt | sha256sum -c -)
           tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          chmod +x /tmp/gitleaks
           /tmp/gitleaks version
 
-      - name: No secrets in the repository or its history
+      - name: No secrets in the repository or its history (gitleaks)
+        # The deeper rule set, when its binary can be fetched. The built-in scan
+        # above is the one that is guaranteed to run; this one adds gitleaks'
+        # 150-odd credential patterns on top.
+        if: steps.gitleaks.outcome == 'success'
         # `--source` is explicit: this job's working directory is app/, and a
         # scan of app/ alone would be a comforting lie.
         run: |
