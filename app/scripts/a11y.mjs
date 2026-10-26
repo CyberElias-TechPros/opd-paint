@@ -53,11 +53,29 @@ function record(name, ok, detail = '') {
   process.stdout.write(`  ${mark} ${name}${detail ? `\n        ${detail.replace(/\n/g, '\n        ')}` : ''}\n`)
 }
 
+/**
+ * Describe a violation so that it can be fixed without re-running the job.
+ *
+ * axe already knows the numbers — for a contrast failure it reports the
+ * computed foreground, the background it resolved, and the ratio. Printing the
+ * selector alone turns a fixable problem into a guessing game, which is how the
+ * same contrast failure survived two rounds of "make the text darker".
+ */
 const describe = (violation) =>
   `${violation.id} (${violation.impact}) — ${violation.help}\n` +
   violation.nodes
     .slice(0, 3)
-    .map((node) => `  ${node.target.join(' ')}`)
+    .map((node) => {
+      const detail = (node.any ?? []).map((check) => check.data).find(Boolean) ?? {}
+      const numbers =
+        detail.contrastRatio !== undefined
+          ? ` — fg ${detail.fgColor} on bg ${detail.bgColor}, ratio ${Number(detail.contrastRatio).toFixed(2)}` +
+            ` (${detail.fontSize ?? '?'} ${detail.fontWeight ?? '?'})`
+          : detail.messageKey
+            ? ` — ${detail.messageKey}`
+            : ''
+      return `  ${node.target.join(' ')}\n${node.html ? `    ${String(node.html).slice(0, 160)}\n` : ''}    ${numbers.trim() || '(no detail)'}`
+    })
     .join('\n') +
   (violation.nodes.length > 3 ? `\n  …and ${violation.nodes.length - 3} more` : '')
 

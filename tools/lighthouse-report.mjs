@@ -83,10 +83,13 @@ for (const file of files) {
 
   // What moved — the only thing that makes a CLS failure fixable. Lighthouse has
   // moved this detail between audits over versions, so look in both places.
-  const shiftItems = [
-    ...(audits['layout-shift-elements']?.details?.items ?? []),
-    ...(audits['layout-shifts']?.details?.items ?? []).flatMap((item) => item.subItems?.items ?? []),
-  ]
+  const collectNodes = (audit) =>
+    (audit?.details?.items ?? []).flatMap((item) => [
+      ...(item.node ? [item] : []),
+      ...(item.subItems?.items ?? []).filter((sub) => sub.node),
+    ])
+
+  const shiftItems = [...collectNodes(audits['layout-shift-elements']), ...collectNodes(audits['layout-shifts'])]
   if (shiftItems.length) {
     lines.push('Elements that moved:')
     lines.push('')
