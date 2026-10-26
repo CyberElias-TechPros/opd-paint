@@ -86,19 +86,31 @@ async function main() {
   })
   const page = await context.newPage()
 
+  // Diagnostics are tagged with the path that produced them, so a failure names
+  // the page and the URL instead of "something 404'd".
+  let currentPath = '/'
   const consoleErrors = []
+  const failedRequests = []
   page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text())
+    if (message.type() === 'error') consoleErrors.push({ path: currentPath, text: message.text() })
   })
-  page.on('pageerror', (error) => consoleErrors.push(String(error)))
+  page.on('pageerror', (error) => consoleErrors.push({ path: currentPath, text: String(error) }))
+  page.on('response', (response) => {
+    if (response.status() >= 400) {
+      failedRequests.push({ path: currentPath, url: response.url(), status: response.status() })
+    }
+  })
 
   process.stdout.write(`\nAccessibility audit against ${BASE}${CHANNEL ? ` (${CHANNEL})` : ''}\n\n`)
 
   for (const entry of PAGES) {
+    const expectedStatus = entry.path === '/this-page-does-not-exist' ? 404 : 200
+    // A 404 page load is *supposed* to log a failed request and a console error;
+    // those are excluded below by comparing against this page's expectation.
+    currentPath = entry.path
     const response = await page.goto(`${BASE}${entry.path}`, { waitUntil: 'networkidle' })
     const status = response?.status() ?? 0
-    const expected = entry.path === '/this-page-does-not-exist' ? 404 : 200
-    record(`${entry.name} answers ${expected}`, status === expected, `got ${status}`)
+    record(`${entry.name} answers ${expectedStatus}`, status === expectedStatus, `got ${status}`)
 
     const { violations } = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze()
     record(
@@ -251,10 +263,18 @@ async function main() {
 
   /* -------------------------------------------------------------- console */
 
+  // The deliberate 404 navigation is the only permitted failure.
+  const unexpected = [
+    ...consoleErrors.filter((entry) => entry.path !== '/this-page-does-not-exist'),
+    ...failedRequests.filter((entry) => entry.path !== '/this-page-does-not-exist'),
+  ].map((entry) =>
+    'url' in entry ? `${entry.status} ${entry.url} (while on ${entry.path})` : `${entry.path}: ${entry.text}`,
+  )
+
   record(
-    'no console errors while browsing',
-    consoleErrors.length === 0,
-    [...new Set(consoleErrors)].slice(0, 5).join('\n'),
+    'no console errors or failed requests while browsing',
+    unexpected.length === 0,
+    [...new Set(unexpected)].slice(0, 6).join('\n'),
   )
 
   await browser.close()

@@ -132,7 +132,7 @@ export default function Dealers() {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative min-w-[13rem] flex-1">
+              <div className="relative min-w-0 flex-1 sm:min-w-[13rem]">
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/72" aria-hidden />
                 <input
                   type="search"
@@ -147,7 +147,10 @@ export default function Dealers() {
                 value={state}
                 onChange={(event) => setState(event.target.value)}
                 aria-label="Filter by state"
-                className="field w-auto py-2 text-[0.82rem]"
+                // `w-auto` sizes a select to its longest option, which is
+                // 670px of Nigerian state names and pushes the page sideways on
+                // a phone. Full width until there is room for it to be inline.
+                className="field w-full min-w-0 py-2 text-[0.82rem] sm:w-auto"
               >
                 <option value="All">All states</option>
                 {STATES.map((option) => (
