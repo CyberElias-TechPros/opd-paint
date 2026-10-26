@@ -98,9 +98,12 @@ jobs:
       # so a library upgrade can change the bytes of a PDF, PNG or JPEG without
       # anyone touching the design. Pinning keeps the check below meaningful and
       # stops a Dependabot-style bump from turning the build red for no reason.
-      - run: pip install 'fonttools==4.67.0' 'brotli==1.2.1' 'fpdf2==2.8.9' 'Pillow==13.0.0'
+      # numpy is here because the room-scheme plates repaint a wall by scaling its
+      # luminance, which is a whole-image array operation. Pinned like the rest, so
+      # a bump cannot silently change a rendered plate.
+      - run: pip install 'fonttools==4.67.0' 'brotli==1.2.1' 'fpdf2==2.8.9' 'Pillow==13.0.0' 'numpy==2.4.6'
 
-      - name: Regenerate icons, social card, documents, book and sitemap
+      - name: Regenerate icons, social card, documents, books and sitemap
         working-directory: app
         run: |
           npm ci
