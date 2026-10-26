@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Check, Droplet, Layers, ShieldCheck, Timer } from 'lucide-react'
+import { ArrowRight, Check, Droplet, FileDown, Layers, ShieldCheck, Timer } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
+import { track } from '../lib/analytics'
 import { PRODUCTS, FINISH_SHEEN_LABEL, type Finish, type Surface } from '../data/products'
 import { SmartImage } from '../components/media/SmartImage'
 import { PlankWall } from '../components/brand/Devices'
@@ -206,6 +207,15 @@ export default function Products() {
             per litre for the first coat. Figures are transcribed from the product data sheets; where a sheet is still
             in technical review the row is marked <em>spec pending</em> on the product page.
           </p>
+          <a
+            href="/documents/opudas-spec-sheet.pdf"
+            download
+            onClick={() => track('cta_click', { target: 'products-spec-sheet' })}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-2 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
+          >
+            <FileDown className="size-3.5" aria-hidden /> Download the specification sheet
+            <span className="text-[0.66rem] font-normal opacity-60">PDF · this table, printable</span>
+          </a>
         </section>
 
         {/* guidance */}

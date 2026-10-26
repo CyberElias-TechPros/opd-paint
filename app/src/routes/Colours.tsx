@@ -152,10 +152,12 @@ export default function Colours() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              {/* Two documents, two jobs. The book is the brochure a customer keeps;
-                  the fan deck is the one-page-a-family reference a painter works
-                  from. Both are generated from the data on this page, so neither
-                  can list a colour the page has dropped. */}
+              {/* Four documents, four jobs, one source of data. The colour book is the
+                  brochure a customer keeps; the room book shows the same colours doing
+                  actual work on real walls; the wheel is the wall chart a trade counter
+                  pins up; the fan deck is the one-page-a-family reference a painter
+                  works from. All four are generated from the data on this page, so none
+                  of them can list a colour the page has dropped. */}
               <a
                 href="/documents/opudas-colour-book.pdf"
                 download
@@ -173,6 +175,15 @@ export default function Colours() {
               >
                 <Layers className="size-3.5" aria-hidden /> Room book
                 <span className="text-[0.66rem] font-normal opacity-60">PDF · 20pp</span>
+              </a>
+              <a
+                href="/documents/opudas-colour-wheel.pdf"
+                download
+                onClick={() => track('cta_click', { target: 'colours-wheel' })}
+                className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
+              >
+                <LayoutGrid className="size-3.5" aria-hidden /> Colour wheel
+                <span className="text-[0.66rem] font-normal opacity-60">PDF · wall chart</span>
               </a>
               <a
                 href="/documents/opudas-fan-deck.pdf"

@@ -1,20 +1,27 @@
-# The printed books
+# The printed library
 
-Two volumes, both A5 portrait and both **generated**, not laid out by hand:
+Four documents, every one **generated** from the same data as the website, not
+laid out by hand:
 
-| Volume | File | Pages | Organised by |
+| Document | File | Format | Organised by |
 | --- | --- | --- | --- |
-| Colour Book | `app/public/documents/opudas-colour-book.pdf` | 32 | colour — nine families, 59 colours, 8 palettes |
-| Room Book | `app/public/documents/opudas-room-book.pdf` | 20 | the job the colour has to do — four methods, sixteen colourways |
+| Colour Book | `app/public/documents/opudas-colour-book.pdf` | A5, 32 pp | colour — nine families, 59 colours, 8 palettes |
+| Room Book | `app/public/documents/opudas-room-book.pdf` | A5, 20 pp | the job the colour has to do — four methods, sixteen colourways |
+| Colour Wheel | `app/public/documents/opudas-colour-wheel.pdf` | A4, 3 pp | a single-sheet quick reference — the wheel, the full swatch grid, the library |
+| Specification Sheet | `app/public/documents/opudas-spec-sheet.pdf` | A4 landscape, 2 pp | the six products, by the surface they go on |
 
-This document covers both. The Room Book has its own section at the end.
+This document covers the two books in detail, with their own sections below.
+The Colour Wheel and Specification Sheet are shorter, so they get a single
+section each near the end instead.
 
 ```
 python3 tools/build-brochure.py       # Colour Book
 python3 tools/build-roombook.py       # Room Book
+python3 tools/build-colorwheel.py     # Colour Wheel
+python3 tools/build-specsheet.py      # Specification Sheet
 ```
 
-Both need fpdf2, fonttools, brotli and Pillow.
+All four need fpdf2, fonttools, brotli and Pillow.
 
 The same four Python packages the other document generators need. CI pins their
 versions and rebuilds every committed artefact, so a library bump that changes
@@ -229,3 +236,90 @@ two companies.
 
 Universal process, 40 pages would be a signature; at 20 it is a saddle stitch.
 The plate pages are photographic, so proof those first, not the swatches.
+
+---
+
+# The Colour Wheel
+
+`app/public/documents/opudas-colour-wheel.pdf` — 3 pages, A4 portrait. Not a
+book: a single-sheet reference, the thing pinned to a board at a trade counter
+rather than read cover to cover.
+
+```
+python3 tools/build-colorwheel.py
+```
+
+## What is on it
+
+| Page | Contents |
+| --- | --- |
+| 1 | The wheel — all 59 colours as one ring, grouped into the nine families, each family's share of the ring proportional to how many colours it has |
+| 2 | The full swatch grid — every colour, code and name, grouped the same way as the wheel |
+| 3 | The rest of the library (Colour Book, Room Book, Fan Deck) and the trade counter contact block |
+
+The wheel is a map of the library, not a mixing wheel or a colour-theory
+diagram: wedge width follows family size, and colours within a family run
+lightest to darkest working outward from the top. It makes no claim about which
+colours harmonise — that is what the palettes in the Colour Book are for.
+
+## The one thing worth knowing if you touch the geometry
+
+fpdf2's `solid_arc(x, y, a, start_angle, end_angle, b, ...)` takes `x, y` as the
+**upper-left corner of the bounding box**, and `a`/`b` as its **diameters** —
+despite a docstring that calls them semi-axes. It forwards straight to `arc()`,
+which halves them. So a circle of radius `r` centred on `(cx, cy)` needs
+`x = cx - r, y = cy - r, a = b = 2r`. Get this wrong and the wheel renders as a
+correctly-shaped circle in entirely the wrong place, which is a much more
+confusing bug to read than it is to avoid.
+
+The angle convention is also not the compass bearing you would guess: `0°`
+points to the right (3 o'clock) and increasing the angle sweeps clockwise on
+the page by default. The wheel wants "0 at the top, clockwise", so every angle
+passed to `solid_arc` is `270 + degrees_clockwise_from_top`.
+
+---
+
+# The Specification Sheet
+
+`app/public/documents/opudas-spec-sheet.pdf` — 2 pages, A4 landscape. The
+Berger- and Smart-Paints-style trade sheet: every product's finish, coverage,
+timing and surfaces on one sheet, instead of six separate technical data
+sheets.
+
+```
+python3 tools/build-specsheet.py
+```
+
+## What is on it
+
+| Page | Contents |
+| --- | --- |
+| 1 | The six products grouped by where they go — interior, exterior, wood & metal, preparation — with their headline claims, coverage and a status chip |
+| 2 | One table with every figure for every product (finish, surfaces, coverage, coats, touch-dry, recoat, cure, guarantee), dilution and VOC notes, and the coverage calculator |
+
+Every figure comes from the same `PRODUCTS` dictionary that builds the six
+TDS/SDS documents (`tools/build-documents.py`) — nothing on this sheet is typed
+a second time. The status chip on each product (`Label-verified` /
+`Pending verification`) is read directly from `claimsStatus` in
+`app/src/data/products.ts`, so a product cannot show a confidence the site
+itself does not claim.
+
+## Why it exists
+
+Looking at Asian Paints' and Berger's trade literature side by side with
+OPUDA'S's own documents turned up a gap: a dealer or contractor who wants "all
+six products, compared, on one sheet" had nowhere to go except six separate
+PDFs. The Colour Book's own specification page (`Book.specification()`) answers
+a narrower question — coverage and packs only, for a reader who already has the
+book in hand. This sheet answers the fuller one, standalone.
+
+## The honest limits
+
+- **No certifications are claimed that OPUDA'S does not hold.** Berger's
+  reference lists ISO 9001, ISO 14001 and BizSafe; Smart Paints' lists a page of
+  eco marks. OPUDA'S has none of these on record, so none appear here — the
+  status chip is the only form of assurance language the sheet uses, and it is
+  honest about which claims are still awaiting sign-off.
+- **No founding date, plant description or "top 10 in Asia" framing.** Both
+  references open with a company-credentials page; OPUDA'S has no verified
+  facts of that kind yet; inventing them was not an option.

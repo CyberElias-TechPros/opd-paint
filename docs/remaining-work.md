@@ -224,6 +224,22 @@ set and the repainted area stated as a percentage. Evidence:
 `tools/{build-roombook,roombook_copy,roombook_plates}.py`,
 `tools/roombook-plates.json`, `app/public/documents/opudas-room-book.pdf`.
 
+**Print collateral — ✅ the colour wheel and the specification sheet**
+Two single-sheet reference pieces, prompted by reading Asian Paints' and Berger's
+own trade literature side by side with what OPUDA'S had. The colour wheel (A4, 3
+pages) is the wall-chart version of the library: all 59 colours as one ring
+grouped into the nine families, the full swatch grid, and a contact page. The
+specification sheet (A4 landscape, 2 pages) is the trade comparison a dealer or
+contractor currently has to assemble from six separate TDS PDFs: finish,
+coverage, timing and surfaces for every product on one sheet, with a
+label-verified/pending-verification status chip read directly from
+`claimsStatus` in `products.ts`, rather than six numbers typed a second time.
+No certification claims OPUDA'S does not hold (no ISO marks, no "est." date)
+were added to match the references' credentials pages. Evidence:
+`tools/{build-colorwheel,build-specsheet}.py`,
+`app/public/documents/{opudas-colour-wheel,opudas-spec-sheet}.pdf`,
+`docs/brochure.md`. Linked from the colour library and the products page.
+
 **Stage 1 — Make the current build trustworthy — ✅ done, all nine checks green**
 Fix the Vercel configuration · enquiry notifications · error monitoring · restore
 test · dependency scanning · Lighthouse CI · axe · browser smoke tests.
