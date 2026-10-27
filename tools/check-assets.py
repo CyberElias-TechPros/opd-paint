@@ -11,6 +11,7 @@ Verify that the committed brand assets match what the scripts produce.
     python3 tools/build-roombook.py
     python3 tools/build-colorwheel.py
     python3 tools/build-specsheet.py
+    python3 tools/build-catalogue.py
     python3 tools/check-assets.py
 
 Why this exists rather than `git diff --exit-code`: a JPEG is not a document,
@@ -194,6 +195,7 @@ def main(argv: list[str]) -> int:
             "  python3 tools/build-roombook.py\n"
             "  python3 tools/build-colorwheel.py\n"
             "  python3 tools/build-specsheet.py\n"
+            "  python3 tools/build-catalogue.py\n"
         )
         return 1
 

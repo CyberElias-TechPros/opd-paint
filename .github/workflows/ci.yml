@@ -59,6 +59,7 @@ jobs:
           test -f dist/media/og-card.jpg
           test -f dist/documents/opudas-matt-tds.pdf
           test -f dist/documents/opudas-fan-deck.pdf
+          test -f dist/documents/opudas-catalogue.pdf
           test -f dist/sw.js
           test -f dist/offline.html
           test -f dist/404.html
@@ -101,7 +102,10 @@ jobs:
       # numpy is here because the room-scheme plates repaint a wall by scaling its
       # luminance, which is a whole-image array operation. Pinned like the rest, so
       # a bump cannot silently change a rendered plate.
-      - run: pip install 'fonttools==4.67.0' 'brotli==1.2.1' 'fpdf2==2.8.9' 'Pillow==13.0.0' 'numpy==2.4.6'
+      # pypdf is here for tools/build-catalogue.py only: it merges the other six
+      # documents' already-pinned output pages rather than redrawing them, so
+      # a library bump there can only change the merge, never their content.
+      - run: pip install 'fonttools==4.67.0' 'brotli==1.2.1' 'fpdf2==2.8.9' 'Pillow==13.0.0' 'numpy==2.4.6' 'pypdf==6.21.2'
 
       - name: Regenerate icons, social card, documents, books and sitemap
         working-directory: app
@@ -117,6 +121,7 @@ jobs:
           python3 tools/build-roombook.py
           python3 tools/build-colorwheel.py
           python3 tools/build-specsheet.py
+          python3 tools/build-catalogue.py
 
       - name: The committed artefacts match the scripts
         run: |

@@ -10,6 +10,15 @@ laid out by hand:
 | Colour Wheel | `app/public/documents/opudas-colour-wheel.pdf` | A4, 3 pp | a single-sheet quick reference — the wheel, the full swatch grid, the library |
 | Specification Sheet | `app/public/documents/opudas-spec-sheet.pdf` | A4 landscape, 2 pp | the six products, by the surface they go on |
 
+The fan deck (`tools/build-fandeck.py`) and the twelve technical and safety
+data sheets (`tools/build-documents.py`) are not in that table — they predate
+it and are documented at the top of their own scripts. All of it, these four
+plus the fan deck plus every data sheet, is also bound into one file: see
+[catalogue.md](catalogue.md) for the master catalogue, which additionally adds
+a chapter of restored site photography that exists nowhere else. It is a
+different enough object — a merge of PDFs, not a drawing of one — to document
+on its own.
+
 This document covers the two books in detail, with their own sections below.
 The Colour Wheel and Specification Sheet are shorter, so they get a single
 section each near the end instead.

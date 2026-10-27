@@ -245,6 +245,20 @@ were added to match the references' credentials pages. Evidence:
 `app/public/documents/{opudas-colour-wheel,opudas-spec-sheet}.pdf`,
 `docs/brochure.md`. Linked from the colour library and the products page.
 
+**Print collateral — ✅ the master catalogue**
+A different genre from the five above: not a new design, but every one of them
+— colour book, room book, colour wheel, specification sheet, fan deck and all
+twelve technical and safety data sheets — bound into a single 126-page A4
+file via a real PDF merge (`pypdf`, byte-reproducible like the rest), plus one
+new chapter, the Complete Site Gallery: every real photograph in
+`app/src/data/projects.ts`, decoded again and restored for print (contrast,
+colour and sharpness lifted by a small fixed amount, not retouched), one page
+per project, with its colour chips only where a verified job sheet exists, and
+a **CONCEPT RENDER** label on the one project that is architectural artwork
+rather than a site photograph. Evidence: `tools/build-catalogue.py`,
+`app/public/documents/opudas-catalogue.pdf`, `docs/catalogue.md`. Linked from
+the colour library.
+
 **Stage 1 — Make the current build trustworthy — ✅ done, all nine checks green**
 Fix the Vercel configuration · enquiry notifications · error monitoring · restore
 test · dependency scanning · Lighthouse CI · axe · browser smoke tests.

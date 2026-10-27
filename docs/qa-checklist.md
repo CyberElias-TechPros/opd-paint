@@ -90,8 +90,9 @@ there rather than as part of `npm run check`. All four are green:
 - Production build with route-level code splitting, then a head prerender that
   writes one `dist/<path>/index.html` per URL with its own title, description,
   canonical, Open Graph tags and JSON-LD.
-- CI regenerates the icons, documents, fan deck, all four books and cards, social card and sitemap and
-  fails if the committed artefacts differ from their scripts.
+- CI regenerates the icons, documents, fan deck, all four books and cards, the master
+  catalogue, social card and sitemap and fails if the committed artefacts differ from
+  their scripts.
 
 ## Manual pass before any release
 
