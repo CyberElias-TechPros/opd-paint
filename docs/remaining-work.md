@@ -54,9 +54,14 @@ flagged, or omitted — correctly — and each blocks a gate.
    the pail. Primer, Gloss, Weathershield and Screeding are marked
    `pending-verification`. Required: the technical owner's approval of coverage,
    drying times, coats, and guarantee terms.
-5. **Photography permissions and project metadata.** The six projects have no
-   client permission on record, no areas, and no durations. Required: written
-   permission and the site facts, or the projects get reduced to what is certain.
+5. **Photography permissions and project metadata.** None of the 14 projects has
+   client permission on record, an area, or a duration, and 8 of the 14 (added
+   from a later batch of site photography with no accompanying job sheet) also
+   carry no colour, product or palette link — `colorIds`/`productIds` are left
+   empty and `paletteId` is `''` rather than guessed at, and their copy is kept
+   to what is visibly true of the photograph. Required: written permission and
+   the site facts for all 14, plus the colour/product record for the 8, or they
+   stay reduced to what is certain.
 6. **Legal review.** Privacy, terms, the accessibility statement and the
    guarantee wording are drafts written by an engineer. Required: review by a
    Nigerian lawyer familiar with the NDPA 2023, plus a data-protection point of
@@ -104,7 +109,7 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 - Headless CMS (Sanity/Payload/Directus) or an admin CRUD layer over the typed
   data, for colours, products, guides, projects, dealers and palettes.
 - Editorial roles, draft/publish, preview, media library, scheduled publishing.
-- Migration of the 59 colours, 6 products, 6 guides, 6 projects and 14 dealers.
+- Migration of the 59 colours, 6 products, 6 guides, 14 projects and 14 dealers.
 - Content-operations guide update; the Git-based workflow in
   `docs/content-editing.md` becomes the fallback rather than the method.
 - **Effort: 5 days bought-in headless, 15–20 days built.**

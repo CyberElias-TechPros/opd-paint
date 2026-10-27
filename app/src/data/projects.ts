@@ -3,8 +3,12 @@
  *
  * Every image in this file is a real photograph supplied by OPUDA'S PAINT.
  * Client names are withheld; locations are given at city/estate level only.
- * Each entry is tagged with the palette and product system used so the
- * "shop this project" path is traceable back to real colour records.
+ * Most entries are tagged with the palette and product system used so the
+ * "shop this project" path is traceable back to real colour records. Where a
+ * photograph arrived with no job sheet or colour spec attached, colorIds and
+ * productIds are left as an empty array and paletteId as an empty string
+ * rather than guessed at from the image — the copy for those projects stays
+ * to what is visibly true of the photograph, not what paint was used.
  */
 
 export type Stage = 'completed' | 'in progress' | 'concept'
@@ -150,6 +154,165 @@ export const PROJECTS: Project[] = [
     productIds: ['weathershield', 'primer'],
     paletteId: 'plum-study',
     takeaway: 'Two colours and a material will beat five colours and no logic.',
+  },
+  {
+    id: 'brick-stone-pier-wall',
+    title: 'Stone-brick pier wall',
+    location: 'Port Harcourt, Rivers State',
+    year: '2025',
+    stage: 'completed',
+    kind: 'Boundary & gate',
+    summary:
+      'A boundary wall and double gate finished with a stone-effect brick cladding on the piers, white-capped and paired with a black wrought-iron gate.',
+    story: [
+      'The entrance piers carry a stone-effect brick finish in a warm red-brown, each capped with a plain white band, flanking a black double gate with scrollwork cresting. A bungalow with a white portico sits behind the gate.',
+      'A second pier a few streets away, photographed three days later, shows the same red-brick finish run alongside a plain grey rendered panel — a reminder that this stone-effect cladding is usually one material among several on a single elevation, not the whole wall.',
+    ],
+    cover: 'project-brick-gate',
+    gallery: ['project-brick-gate', 'project-stone-pier'],
+    colorIds: [],
+    productIds: [],
+    paletteId: '',
+    takeaway: 'A stone-effect pier reads as masonry even where the rest of the wall is plain render.',
+  },
+  {
+    id: 'scaffold-to-finish-elevation',
+    title: 'Scaffold to finished elevation',
+    location: 'Port Harcourt, Rivers State',
+    year: '2023',
+    stage: 'completed',
+    kind: 'Exterior',
+    summary:
+      'A two-storey elevation in white above a dusty mauve ground-floor band, photographed at three stages across one week: scaffold up, balcony detail, then the completed house.',
+    story: [
+      '13 December: the scaffold is still up and a painter is working the upper storey by hand, the mauve band already laid in on the ground floor beneath him.',
+      '16 December: a closer shot of the entrance bay shows the balcony soffit and a pale cream wall still being finished, with dust sheets and a stepladder on site.',
+      '19 December: the finished elevation, scaffold down — white above, dusty mauve below, with a brick-effect pier picked out at first floor and a charcoal roof over all of it.',
+    ],
+    cover: 'project-mauve-finished',
+    gallery: ['project-mauve-scaffold', 'project-mauve-balcony', 'project-mauve-finished'],
+    colorIds: [],
+    productIds: [],
+    paletteId: '',
+    takeaway: 'Photographing the same elevation at each stage is the plainest way to show a paint job is real.',
+  },
+  {
+    id: 'gallery-corridor-interior',
+    title: 'The gallery corridor',
+    location: 'Port Harcourt, Rivers State',
+    year: 'Undated',
+    stage: 'completed',
+    kind: 'Interior',
+    summary:
+      'A stairwell and an adjoining hallway, both finished in plain white and hung edge to edge with framed artwork, with dark tile underfoot.',
+    story: [
+      'The stairwell walls are kept flat white so a run of framed paintings reads clearly against them; the handrail is wrapped for protection, which suggests other work was still under way nearby.',
+      'The hallway continues the same white wall and dark floor strip, lined on both sides with more framed pieces — plain backgrounds doing the work of a gallery wall rather than a corridor.',
+    ],
+    cover: 'interior-gallery-hall',
+    gallery: ['interior-gallery-stair', 'interior-gallery-hall'],
+    colorIds: [],
+    productIds: [],
+    paletteId: '',
+    takeaway: 'Plain white walls are what let a hung collection read as a gallery rather than clutter.',
+  },
+  {
+    id: 'commercial-facade-fitout',
+    title: 'Commercial facade in progress',
+    location: 'Port Harcourt, Rivers State',
+    year: 'Undated',
+    stage: 'in progress',
+    kind: 'Exterior',
+    summary:
+      'A multi-storey commercial building mid fit-out, faced in grey and white composite cladding panels with bamboo scaffold still up on the street elevation.',
+    story: [
+      'Unlike the house projects on this page, this elevation is being finished in composite cladding panels rather than painted render — included here because it is part of the same site record and shows the scale some of this work reaches.',
+    ],
+    cover: 'project-commercial-cladding',
+    gallery: ['project-commercial-cladding'],
+    colorIds: [],
+    productIds: [],
+    paletteId: '',
+    takeaway: 'Cladding and painted render age differently side by side — worth planning for at the design stage, not after.',
+  },
+  {
+    id: 'grey-stone-wall-gate',
+    title: 'Grey stone-pattern boundary wall',
+    location: 'Port Harcourt, Rivers State',
+    year: '2025',
+    stage: 'completed',
+    kind: 'Boundary & gate',
+    summary:
+      'A boundary wall cast with a grey stone-block pattern and dark bronze-effect piers, capped in white under an arched wrought-iron gate, with the house behind faced in matching pale stone tile.',
+    story: [
+      'Two photographs of the same wall taken minutes apart: the gate end, with the bungalow\u2019s tiled gable and portico columns visible beyond it, and a second stretch of plain wall further along, still stacked with aggregate from the build.',
+      'The grey stone-block texture and dark pier finish are carried right along the boundary, not just at the entrance, which is what makes the gate feel part of the wall rather than bolted onto it.',
+    ],
+    cover: 'project-grey-stone-gate',
+    gallery: ['project-grey-stone-gate', 'project-grey-stone-pier'],
+    colorIds: [],
+    productIds: [],
+    paletteId: '',
+    takeaway: 'Carry a textured finish past the gate and along the wall — stopping it at the piers looks unfinished.',
+  },
+  {
+    id: 'cream-elevation-scaffold',
+    title: 'Cream elevation under scaffold',
+    location: 'Port Harcourt, Rivers State',
+    year: 'Undated',
+    stage: 'in progress',
+    kind: 'Exterior',
+    summary:
+      'A cream rendered elevation still on bamboo scaffold, with a stone-tile accent panel being fitted beneath the windows and a charcoal roof already in place.',
+    story: [
+      'The roof and window frames are finished first; the wall colour and the stone-tile accent strip are still being brought up to meet them, which is the usual order of work on an exterior.',
+    ],
+    cover: 'project-cream-render-scaffold',
+    gallery: ['project-cream-render-scaffold'],
+    colorIds: [],
+    productIds: [],
+    paletteId: '',
+    takeaway: 'Roof and frames go in first; the body colour is brought up to meet them, not the other way round.',
+  },
+  {
+    id: 'modern-grey-duplex',
+    title: 'Modern grey duplex',
+    location: 'Port Harcourt, Rivers State',
+    year: 'Undated',
+    stage: 'completed',
+    kind: 'Exterior',
+    summary:
+      'A contemporary grey duplex with crisp white banding and a dark feature panel at first floor, electric-fence wire along the parapet, and a matching grey boundary wall with planted beds at its base.',
+    story: [
+      'The body colour is a flat mid-grey, broken up by white string-courses at each floor line and a near-black composite panel at the stair window — a plain, two-tone treatment rather than a patterned one.',
+      'The boundary wall repeats the same grey and white banding at street level, with a run of young planting set into the base of the wall.',
+    ],
+    cover: 'project-grey-duplex',
+    gallery: ['project-grey-duplex', 'project-grey-duplex-wall'],
+    colorIds: [],
+    productIds: [],
+    paletteId: '',
+    takeaway: 'Repeating the house colour on the boundary wall is what ties a plot together from the street.',
+  },
+  {
+    id: 'pastel-interior-finish',
+    title: 'Pastel interior finish',
+    location: 'Port Harcourt, Rivers State',
+    year: '2025',
+    stage: 'in progress',
+    kind: 'Interior',
+    summary:
+      'An open-plan room finished in pale yellow with raised panel moulding, photographed first with the marble floor still sheeted for protection, then again once the glazed sliding door and skirting were fitted.',
+    story: [
+      'In the earlier photograph the floor is still under plastic sheeting and off-cuts from the flooring are stacked against the wall — the wall colour and panel moulding are already finished at this point.',
+      'By the later photograph the protective sheeting is gone, a black-framed glazed sliding door has been hung on a barn-door track, and a ceiling-mounted camera has gone in — the room read as substantially finished but not yet handed over.',
+    ],
+    cover: 'interior-pastel-door',
+    gallery: ['interior-pastel-marble', 'interior-pastel-door'],
+    colorIds: [],
+    productIds: [],
+    paletteId: '',
+    takeaway: 'Paint and moulding are usually finished well before the floor protection comes up — photograph both stages, not just the reveal.',
   },
 ]
 

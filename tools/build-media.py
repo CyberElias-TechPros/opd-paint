@@ -57,6 +57,22 @@ CATALOGUE: dict[str, tuple[str, Crop]] = {
     # --- concept renders ---------------------------------------------------
     "render-modern-white": ("WhatsApp Image 2026-10-21 at 8.46.04 AM.jpeg", None),
     "render-modern-grey": ("WhatsApp Image 2026-10-21 at 8.46.05 AM (1).jpeg", None),
+    # --- site photography, added 2026-10-27 ---------------------------------
+    "project-brick-gate": ("WhatsApp Image 2026-10-27 at 7.19.15 AM.jpeg", None),
+    "project-stone-pier": ("WhatsApp Image 2026-10-27 at 7.19.16 AM.jpeg", None),
+    "project-mauve-finished": ("WhatsApp Image 2026-10-27 at 7.19.16 AM (1).jpeg", None),
+    "project-mauve-scaffold": ("WhatsApp Image 2026-10-27 at 7.19.17 AM.jpeg", None),
+    "project-mauve-balcony": ("WhatsApp Image 2026-10-27 at 7.19.19 AM.jpeg", None),
+    "interior-gallery-stair": ("WhatsApp Image 2026-10-27 at 7.19.23 AM.jpeg", None),
+    "interior-gallery-hall": ("WhatsApp Image 2026-10-27 at 7.19.31 AM.jpeg", None),
+    "project-commercial-cladding": ("WhatsApp Image 2026-10-27 at 7.19.32 AM (1).jpeg", None),
+    "project-grey-stone-gate": ("WhatsApp Image 2026-10-27 at 7.19.32 AM (2).jpeg", None),
+    "project-cream-render-scaffold": ("WhatsApp Image 2026-10-27 at 7.19.32 AM.jpeg", None),
+    "project-grey-duplex": ("WhatsApp Image 2026-10-27 at 7.19.33 AM (1).jpeg", None),
+    "project-grey-duplex-wall": ("WhatsApp Image 2026-10-27 at 7.19.33 AM (2).jpeg", None),
+    "project-grey-stone-pier": ("WhatsApp Image 2026-10-27 at 7.19.33 AM.jpeg", None),
+    "interior-pastel-door": ("WhatsApp Image 2026-10-27 at 7.19.34 AM (1).jpeg", None),
+    "interior-pastel-marble": ("WhatsApp Image 2026-10-27 at 7.19.34 AM (2).jpeg", None),
 }
 
 FULL_W = 1500
