@@ -97,6 +97,30 @@ export const ALT: Record<string, string> = {
     'A pale-yellow room with raised panel moulding and a marble floor, a black-framed glazed door hung on a barn-door track and a ceiling-mounted camera.',
   'interior-pastel-marble':
     'A pale-yellow open-plan room with a marble floor still under plastic sheeting and flooring off-cuts stacked against the wall.',
+  'project-arched-bungalow':
+    'A cream bungalow with a taupe plinth band, a hipped roof and a triple-arched white portico on fluted columns, with two unglazed window frames resting on the ground beside it.',
+  'project-teal-duplex-courtyard':
+    'A paved rear courtyard with white stone urns on a terrace, a ladder against an outbuilding roof and a row of garage doors across a white boundary wall.',
+  'project-teal-duplex-urn':
+    'A close view of a white stone-effect urn planter on a grey pedestal, set into a stone-clad wall base beside dark-tinted windows.',
+  'project-teal-duplex-entrance':
+    'The entrance of a contemporary duplex in white and charcoal with a teal band at first floor, a glazed balcony balustrade and white urns flanking the steps.',
+  'project-mauve-wall-dog':
+    'A wide view of a pink-walled boundary with white piers and a scrollwork gate, a dog visible through the railing and a painter working on scaffold above.',
+  'interior-pastel-early':
+    'A pale-yellow room with a white ceiling cove and a bare marble floor, a trestle standing in the middle of the room before the skirting was fitted.',
+  'project-commercial-aircon':
+    'A multi-storey commercial building finished in grey render with white window surrounds, blue-tinted glazing, external air-conditioning units and bamboo scaffold on one corner.',
+  'project-portico-event':
+    'A grand white portico on round columns over a powder-blue ground floor, with balloon bunting along the balcony and a painter finishing the porch ceiling from a scaffold tower.',
+  'project-dormer-elevation':
+    'A pale cream house with a multi-gabled dark roof, a dormer window and a vertical stone-tile accent pier beside an arched, stone-surrounded doorway.',
+  'project-mauve-gate-dusk':
+    'A pink and white two-storey house photographed at dusk, scaffold still up on the first floor with the ground floor and gate already finished.',
+  'project-dormer-elevation-side':
+    'A side elevation of a pale cream house with the same multi-gabled dark roof and stone-tile pier, building sand still on the ground and a matching tower under construction next door.',
+  'project-teal-duplex-render':
+    'Two workers rendering the white entrance bay of a duplex beside a charcoal pier, with bagged building sand on the ground and stone urns already in place.',
 }
 
 export function getImage(key: string): MediaEntry {

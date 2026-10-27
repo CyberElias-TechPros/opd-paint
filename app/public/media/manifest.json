@@ -331,5 +331,113 @@
   "aspect": 0.5625,
   "lqip": "data:image/webp;base64,UklGRpoAAABXRUJQVlA4II4AAAAQBQCdASoYACsAPrlOoEqnJKMhsBqtUOAXCWUAxNgGoDy886hoWrbNIaOcaHxQ6osAANaTj32yatjzbEPQeoGwHAn3irVGHlLlh7uTilEHM1xeM7c/u1CkMxTiWd28+pJM93Fh7JkE90h2b1iUOs5UOvsEVt9tfvS2Ud9mV6LA1aYOIezWqb/DyCX7xIAA",
   "tint": "#9a958e"
+ },
+ "project-arched-bungalow": {
+  "src": "/media/project-arched-bungalow.webp",
+  "thumb": "/media/project-arched-bungalow-640.webp",
+  "width": 1024,
+  "height": 768,
+  "aspect": 1.3333,
+  "lqip": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAAAwBQCdASoYABIAPr1QoUqnJKMhsBgMAOAXiWUAxNgJW3e7UUgBlXSZMOuAqLQavbY/wAD9gkyVt+TkC2pmv0H0t9eUFhf1joRUEPjgui3rkIXKXBxiNy2O1biP4qYHdPU0cr+iRyglxya8oKW87Lni78TADMEwcD6tBNMpnn5DGsAv+Mg1KCoqaAA=",
+  "tint": "#a09d99"
+ },
+ "project-teal-duplex-courtyard": {
+  "src": "/media/project-teal-duplex-courtyard.webp",
+  "thumb": "/media/project-teal-duplex-courtyard-640.webp",
+  "width": 540,
+  "height": 960,
+  "aspect": 0.5625,
+  "lqip": "data:image/webp;base64,UklGRugAAABXRUJQVlA4INwAAAAwBwCdASoYACsAPsFYpE0npSOiKqgA8BgJZQCw7BZtr7G30E+xpAIFvxvvvAtqaNOOj6p98x6v044ntmw6rz0AQAAA/rhTx8656lYZbfsf8PqPdnznC0U+gPuyMF/UFkZnXWjfoCU86y+1rBNe2J972/WFk0xWi+NTLCCGwB6pidkZPQze87p2pfAbIFHk8oDjvXskzaUWFQqbH/9at0Ud+jmVIUrAyDsD3SP/lFb2uRwFbzBP2j7b6683lXj33tQ/HEo75JN9mDcnNCVqfdvj26LQLHFnJCVQH4gA",
+  "tint": "#747a7b"
+ },
+ "project-teal-duplex-urn": {
+  "src": "/media/project-teal-duplex-urn.webp",
+  "thumb": "/media/project-teal-duplex-urn-640.webp",
+  "width": 960,
+  "height": 540,
+  "aspect": 1.7778,
+  "lqip": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAADQAwCdASoYAA4APsFOoksnpCMhsAgA8BgJZQCdACEMfhNpmmecQgAA/ieBEe21s3XtmShBFlUT1NUbQkqHZPDabwqrWoValTK9vPBpSsE+F1s4gsaXdhvn1NciRlT1CkF5qPthH+k6+D4L+MwZZxglz5F9DIEkhwAAAA==",
+  "tint": "#697276"
+ },
+ "project-teal-duplex-entrance": {
+  "src": "/media/project-teal-duplex-entrance.webp",
+  "thumb": "/media/project-teal-duplex-entrance-640.webp",
+  "width": 1024,
+  "height": 768,
+  "aspect": 1.3333,
+  "lqip": "data:image/webp;base64,UklGRqwAAABXRUJQVlA4IKAAAADQBACdASoYABIAPsFWo00npKMiKAqo8BgJZwCuHA/r3/8DhVU0C3BNGrMKQMKBQAD7heyTkofow5ZHbt4fxcZ/2iKc64xs2vThBPNyN4bz58hYTWB2KJkvMw6CFkZKcdO/r/poMJHE6mnuYf2KSMXmPKqI+sn6zOlTJ9JQ72W7tpUdmjiEDMxIrrbkhLHhcWSUyQMDYao/qs552Jpl0AAA",
+  "tint": "#818787"
+ },
+ "project-mauve-wall-dog": {
+  "src": "/media/project-mauve-wall-dog.webp",
+  "thumb": "/media/project-mauve-wall-dog-640.webp",
+  "width": 1280,
+  "height": 960,
+  "aspect": 1.3333,
+  "lqip": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAAAwBACdASoYABIAPsFUpkynpKOiKAqo8BgJZwDE2ADPbuEniUUM3nlncIAA/ZbSWWFqprCN6iDSpCs4qWhyUbjOK0+DkE7+r4KYHdWv+GtkQEBwqPmIM2Px+bkevwH0u39YJs7mrKKyw9YIpy0Xce12AAA=",
+  "tint": "#6d6c66"
+ },
+ "interior-pastel-early": {
+  "src": "/media/interior-pastel-early.webp",
+  "thumb": "/media/interior-pastel-early-640.webp",
+  "width": 960,
+  "height": 1280,
+  "aspect": 0.75,
+  "lqip": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4IIQAAABwBQCdASoYACAAPsFUo0wnpKMiMBgIAPAYCWcAzjg0a3Yc8ZPnpmgwdpPaFTtdnPoCJhwAAP7NXKd0LqF55ZN8zf8u0rOieObCwh6LKXQCEokMilCp9dgRXxFqwNdcKzz03j2MQVRTA8WnYVF1UfVhCweIPIvmbJCaxywPRB+K+TQAAAA=",
+  "tint": "#828077"
+ },
+ "project-commercial-aircon": {
+  "src": "/media/project-commercial-aircon.webp",
+  "thumb": "/media/project-commercial-aircon-640.webp",
+  "width": 1024,
+  "height": 768,
+  "aspect": 1.3333,
+  "lqip": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAAAQBQCdASoYABIAPsFUpUynpKOiKAqo8BgJZwC/7BI/5iNSrX/AdKHUkvwfFUeQNIzgAP7JdqAyYXJUQbBihhB7DbnkSzmC96gc6YsmuLYr3ZDV6uJRbFOfBBq30VvAsD4+hXM4o/w/04XgCcUdUm8JRNMJ4E5GqqexqJoQREoFMS7SwpTdoLAeumGEEwyAAAA=",
+  "tint": "#898a8c"
+ },
+ "project-portico-event": {
+  "src": "/media/project-portico-event.webp",
+  "thumb": "/media/project-portico-event-640.webp",
+  "width": 1024,
+  "height": 768,
+  "aspect": 1.3333,
+  "lqip": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAAAwBQCdASoYABIAPsFQoUqnpKMhsAgA8BgJZQC/PAgBUfWJ46yJDxAhJ3Xcp03r5mOuUADgIGN+XZkrQAj83CMVlc5ay91rDihj2kvwvQ7np3RSUDm4Mmwps0XSWqAYwdidD03JBz7istuwKWMiWDfqDDVbt9d1o1urhTfNyV+FqlAMy0SflmAA",
+  "tint": "#797869"
+ },
+ "project-dormer-elevation": {
+  "src": "/media/project-dormer-elevation.webp",
+  "thumb": "/media/project-dormer-elevation-640.webp",
+  "width": 1024,
+  "height": 768,
+  "aspect": 1.3333,
+  "lqip": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAAAwBQCdASoYABIAPsFUpU0npKOiKAqo8BgJZwC06A95JXsTt3efxO9tv/5IgOmd3ZZYAAD+4leZc/HVflbEfldubSwq7R6hLZZ5U52UkUdhUYLX8N2tDk0iv8PFlMwwZcb9SOaWgHIKkVwtLmAq/lW9VJGjimEjY7BDsHU65R0FrTHFBVPd/TF6oZoUNSQKkGUuKJkAAAA=",
+  "tint": "#928b88"
+ },
+ "project-mauve-gate-dusk": {
+  "src": "/media/project-mauve-gate-dusk.webp",
+  "thumb": "/media/project-mauve-gate-dusk-640.webp",
+  "width": 960,
+  "height": 1280,
+  "aspect": 0.75,
+  "lqip": "data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAACwBQCdASoYACAAPsFSpEwnpKOiMBgIAPAYCWcAyNQR9H0RG0ug6hqh1YBJzDJmP6K3LywvegAA/uttOo4UVr6pGhalloCr1w+vtHscRL6qydMoqTRWnaUqFI/0zSx4AoD75PGFCRxoveK2vqgFMkEaOQUBNKhZRnlmuvj3woqVoiSV2OZDuszUIGKwA1lAjw7YzCQWTo+homjeqvXPP/qkwbHdw1k0gAA=",
+  "tint": "#5b5f62"
+ },
+ "project-dormer-elevation-side": {
+  "src": "/media/project-dormer-elevation-side.webp",
+  "thumb": "/media/project-dormer-elevation-side-640.webp",
+  "width": 1024,
+  "height": 768,
+  "aspect": 1.3333,
+  "lqip": "data:image/webp;base64,UklGRqQAAABXRUJQVlA4IJgAAABwBQCdASoYABIAPsFWoU2npKKiKAqo8BgJZQCzgA8zmd1bBoUpas8tignRaiYdKGABbGwAAP7nPCSWipDJSuHhLJI18HPQI2eYlMaciPcKPqNBDPy4lMyvdqePHgQl+dCo76IwceREaLbzGgBmyZcGiR94ypsILMuq0zWHDBLEQoC3FpPi/Bl33SMfD8AlIu+Z6sdM78AAAA==",
+  "tint": "#9a968c"
+ },
+ "project-teal-duplex-render": {
+  "src": "/media/project-teal-duplex-render.webp",
+  "thumb": "/media/project-teal-duplex-render-640.webp",
+  "width": 960,
+  "height": 1280,
+  "aspect": 0.75,
+  "lqip": "data:image/webp;base64,UklGRu4AAABXRUJQVlA4IOIAAAAwBgCdASoYACAAPsFQoEqnpKMhsAgA8BgJZQCo+AgBOnIUkmN7JGqo644sqRMeJjehRq5ixG59IAMgAP7adf50o6rbXnWWJ4edZVovoKrlBG3L9YBuXhsBjLPi+yFIicS4FxoiH9j21rZ4TJ559tkt0buFJU8L23B04KXUZ/4BitrWOzvYF9UeBC8a4vURUD30gKYCeoi0g7EjkkvoFQ+l04S3VVmJtQ0efSUqx/BvrO9qKHnEEM76U7JQFaAgEUcTimuVIOKOwzrVM75yh2+mWfFIE00goRVEJ+eBQjBItKgA",
+  "tint": "#998b7b"
  }
 }

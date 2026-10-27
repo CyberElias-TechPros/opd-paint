@@ -73,6 +73,19 @@ CATALOGUE: dict[str, tuple[str, Crop]] = {
     "project-grey-stone-pier": ("WhatsApp Image 2026-10-27 at 7.19.33 AM.jpeg", None),
     "interior-pastel-door": ("WhatsApp Image 2026-10-27 at 7.19.34 AM (1).jpeg", None),
     "interior-pastel-marble": ("WhatsApp Image 2026-10-27 at 7.19.34 AM (2).jpeg", None),
+    # --- site photography, added 2026-10-27 (second batch) -----------------
+    "project-arched-bungalow": ("WhatsApp Image 2026-10-27 at 7.19.34 AM.jpeg", None),
+    "project-teal-duplex-courtyard": ("WhatsApp Image 2026-10-27 at 7.19.35 AM.jpeg", None),
+    "project-teal-duplex-urn": ("WhatsApp Image 2026-10-27 at 7.19.35 AM (1).jpeg", None),
+    "project-teal-duplex-entrance": ("WhatsApp Image 2026-10-27 at 7.19.35 AM (2).jpeg", None),
+    "project-mauve-wall-dog": ("WhatsApp Image 2026-10-27 at 7.19.35 AM (3).jpeg", None),
+    "interior-pastel-early": ("WhatsApp Image 2026-10-27 at 7.19.36 AM.jpeg", None),
+    "project-commercial-aircon": ("WhatsApp Image 2026-10-27 at 7.19.36 AM (1).jpeg", None),
+    "project-portico-event": ("WhatsApp Image 2026-10-27 at 7.19.36 AM (2).jpeg", None),
+    "project-dormer-elevation": ("WhatsApp Image 2026-10-27 at 7.19.36 AM (3).jpeg", None),
+    "project-mauve-gate-dusk": ("WhatsApp Image 2026-10-27 at 7.19.37 AM (1).jpeg", None),
+    "project-dormer-elevation-side": ("WhatsApp Image 2026-10-27 at 7.19.37 AM (2).jpeg", None),
+    "project-teal-duplex-render": ("WhatsApp Image 2026-10-27 at 7.19.38 AM.jpeg", None),
 }
 
 FULL_W = 1500
