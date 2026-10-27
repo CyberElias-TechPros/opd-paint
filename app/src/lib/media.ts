@@ -67,6 +67,60 @@ export const ALT: Record<string, string> = {
     'An architectural render of a contemporary house in white and charcoal with timber screens and a paved forecourt.',
   'project-film-poster':
     'A frame from the OPUDA’S PAINT site film showing an interior being prepared for painting.',
+  'project-brick-gate':
+    'A boundary gate with red stone-effect brick piers capped in white, a black wrought-iron double gate with scrollwork, and a car parked in the driveway beyond.',
+  'project-stone-pier':
+    'A close view of a red stone-effect brick pier beside a plain grey rendered panel, both capped in white, with a palm tree in front.',
+  'project-mauve-finished':
+    'A finished two-storey house in white above a dusty mauve ground floor, with a brick-effect pier, charcoal roof tiles and a car in the driveway.',
+  'project-mauve-scaffold':
+    'A house elevation still on scaffolding, white above a mauve ground-floor band, with a painter working the upper storey by hand.',
+  'project-mauve-balcony':
+    'A close view of a house entrance bay with a curved balcony soffit over a mauve wall, a worker reaching up beside a stepladder.',
+  'interior-gallery-stair':
+    'A stairwell with plain white walls hung with framed paintings, a glass balustrade and dark tiled steps, the handrail wrapped for protection.',
+  'interior-gallery-hall':
+    'A narrow hallway in white with a dark floor strip, lined on both sides with framed artwork leading to a window at the far end.',
+  'project-commercial-cladding':
+    'A multi-storey commercial building under construction, faced in grey and white composite cladding panels with bamboo scaffold still up.',
+  'project-grey-stone-gate':
+    'A bungalow with a tiled gable and portico columns, seen behind a boundary wall cast in a grey stone-block pattern with dark bronze-effect piers and an arched iron gate.',
+  'project-cream-render-scaffold':
+    'A cream-rendered house elevation on bamboo scaffold, with a stone-tile accent panel being fitted beneath the windows under a finished charcoal roof.',
+  'project-grey-duplex':
+    'A contemporary grey duplex with white string-course banding, a dark feature panel at first floor and electric-fence wire along the parapet.',
+  'project-grey-duplex-wall':
+    'A grey and white banded boundary wall matching a duplex behind it, with a run of young planting set into the base of the wall.',
+  'project-grey-stone-pier':
+    'A stretch of boundary wall in the same grey stone-block pattern and dark pier finish as the gate, with aggregate still stacked beside it.',
+  'interior-pastel-door':
+    'A pale-yellow room with raised panel moulding and a marble floor, a black-framed glazed door hung on a barn-door track and a ceiling-mounted camera.',
+  'interior-pastel-marble':
+    'A pale-yellow open-plan room with a marble floor still under plastic sheeting and flooring off-cuts stacked against the wall.',
+  'project-arched-bungalow':
+    'A cream bungalow with a taupe plinth band, a hipped roof and a triple-arched white portico on fluted columns, with two unglazed window frames resting on the ground beside it.',
+  'project-teal-duplex-courtyard':
+    'A paved rear courtyard with white stone urns on a terrace, a ladder against an outbuilding roof and a row of garage doors across a white boundary wall.',
+  'project-teal-duplex-urn':
+    'A close view of a white stone-effect urn planter on a grey pedestal, set into a stone-clad wall base beside dark-tinted windows.',
+  'project-teal-duplex-entrance':
+    'The entrance of a contemporary duplex in white and charcoal with a teal band at first floor, a glazed balcony balustrade and white urns flanking the steps.',
+  'project-mauve-wall-dog':
+    'A wide view of a pink-walled boundary with white piers and a scrollwork gate, a dog visible through the railing and a painter working on scaffold above.',
+  'interior-pastel-early':
+    'A pale-yellow room with a white ceiling cove and a bare marble floor, a trestle standing in the middle of the room before the skirting was fitted.',
+  'project-commercial-aircon':
+    'A multi-storey commercial building finished in grey render with white window surrounds, blue-tinted glazing, external air-conditioning units and bamboo scaffold on one corner.',
+  'project-portico-event':
+    'A grand white portico on round columns over a powder-blue ground floor, with balloon bunting along the balcony and a painter finishing the porch ceiling from a scaffold tower.',
+  'project-dormer-elevation':
+    'A pale cream house with a multi-gabled dark roof, a dormer window and a vertical stone-tile accent pier beside an arched, stone-surrounded doorway.',
+  'project-mauve-gate-dusk':
+    'A pink and white two-storey house photographed at dusk, scaffold still up on the first floor with the ground floor and gate already finished.',
+  'project-dormer-elevation-side':
+    'A side elevation of a pale cream house with the same multi-gabled dark roof and stone-tile pier, building sand still on the ground and a matching tower under construction next door.',
+  'project-teal-duplex-render':
+    'Two workers rendering the white entrance bay of a duplex beside a charcoal pier, with bagged building sand on the ground and stone urns already in place.',
 }
 
 export function getImage(key: string): MediaEntry {

@@ -54,9 +54,14 @@ flagged, or omitted — correctly — and each blocks a gate.
    the pail. Primer, Gloss, Weathershield and Screeding are marked
    `pending-verification`. Required: the technical owner's approval of coverage,
    drying times, coats, and guarantee terms.
-5. **Photography permissions and project metadata.** The six projects have no
-   client permission on record, no areas, and no durations. Required: written
-   permission and the site facts, or the projects get reduced to what is certain.
+5. **Photography permissions and project metadata.** None of the 19 projects has
+   client permission on record, an area, or a duration, and 13 of the 19 (added
+   from later batches of site photography with no accompanying job sheet) also
+   carry no colour, product or palette link — `colorIds`/`productIds` are left
+   empty and `paletteId` is `''` rather than guessed at, and their copy is kept
+   to what is visibly true of the photograph. Required: written permission and
+   the site facts for all 19, plus the colour/product record for the 13, or they
+   stay reduced to what is certain.
 6. **Legal review.** Privacy, terms, the accessibility statement and the
    guarantee wording are drafts written by an engineer. Required: review by a
    Nigerian lawyer familiar with the NDPA 2023, plus a data-protection point of
@@ -104,7 +109,7 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 - Headless CMS (Sanity/Payload/Directus) or an admin CRUD layer over the typed
   data, for colours, products, guides, projects, dealers and palettes.
 - Editorial roles, draft/publish, preview, media library, scheduled publishing.
-- Migration of the 59 colours, 6 products, 6 guides, 6 projects and 14 dealers.
+- Migration of the 59 colours, 6 products, 6 guides, 19 projects and 14 dealers.
 - Content-operations guide update; the Git-based workflow in
   `docs/content-editing.md` becomes the fallback rather than the method.
 - **Effort: 5 days bought-in headless, 15–20 days built.**
@@ -239,6 +244,20 @@ were added to match the references' credentials pages. Evidence:
 `tools/{build-colorwheel,build-specsheet}.py`,
 `app/public/documents/{opudas-colour-wheel,opudas-spec-sheet}.pdf`,
 `docs/brochure.md`. Linked from the colour library and the products page.
+
+**Print collateral — ✅ the master catalogue**
+A different genre from the five above: not a new design, but every one of them
+— colour book, room book, colour wheel, specification sheet, fan deck and all
+twelve technical and safety data sheets — bound into a single 126-page A4
+file via a real PDF merge (`pypdf`, byte-reproducible like the rest), plus one
+new chapter, the Complete Site Gallery: every real photograph in
+`app/src/data/projects.ts`, decoded again and restored for print (contrast,
+colour and sharpness lifted by a small fixed amount, not retouched), one page
+per project, with its colour chips only where a verified job sheet exists, and
+a **CONCEPT RENDER** label on the one project that is architectural artwork
+rather than a site photograph. Evidence: `tools/build-catalogue.py`,
+`app/public/documents/opudas-catalogue.pdf`, `docs/catalogue.md`. Linked from
+the colour library.
 
 **Stage 1 — Make the current build trustworthy — ✅ done, all nine checks green**
 Fix the Vercel configuration · enquiry notifications · error monitoring · restore

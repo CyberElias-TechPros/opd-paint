@@ -15,7 +15,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { COLORS, findColor } from '../src/data/colors.ts'
-import { PALETTES } from '../src/data/palettes.ts'
+import { PALETTES, findPalette } from '../src/data/palettes.ts'
 import { PRODUCTS, findProduct } from '../src/data/products.ts'
 import { DEALERS, STATES, directionsUrl, distanceKm } from '../src/data/dealers.ts'
 import { GUIDES } from '../src/data/guides.ts'
@@ -313,7 +313,13 @@ test('project ids are unique, media exists and colour/product links resolve', ()
     for (const productId of project.productIds) {
       assert.ok(findProduct(productId), `${project.id} references missing product ${productId}`)
     }
-    assert.ok(project.paletteId, `${project.id} palette`)
+    // paletteId is optional: site photography without a confirmed colour spec
+    // (e.g. supplied after the fact with no job sheet) is filed with
+    // paletteId: '' rather than guessed at — ProjectDetail hides the "curated
+    // as" line in that case. Where a paletteId is given, it must resolve.
+    if (project.paletteId) {
+      assert.ok(findPalette(project.paletteId), `${project.id} references missing palette ${project.paletteId}`)
+    }
   }
 })
 

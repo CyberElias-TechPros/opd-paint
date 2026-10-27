@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { BookOpen, Check, FileDown, Layers, LayoutGrid, Printer, Search, SlidersHorizontal, X } from 'lucide-react'
+import { BookOpen, Check, FileDown, Layers, LayoutGrid, LibraryBig, Printer, Search, SlidersHorizontal, X } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
 import { COLORS, COLLECTIONS, COLOR_LRV, FAMILIES, FAMILY_SWATCH, ROOMS, type Family, type Room, type Undertone } from '../data/colors'
 import { PALETTES } from '../data/palettes'
@@ -152,12 +152,13 @@ export default function Colours() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              {/* Four documents, four jobs, one source of data. The colour book is the
+              {/* Five documents, five jobs, one source of data. The colour book is the
                   brochure a customer keeps; the room book shows the same colours doing
                   actual work on real walls; the wheel is the wall chart a trade counter
                   pins up; the fan deck is the one-page-a-family reference a painter
-                  works from. All four are generated from the data on this page, so none
-                  of them can list a colour the page has dropped. */}
+                  works from; the full catalogue binds all of that plus every real site
+                  photograph into one file. All five are generated from the data on this
+                  page, so none of them can list a colour the page has dropped. */}
               <a
                 href="/documents/opudas-colour-book.pdf"
                 download
@@ -193,6 +194,15 @@ export default function Colours() {
               >
                 <FileDown className="size-3.5" aria-hidden /> Fan deck
                 <span className="text-[0.66rem] font-normal opacity-60">PDF</span>
+              </a>
+              <a
+                href="/documents/opudas-catalogue.pdf"
+                download
+                onClick={() => track('cta_click', { target: 'colours-catalogue' })}
+                className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
+              >
+                <LibraryBig className="size-3.5" aria-hidden /> Full catalogue
+                <span className="text-[0.66rem] font-normal opacity-60">PDF · 126pp</span>
               </a>
               <button
                 type="button"

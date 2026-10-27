@@ -11,6 +11,7 @@ still a placeholder.
 | [content-editing.md](content-editing.md) | You need to add a colour, product, guide, dealer or project — without touching React. |
 | [qa-checklist.md](qa-checklist.md) | You are reviewing a release against the README's gates, or you need to know what is *not* real yet. |
 | [brochure.md](brochure.md) | You are regenerating or editing the printed colour book, or briefing a printer. |
+| [catalogue.md](catalogue.md) | You are regenerating the master catalogue — the colour book, room book, colour wheel, specification sheet, fan deck and every data sheet, bound into one file with a new chapter of restored site photography. |
 | [deploying.md](deploying.md) | You are putting it on a server: Docker, systemd, nginx, env vars, backups, post-deploy smoke test. |
 | [operations.md](operations.md) | You are on call: notifications, error reports, log events, what to alert on, backup and restore, incident playbooks. |
 | [remaining-work.md](remaining-work.md) | You are planning what is left: a gate-by-gate gap analysis against the root README roadmap, with the business blockers named. |
@@ -30,7 +31,7 @@ app/                    React 19 + Vite + Tailwind v4 front end
     store/              saved project board, toasts, consent
 server/                 Node http enquiry API (no framework, no database)
 deploy/                 nginx and systemd samples for a host without Docker
-tools/                  media pipeline, PDF generation (TDS, SDS, guide, fan deck), icons, sitemap, backups
+tools/                  media pipeline, PDF generation (TDS, SDS, guide, fan deck, master catalogue), icons, sitemap, backups
 opuda/                  the original photographs the media pipeline derives from
 ```
 
@@ -57,7 +58,7 @@ Continuous integration runs exactly these steps, plus an accessibility job (axe
 on Chromium, keyboard operability, reduced motion, 360 px layout), a Lighthouse
 budget check, a backup/restore drill, a dependency and secret scan, and a job
 that regenerates the
-brand assets, documents, fan deck, social card and sitemap, then runs
+brand assets, documents, fan deck, master catalogue, social card and sitemap, then runs
 `tools/check-assets.py` — so a design change cannot land without its artefacts.
 
 That check compares PDFs, PNGs and XML byte for byte (their generators pin every
