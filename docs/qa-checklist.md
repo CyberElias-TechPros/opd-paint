@@ -30,8 +30,9 @@ teams, not in a repository.
 
 - **Dealer network.** Representative trading areas, marked `verified: false`
   unless confirmed. Replace `dealers.ts` with the commercial export.
-- **Prices.** Guide prices, marked as such in every surface, excluding VAT and
-  delivery. Not wired to a price list or inventory.
+- **Prices.** Not published anywhere on the site. Every price-dependent surface
+  (product pages, the calculator, colour pages) routes to WhatsApp, the quote
+  form or a dealer instead of showing a figure.
 - **Stock.** Never claimed. Unverified stock renders "ask dealer".
 - **Primer, gloss, weathershield, screeding.** Standard lines for a manufacturer
   at this scale, flagged `pending-verification` until the technical owner signs

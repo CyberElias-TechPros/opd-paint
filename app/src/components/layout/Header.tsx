@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Menu, Search, X, Phone, Layers, ChevronRight } from 'lucide-react'
+import { Menu, Search, X, Phone, Layers, ChevronRight, MessageCircle } from 'lucide-react'
 import { LogoLockup } from '../brand/Logo'
 import { ButtonLink } from '../ui/Button'
 import { cn } from '../../lib/cn'
@@ -76,16 +76,16 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
             Manufactured in Nigeria · 5-year guarantee on Matt &amp; Silk
           </p>
           <div className="flex items-center gap-5">
-            <a className="inline-flex items-center gap-1.5 hover:text-paper-2" href={`tel:${BRAND_PHONE_TEL}`}>
-              <Phone className="size-3" aria-hidden /> {BRAND_PHONE_DISPLAY}
-            </a>
             <a
-              className="hover:text-paper-2"
+              className="inline-flex items-center gap-1.5 font-semibold text-green-bright hover:text-paper-2"
               href={`https://wa.me/${WHATSAPP_NUMBER}`}
               target="_blank"
               rel="noreferrer noopener"
             >
               WhatsApp a colour advisor
+            </a>
+            <a className="inline-flex items-center gap-1.5 hover:text-paper-2" href={`tel:${BRAND_PHONE_TEL}`}>
+              <Phone className="size-3" aria-hidden /> {BRAND_PHONE_DISPLAY}
             </a>
           </div>
         </div>
@@ -167,9 +167,14 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
               ) : null}
             </button>
 
-            <ButtonLink to="/quote" size="sm" className="hidden sm:inline-flex">
-              Get a quote
-            </ButtonLink>
+            <div className="hidden items-center gap-1.5 sm:flex">
+              <ButtonLink to={`https://wa.me/${WHATSAPP_NUMBER}`} external size="sm">
+                <MessageCircle className="size-3.5" aria-hidden /> WhatsApp us
+              </ButtonLink>
+              <ButtonLink to="/quote" size="sm" variant="outline" className="hidden lg:inline-flex">
+                Get a quote
+              </ButtonLink>
+            </div>
 
             <button
               ref={triggerRef}
@@ -249,14 +254,14 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
               ))}
             </ul>
             <div className="mt-4 space-y-2 px-3 pb-6">
-              <ButtonLink to="/quote" fullWidth size="md">
+              <ButtonLink to={`https://wa.me/${WHATSAPP_NUMBER}`} external fullWidth size="md">
+                <MessageCircle className="size-4" aria-hidden /> WhatsApp a colour advisor
+              </ButtonLink>
+              <ButtonLink to="/quote" variant="outline" fullWidth size="md">
                 Get a quote
               </ButtonLink>
-              <ButtonLink to={`tel:${BRAND_PHONE_TEL}`} external variant="outline" fullWidth size="md">
-                <Phone className="size-4" aria-hidden /> {BRAND_PHONE_DISPLAY}
-              </ButtonLink>
-              <ArrowLink to={`https://wa.me/${WHATSAPP_NUMBER}`} external className="pt-3 text-green">
-                WhatsApp a colour advisor
+              <ArrowLink to={`tel:${BRAND_PHONE_TEL}`} external className="pt-3 text-green">
+                Call {BRAND_PHONE_DISPLAY}
               </ArrowLink>
             </div>
           </nav>

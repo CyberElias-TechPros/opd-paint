@@ -196,13 +196,3 @@ export function calculate(input: CalculationInput): CalculationResult {
   }
 }
 
-/** Cost of the recommended pack combination, or null if any pack is unpriced. */
-export function packCost(packs: PackChoice[], priceBySize: Record<number, number | null>): number | null {
-  let total = 0
-  for (const pack of packs) {
-    const price = priceBySize[pack.size]
-    if (price == null) return null
-    total += price * pack.count
-  }
-  return total
-}

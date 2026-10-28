@@ -1,16 +1,5 @@
 /** Formatting helpers. One place, so numerals and currency stay consistent. */
 
-const nairaFormatter = new Intl.NumberFormat('en-NG', {
-  style: 'currency',
-  currency: 'NGN',
-  maximumFractionDigits: 0,
-})
-
-export function naira(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return 'Price on request'
-  return nairaFormatter.format(value).replace('NGN', '₦').replace(/\s/g, '')
-}
-
 export function number(value: number, places = 0): string {
   return new Intl.NumberFormat('en-NG', {
     minimumFractionDigits: places,

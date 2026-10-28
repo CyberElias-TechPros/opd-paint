@@ -1,15 +1,16 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Info, Plus, Ruler, Trash2, TriangleAlert, Wind } from 'lucide-react'
-import { calculate, packCost, type Opening, type Units } from '../../lib/calculator'
+import { Info, MessageCircle, Plus, Ruler, Trash2, TriangleAlert, Wind } from 'lucide-react'
+import { calculate, type Opening, type Units } from '../../lib/calculator'
 import { PRODUCTS, type Product } from '../../data/products'
-import { naira, number } from '../../lib/format'
+import { number } from '../../lib/format'
 import { Button, ButtonLink } from '../ui/Button'
 import { Badge } from '../ui/Bits'
 import { Toggle } from '../ui/Field'
 import { useApp } from '../../store/AppStore'
 import { track } from '../../lib/analytics'
 import { cn } from '../../lib/cn'
+import { WHATSAPP_NUMBER } from '../../data/dealers'
 
 const PAINT_PRODUCTS = PRODUCTS.filter((p) => p.packs.some((pack) => pack.unit === 'L'))
 
@@ -42,13 +43,6 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
   const { toast } = useApp()
 
   const product: Product = PAINT_PRODUCTS.find((p) => p.id === productId) ?? PAINT_PRODUCTS[0]
-  const priceBySize = useMemo(() => {
-    const map: Record<number, number | null> = {}
-    product.packs.forEach((pack) => {
-      map[pack.size] = pack.guidePrice
-    })
-    return map
-  }, [product])
 
   const invalid = useMemo(() => {
     const errors: string[] = []
@@ -80,8 +74,19 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
     })
   }, [invalid, units, mode, directArea, length, width, height, openings, coats, includeCeiling, trimAllowance, product])
 
-  const cost = result ? packCost(result.packs, priceBySize) : null
   const areaLabel = units === 'imperial' ? 'ft' : 'm'
+
+  const whatsappHref = result?.packs.length
+    ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+        `Hello OPUDA'S PAINT, I used the paint calculator: ${result.packs
+          .map((p) => `${p.count} × ${p.size} L`)
+          .join(' + ')} of ${product.shortName} (${coats} coat${coats > 1 ? 's' : ''}, ${Math.round(
+          result.paintableArea,
+        )} m²). Please send current pricing and stock.`,
+      )}`
+    : `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+        `Hello OPUDA'S PAINT, I'd like pricing and stock for ${product.shortName}.`,
+      )}`
 
   const updateOpening = (id: string, patch: Partial<Opening>) => {
     setOpenings((current) => current.map((o) => (o.id === id ? { ...o, ...patch } : o)))
@@ -380,24 +385,28 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                         <span className="font-semibold">{pack.size} L</span>{' '}
                         <span className="text-paper-2/65">{product.shortName}</span>
                       </span>
-                      <span className="tabular text-[0.82rem] text-paper-2/70">
-                        {priceBySize[pack.size] != null ? naira((priceBySize[pack.size] as number) * pack.count) : 'Ask dealer'}
-                      </span>
                     </li>
                   ))}
                   {!result.packs.length ? <li className="text-[0.86rem] text-paper-2/60">Enter your dimensions to size the job.</li> : null}
                 </ul>
               </div>
 
-              <div className="rounded-[3px] bg-paper-2/8 px-3 py-3">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-paper-2/70">Guide total</span>
-                  <span className="tabular font-sans text-[1.5rem] font-extrabold tracking-[-0.03em]">{cost != null ? naira(cost) : 'On request'}</span>
-                </div>
-                <p className="mt-1 text-[0.68rem] leading-relaxed text-paper-2/65">
-                  Indicative Port Harcourt retail guide, excluding VAT and delivery. A quotation from your dealer may differ and
-                  is the figure that counts.
+              <div className="rounded-[3px] border border-paper-2/20 bg-paper-2/8 px-3 py-3">
+                <p className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-paper-2/70">Get a price for this</p>
+                <p className="mt-1 text-[0.76rem] leading-relaxed text-paper-2/70">
+                  Pricing is not published on the site — it depends on your dealer and delivery. Send us this exact
+                  quantity on WhatsApp and we will reply with current pricing and stock.
                 </p>
+                <ButtonLink
+                  to={whatsappHref}
+                  external
+                  size="sm"
+                  variant="paper"
+                  className="mt-3 w-full justify-center"
+                  onClick={() => track('cta_click', { target: 'whatsapp', source: 'calculator' })}
+                >
+                  <MessageCircle className="size-4" aria-hidden /> WhatsApp this estimate
+                </ButtonLink>
               </div>
 
               <dl className="space-y-0">
@@ -438,8 +447,13 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
               </details>
 
               <div className="flex flex-wrap gap-2">
-                <ButtonLink to="/quote?from=calculator" size="sm" variant="paper" className="flex-1 justify-center">
-                  Request a quote
+                <ButtonLink
+                  to="/quote?from=calculator"
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 justify-center border-paper-2/30 text-paper-2 hover:bg-paper-2 hover:text-ink"
+                >
+                  Request a quote instead
                 </ButtonLink>
                 <ButtonLink to="/dealers" size="sm" variant="outline" className="flex-1 justify-center border-paper-2/30 text-paper-2 hover:bg-paper-2 hover:text-ink">
                   Find a dealer

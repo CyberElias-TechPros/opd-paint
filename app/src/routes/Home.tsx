@@ -25,7 +25,6 @@ import { PROJECTS, STAGE_LABEL } from '../data/projects'
 import { GUIDES } from '../data/guides'
 import { DEALERS, STATES, BRAND_PHONE_DISPLAY, BRAND_PHONE_TEL, WHATSAPP_NUMBER } from '../data/dealers'
 import { ColourCard, ColourStrip } from '../components/colour/ColourCard'
-import { naira } from '../lib/format'
 import { cn } from '../lib/cn'
 import { track } from '../lib/analytics'
 
@@ -454,13 +453,12 @@ export default function Home() {
           <SectionHead
             kicker="The range"
             title={<span id="range-title">Four systems, one colour library.</span>}
-            lede="The same tint can be mixed into different products. Choose the finish by where the wall is and how it will be cleaned — not by price alone."
+            lede="The same tint can be mixed into different products. Choose the finish by where the wall is and how it will be cleaned."
             action={<ArrowLink to="/products">All products &amp; data sheets</ArrowLink>}
           />
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {PRODUCTS.filter((p) => ['matt', 'silk', 'gloss', 'weathershield'].includes(p.id)).map((product, index) => {
-              const from = product.packs.filter((p) => p.guidePrice).map((p) => p.guidePrice as number)
               return (
                 <Reveal key={product.id} delay={index * 70}>
                   <Link
@@ -484,9 +482,8 @@ export default function Home() {
                       <p className="mt-1.5 line-clamp-2 flex-1 text-[0.8rem] leading-relaxed text-ink/72">{product.tagline}</p>
                       <div className="mt-3 flex items-end justify-between border-t border-ink/10 pt-2.5">
                         <span className="text-[0.72rem] text-ink/72">
-                          From <span className="font-semibold text-ink">{from.length ? naira(Math.min(...from)) : 'on request'}</span>
+                          Pack sizes <span className="font-semibold text-ink">{product.packs.map((p) => `${p.size}${p.unit}`).join(' · ')}</span>
                         </span>
-                        <span className="text-[0.66rem] text-ink/72">guide</span>
                       </div>
                     </div>
                   </Link>
@@ -804,17 +801,22 @@ export default function Home() {
             </p>
           </div>
           <div className="flex flex-col gap-3">
-            <ButtonLink to="/quote" variant="paper" size="lg" fullWidth>
-              Request a consultation <ArrowRight className="size-4" aria-hidden />
+            <ButtonLink
+              to={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hello OPUDA'S PAINT, I'd like a colour consultation.")}`}
+              external
+              variant="paper"
+              size="lg"
+              fullWidth
+            >
+              WhatsApp the colour desk <ArrowRight className="size-4" aria-hidden />
             </ButtonLink>
             <ButtonLink
-              to={`https://wa.me/${WHATSAPP_NUMBER}`}
-              external
+              to="/quote"
               size="lg"
               fullWidth
               className="border border-white/40 bg-transparent text-white hover:bg-white hover:text-crimson"
             >
-              WhatsApp the colour desk
+              Request a consultation instead
             </ButtonLink>
             <p className="text-center text-[0.72rem] text-white/90">
               Or call {BRAND_PHONE_DISPLAY} — Monday to Saturday, 8am to 6pm.

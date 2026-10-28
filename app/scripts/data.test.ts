@@ -192,13 +192,15 @@ test('interior products sell a pack a household can carry home', () => {
   }
 })
 
-test('no pack carries a real price — prices are guide-only or absent', () => {
+test('no pack carries a price — pricing is not part of the data model', () => {
   for (const product of PRODUCTS) {
     for (const pack of product.packs) {
-      if (pack.guidePrice !== null) {
-        assert.ok(pack.guidePrice > 0, `${product.id} ${pack.size} negative guide price`)
-        assert.ok(Number.isInteger(pack.guidePrice), `${product.id} ${pack.size} fractional naira`)
-      }
+      assert.ok(!('guidePrice' in pack), `${product.id} ${pack.size} still carries a guidePrice field`)
+      assert.deepEqual(
+        Object.keys(pack).sort(),
+        ['inStock', 'size', 'unit'],
+        `${product.id} ${pack.size} has unexpected pack fields`,
+      )
     }
   }
 })

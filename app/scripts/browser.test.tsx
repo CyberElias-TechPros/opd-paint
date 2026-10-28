@@ -490,8 +490,8 @@ async function main(): Promise<void> {
         const startingArea = Number(/Paintable area\s*([\d.]+) m²/.exec(panel())?.[1])
         assert(Number.isFinite(startingArea) && startingArea > 0, `no paintable area in "${panel().slice(0, 120)}"`)
         assert(/Total incl\. 5% handling/.test(panel()), 'the handling allowance is not shown')
-        assert(/₦/.test(panel()) || /Ask dealer/.test(panel()), 'no price treatment at all')
-        assert(/Indicative Port Harcourt retail guide/.test(panel()), 'the guide-price disclaimer is missing')
+        assert(/WhatsApp this estimate/.test(panel()), 'no WhatsApp inquiry CTA shown')
+        assert(!/₦/.test(panel()), 'a price leaked into the calculator panel')
 
         // The whole point of a calculator is that it follows the input.
         await type(document.getElementById('hei') as Element, '4.0')

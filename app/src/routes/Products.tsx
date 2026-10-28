@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Check, Droplet, FileDown, Layers, ShieldCheck, Timer } from 'lucide-react'
+import { ArrowRight, Check, Droplet, FileDown, Layers, MessageCircle, ShieldCheck, Timer } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
 import { track } from '../lib/analytics'
 import { PRODUCTS, FINISH_SHEEN_LABEL, type Finish, type Surface } from '../data/products'
+import { WHATSAPP_NUMBER } from '../data/dealers'
 import { SmartImage } from '../components/media/SmartImage'
 import { PlankWall } from '../components/brand/Devices'
 import { Badge, Kicker, SectionHead, ArrowLink } from '../components/ui/Bits'
 import { Reveal } from '../components/motion/Reveal'
 import { Pill } from '../components/ui/Bits'
-import { naira, number } from '../lib/format'
+import { ButtonLink } from '../components/ui/Button'
+import { number } from '../lib/format'
 
 const FINISHES: Array<Finish | 'All'> = ['All', 'Matt', 'Silk', 'Primer', 'Gloss', 'Texture', 'Filler']
 const SURFACES: Array<Surface | 'All'> = ['All', 'Interior walls', 'Ceilings', 'Exterior walls', 'Wood & metal', 'New plaster', 'Bathrooms & kitchens']
@@ -104,7 +106,6 @@ export default function Products() {
 
         <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((product, index) => {
-            const from = product.packs.filter((p) => p.guidePrice).map((p) => p.guidePrice as number)
             return (
               <li key={product.id}>
                 <Reveal delay={index * 60}>
@@ -144,9 +145,9 @@ export default function Products() {
 
                       <div className="mt-auto flex items-end justify-between gap-3 pt-3">
                         <div>
-                          <p className="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-ink/72">From · guide</p>
+                          <p className="text-[0.6rem] font-bold uppercase tracking-[0.12em] text-ink/72">Pack sizes</p>
                           <p className="text-[0.95rem] font-semibold">
-                            {from.length ? naira(Math.min(...from)) : 'On request'}
+                            {product.packs.map((p) => `${p.size}${p.unit}`).join(' · ')}
                           </p>
                         </div>
                         <Link
@@ -249,16 +250,25 @@ export default function Products() {
           <div>
             <p className="font-[var(--font-display)] text-[1.3rem]">Not sure which system the elevation needs?</p>
             <p className="text-[0.82rem] text-paper-2/60">
-              Send us photographs and the room type. We will specify the system and the litres.
+              Send us photographs and the room type on WhatsApp. We will specify the system, the litres and the price.
             </p>
           </div>
-          <ArrowLink to="/quote" className="text-paper-2">
-            Request a specification
-          </ArrowLink>
+          <div className="flex flex-wrap items-center gap-2">
+            <ButtonLink
+              to={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hello OPUDA'S PAINT, I'd like help specifying a product for my project.")}`}
+              external
+              size="sm"
+            >
+              <MessageCircle className="size-3.5" aria-hidden /> WhatsApp us
+            </ButtonLink>
+            <ArrowLink to="/quote" className="text-paper-2">
+              Request a specification
+            </ArrowLink>
+          </div>
         </div>
 
         <p className="mt-6 text-[0.72rem] text-ink/72">
-          {number(PRODUCTS.length)} products · all prices are indicative Port Harcourt guides, excluding VAT and delivery
+          {number(PRODUCTS.length)} products · pricing is not published here — WhatsApp or your nearest dealer will confirm current pricing and stock
         </p>
       </div>
     </>

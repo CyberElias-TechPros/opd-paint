@@ -24,7 +24,7 @@ That is the README's own standard, and it is the right one.
 | **G1** Discovery | Validated needs, model, goals | ⚠️ Partial | Business model and market are assumed (lead generation, Nigeria, Port Harcourt), not validated. No customer interviews or analytics baseline. |
 | **G2** Requirements | Prioritised scope, traceability | ⚠️ Partial | Functional requirements are written. A traceability matrix (requirement → build → test) is not maintained, and nothing is signed off. |
 | **G3** Design | Journeys, wireframes, system, a11y | ✅ Nearly met | Design system, journeys and accessibility rules are built and documented (`/style-guide`). Missing only formal review and approval. |
-| **G4** Data & architecture | Data model, integrations, cost | ❌ Blocked | The *model* is good. The *data* is provisional: guide prices, unverified dealers, unmeasured colours, unsigned product specs. No operating-cost assessment. |
+| **G4** Data & architecture | Data model, integrations, cost | ❌ Blocked | The *model* is good. The *data* is provisional: unverified dealers, unmeasured colours, unsigned product specs. Pricing is deliberately not part of the data model at all — see §2. No operating-cost assessment. |
 | **G5** Feature completeness | Core pages and journeys | ✅ Met | 18 routes + 404, all five core journeys work, 21-route render test. Needs a human review pass. |
 | **G6** System readiness | Integrations, security, monitoring | ⚠️ Technical half done | Notifications, error intake, structured logs, a restore drill, dependency/secret scanning, axe and Lighthouse gates now exist and run in CI. What is still missing is not code: the credentials for a real notification channel and a Sentry DSN are not issued, the production host is not provisioned, and nobody yet owns the alert. |
 | **G7** Acceptance | Functional, a11y, device, colour, UAT | ❌ Not met | Automated tests pass. No real-device testing, no assistive-technology audit, no colour QA against physical chips, no user acceptance testing. |
@@ -41,9 +41,12 @@ are the real work.**
 No amount of engineering closes these. Every one of them is currently faked,
 flagged, or omitted — correctly — and each blocks a gate.
 
-1. **The authoritative price list.** Every price on the site is a "guide price".
-   Required: a price file (CSV/feed/API) with pack prices, VAT treatment and
-   effective dates. Until then the quote journey is the only honest one.
+1. **Pricing.** The site deliberately does not publish any price: no authoritative
+   price list exists yet, and inventing a guide figure would be worse than
+   omitting it. Every pack-size, calculator and product surface instead leads to
+   WhatsApp, the quote form or a dealer. If pricing is published later, it must
+   come from a real price file (CSV/feed/API) with pack prices, VAT treatment and
+   effective dates — not from this codebase.
 2. **The verified dealer export.** 14 entries, 9 marked `verified: false`, all
    using the brand phone number. Required: real names, addresses, coordinates,
    direct phone numbers, opening hours, and which services each actually offers.
@@ -203,7 +206,7 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 | **C. Performance** | ⚠️ Budgeted, unmeasured | 118 kB gzip entry, lazy routes, WebP, preloaded hero, lazy fonts. **No measurement on a real Nigerian mobile connection.** Lighthouse CI closes this. |
 | **D. Security and privacy** | ⚠️ Good baseline | Headers, CSP, constant-time auth, rate limits, honeypot, consent-gated analytics. **Missing: monitoring, MFA, scanning, DSAR process, legal review.** |
 | **E. Maintainability** | ⚠️ Good, one hole | Typed data, tests, generated documents, reproducibility checks, four docs. **The hole is content editing without a CMS.** |
-| **F. Commercial integrity** | ✅ Strong | Guide prices labelled everywhere, `pending-verification` flags, no invented testimonials, no stock claims, concept work labelled as concept. |
+| **F. Commercial integrity** | ✅ Strong | No price is ever shown — every inquiry routes to a person. `pending-verification` flags, no invented testimonials, no stock claims, concept work labelled as concept. |
 
 ---
 
@@ -286,8 +289,9 @@ DSN, a hosted API origin — is built to degrade safely and is switched off unti
 someone supplies one. That is the remaining half of G6, and it is not code.
 
 **Stage 2 — Replace provisional data (business-led, 2–4 weeks elapsed)**
-Price list · dealer export · product sign-off · colour chips and measured LRV ·
-project permissions and metadata · legal review.
+Dealer export · product sign-off · colour chips and measured LRV · project
+permissions and metadata · legal review. (No price list to replace — pricing is
+deliberately not part of the site.)
 → *Closes G4 and most of G1.*
 
 **Stage 3 — Prove it with humans (2–3 weeks)**

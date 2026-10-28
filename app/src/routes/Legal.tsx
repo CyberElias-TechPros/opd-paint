@@ -85,10 +85,10 @@ const DOCS: Doc[] = [
       'These terms cover your use of this website. They do not replace the terms of sale agreed with your dealer, which govern any purchase.',
     sections: [
       {
-        heading: 'Colour, product and price information',
+        heading: 'Colour and product information',
         body: [
           'Colours displayed on this site are digital approximations of physical products. They cannot guarantee a match. Light reflectance values shown with “≈” are calculated from the digital value, not measured from a dried film.',
-          'Prices marked “guide price” are indicative Port Harcourt retail figures, exclude VAT and delivery, and are not a quotation. The price you pay is the price agreed with your dealer.',
+          'This site does not publish prices. Current pricing depends on pack, dealer and delivery — contact us on WhatsApp or ask your nearest dealer for a quotation.',
           'Product coverage, drying times and recoat intervals come from the technical data sheet for the product. Where a data sheet is under review, the product page says so.',
         ],
       },

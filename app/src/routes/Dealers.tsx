@@ -110,16 +110,15 @@ export default function Dealers() {
             <div className="rounded-sm border border-ink/12 bg-paper-2/70 p-4">
               <p className="kicker mb-2 text-ink/72">Straight to a human</p>
               <div className="flex flex-wrap gap-2">
-                <ButtonLink to={`tel:${BRAND_PHONE_TEL}`} external size="sm">
-                  <Phone className="size-3.5" aria-hidden /> {BRAND_PHONE_DISPLAY}
-                </ButtonLink>
                 <ButtonLink
                   to={`https://wa.me/${WHATSAPP_NUMBER}`}
                   external
                   size="sm"
-                  variant="outline"
                 >
                   WhatsApp
+                </ButtonLink>
+                <ButtonLink to={`tel:${BRAND_PHONE_TEL}`} external size="sm" variant="outline">
+                  <Phone className="size-3.5" aria-hidden /> {BRAND_PHONE_DISPLAY}
                 </ButtonLink>
               </div>
               <p className="mt-2 text-[0.72rem] text-ink/72">Monday to Saturday, 8am – 6pm.</p>

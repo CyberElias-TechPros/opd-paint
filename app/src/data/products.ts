@@ -9,11 +9,11 @@
  * manufacturer at this scale supplies and must be confirmed by the technical
  * owner before publication — see /data for the live provenance table.
  *
- * PRICES: `guidePrice` is an indicative Port Harcourt retail guide, excluding VAT and
- * delivery, for the pack shown. It is *not* a quotation and it is not wired to
- * an inventory system yet. Every price surface in the UI is labelled
- * "Guide price". The commercial owner must replace this block with a feed from
- * the authoritative price list before launch (roadmap 13.01.03 / 06.01.07).
+ * PRICING: the site does not publish prices. Current pricing varies by pack,
+ * dealer and delivery, so every inquiry path (WhatsApp, the quote form, the
+ * calculator, dealer counters) routes to a person who can quote against real
+ * stock. If pricing is ever published here, it must come from the
+ * authoritative price list, not from this file.
  */
 
 export type Finish = 'Matt' | 'Silk' | 'Satin' | 'Gloss' | 'Primer' | 'Texture' | 'Filler'
@@ -22,8 +22,6 @@ export type Surface = 'Interior walls' | 'Ceilings' | 'Exterior walls' | 'Wood &
 export type Pack = {
   size: number
   unit: 'L' | 'kg'
-  guidePrice: number | null
-  /** Stock is withheld from the UI until verified; `null` renders "ask dealer". */
   inStock: boolean
 }
 
@@ -58,7 +56,7 @@ export type Product = {
   claimsStatus: 'label-verified' | 'pending-verification'
 }
 
-const priced = (size: number, unit: 'L' | 'kg', guidePrice: number | null, inStock = true): Pack => ({ size, unit, guidePrice, inStock })
+const pack = (size: number, unit: 'L' | 'kg', inStock = true): Pack => ({ size, unit, inStock })
 
 export const PRODUCTS: Product[] = [
   {
@@ -89,7 +87,7 @@ export const PRODUCTS: Product[] = [
       'Eco-friendly, low odour',
       '5-year guarantee',
     ],
-    packs: [priced(20, 'L', 84000), priced(10, 'L', 45000), priced(4, 'L', 19500), priced(1, 'L', 6200)],
+    packs: [pack(20, 'L'), pack(10, 'L'), pack(4, 'L'), pack(1, 'L')],
     image: 'product-matt-bucket',
     gallery: ['product-matt-bucket', 'product-matt-pail', 'brand-banner-matt'],
     tds: [
@@ -135,7 +133,7 @@ export const PRODUCTS: Product[] = [
       'Weather resistant when used under cover',
       '5-year guarantee',
     ],
-    packs: [priced(20, 'L', 96000), priced(10, 'L', 52000), priced(4, 'L', 22500), priced(1, 'L', 7200)],
+    packs: [pack(20, 'L'), pack(10, 'L'), pack(4, 'L'), pack(1, 'L')],
     image: 'product-silk-bucket',
     gallery: ['product-silk-bucket', 'product-silk-pail'],
     tds: [
@@ -173,7 +171,7 @@ export const PRODUCTS: Product[] = [
     voc: 'Low-VOC, water-based.',
     guaranteeYears: 0,
     features: ['Blocks alkali burn on new render', 'Seals uneven porosity', 'Improves topcoat coverage', 'Quick recoat'],
-    packs: [priced(20, 'L', 72000), priced(4, 'L', 17000)],
+    packs: [pack(20, 'L'), pack(4, 'L')],
     image: 'brand-banner-matt',
     gallery: ['brand-banner-matt'],
     tds: [{ label: 'Technical data sheet (PDF)', href: '/documents/opudas-primer-tds.pdf' }],
@@ -207,7 +205,7 @@ export const PRODUCTS: Product[] = [
     voc: 'Solvent-based. Use with ventilation and appropriate PPE.',
     guaranteeYears: 3,
     features: ['Hard, impact-resistant film', 'For interior and exterior joinery', 'Good flow and levelling', 'Weather resistant'],
-    packs: [priced(20, 'L', 118000), priced(4, 'L', 26500), priced(1, 'L', 8200)],
+    packs: [pack(20, 'L'), pack(4, 'L'), pack(1, 'L')],
     image: 'brand-banner-red',
     gallery: ['brand-banner-red'],
     tds: [{ label: 'Technical data sheet (PDF)', href: '/documents/opudas-gloss-tds.pdf' }],
@@ -241,7 +239,7 @@ export const PRODUCTS: Product[] = [
     voc: 'Water-based acrylic.',
     guaranteeYears: 5,
     features: ['Bridges hairline cracks', 'UV and colour stable', 'Breathable film', 'Rain resistant after 24 hours'],
-    packs: [priced(20, 'L', 132000), priced(10, 'L', 70000)],
+    packs: [pack(20, 'L'), pack(10, 'L')],
     image: 'project-finished-villa',
     gallery: ['project-finished-villa', 'project-blue-fence', 'project-cream-scaffold'],
     tds: [{ label: 'Technical data sheet (PDF)', href: '/documents/opudas-weathershield-tds.pdf' }],
@@ -275,7 +273,7 @@ export const PRODUCTS: Product[] = [
     voc: 'Cementitious, low-VOC.',
     guaranteeYears: 0,
     features: ['Levels uneven blockwork', 'Sands to a fine finish', 'Strong bond, minimal shrinkage'],
-    packs: [priced(25, 'kg', 18500), priced(10, 'kg', 8200)],
+    packs: [pack(25, 'kg'), pack(10, 'kg')],
     image: 'project-render-stage',
     gallery: ['project-render-stage', 'project-corner-scaffold'],
     tds: [{ label: 'Technical data sheet (PDF)', href: '/documents/opudas-screeding-tds.pdf' }],
@@ -303,14 +301,4 @@ export const FINISH_SHEEN_LABEL: Record<Finish, string> = {
   Filler: 'Filler — base coat',
 }
 
-export const LOWEST_GUIDE_PRICE = (product: Product): number | null => {
-  const prices = product.packs.map((p) => p.guidePrice).filter((p): p is number => p != null)
-  return prices.length ? Math.min(...prices) : null
-}
 
-export const PER_LITRE_GUIDE = (product: Product): number | null => {
-  const priced = product.packs.filter((p) => p.guidePrice != null)
-  if (!priced.length) return null
-  const cheapest = priced.reduce((best, p) => ((p.guidePrice as number) / p.size < (best.guidePrice as number) / best.size ? p : best))
-  return Math.round((cheapest.guidePrice as number) / cheapest.size)
-}
