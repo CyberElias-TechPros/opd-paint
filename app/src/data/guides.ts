@@ -9,6 +9,8 @@
  *    in guides — it belongs in the live data layer.
  */
 
+import { applyGuideOverrides } from '../lib/contentOverrides'
+
 export type GuideSection = {
   heading: string
   paragraphs: string[]
@@ -31,7 +33,7 @@ export type Guide = {
   faq: { q: string; a: string }[]
 }
 
-export const GUIDES: Guide[] = [
+const GUIDES_BASE: Guide[] = [
   {
     id: 'how-much-paint',
     title: 'How much paint do I actually need?',
@@ -330,6 +332,12 @@ export const GUIDES: Guide[] = [
     ],
   },
 ]
+
+/**
+ * The published guides, with any admin reviewer/updated edits from
+ * `data/overrides/guides.json` applied. See `src/lib/contentOverrides.ts`.
+ */
+export const GUIDES: Guide[] = applyGuideOverrides(GUIDES_BASE)
 
 export const CATEGORIES = ['Planning', 'Preparation', 'Application', 'Colour', 'Troubleshooting'] as const
 export const findGuide = (id: string) => GUIDES.find((g) => g.id === id)

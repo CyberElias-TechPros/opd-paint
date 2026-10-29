@@ -1,4 +1,5 @@
 import { estimateLrv } from '../lib/color'
+import { applyColourOverrides } from '../lib/contentOverrides'
 
 /**
  * The OPUDA'S PAINT colour library.
@@ -48,7 +49,7 @@ export type PaintColor = {
 
 const c = (color: PaintColor): PaintColor => ({ source: 'OPUDA’S launch fan deck (digital proof)', ...color })
 
-export const COLORS: PaintColor[] = [
+const COLORS_BASE: PaintColor[] = [
   // ---------------------------------------------------------------- whites
   c({ id: 'opuda-white', code: 'OP-001', name: 'Opuda White', hex: '#F8F5EE', family: 'White & Off-White', undertone: 'Neutral', rooms: ['Ceiling', 'Living', 'Exterior'], collection: 'The Signature', note: 'Our brightest interior white. The default ceiling white across the range, and the one most painters cut in with.' }),
   c({ id: 'coconut-milk', code: 'OP-004', name: 'Coconut Milk', hex: '#F3EDE1', family: 'White & Off-White', undertone: 'Warm', rooms: ['Living', 'Bedroom', 'Ceiling'], collection: 'The Signature', note: 'A half-strength warm white that keeps large rooms from feeling clinical under LED lighting.' }),
@@ -126,6 +127,12 @@ export const COLORS: PaintColor[] = [
   c({ id: 'espresso', code: 'OP-813', name: 'Espresso', hex: '#3A2A22', family: 'Deep & Architectural', undertone: 'Warm', rooms: ['Living', 'Office', 'Exterior'], collection: 'The Signature', note: 'Deep coffee brown for timber-effect panels, doors and fascias.' }),
   c({ id: 'bronze-patina', code: 'OP-817', name: 'Bronze Patina', hex: '#6D7A62', family: 'Deep & Architectural', undertone: 'Warm', rooms: ['Exterior', 'Living'], collection: 'Rain Season', note: 'A green-bronze that mimics aged copper and weathered stone.' }),
 ]
+
+/**
+ * The published colour library, with any admin `measuredLrv` edits from
+ * `data/overrides/colours.json` applied. See `src/lib/contentOverrides.ts`.
+ */
+export const COLORS: PaintColor[] = applyColourOverrides(COLORS_BASE)
 
 export const FAMILIES: Family[] = [
   'White & Off-White',

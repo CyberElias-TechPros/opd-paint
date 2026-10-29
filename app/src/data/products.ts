@@ -13,8 +13,10 @@
  * dealer and delivery, so every inquiry path (WhatsApp, the quote form, the
  * calculator, dealer counters) routes to a person who can quote against real
  * stock. If pricing is ever published here, it must come from the
- * authoritative price list, not from this file.
+ *   authoritative price list, not from this file.
  */
+
+import { applyProductOverrides } from '../lib/contentOverrides'
 
 export type Finish = 'Matt' | 'Silk' | 'Satin' | 'Gloss' | 'Primer' | 'Texture' | 'Filler'
 export type Surface = 'Interior walls' | 'Ceilings' | 'Exterior walls' | 'Wood & metal' | 'New plaster' | 'Bathrooms & kitchens'
@@ -58,7 +60,7 @@ export type Product = {
 
 const pack = (size: number, unit: 'L' | 'kg', inStock = true): Pack => ({ size, unit, inStock })
 
-export const PRODUCTS: Product[] = [
+const PRODUCTS_BASE: Product[] = [
   {
     id: 'matt',
     sku: 'OPD-MT',
@@ -287,6 +289,13 @@ export const PRODUCTS: Product[] = [
     claimsStatus: 'pending-verification',
   },
 ]
+
+/**
+ * The published product range, with any admin claim-status / pack-stock
+ * edits from `data/overrides/products.json` applied. See
+ * `src/lib/contentOverrides.ts`.
+ */
+export const PRODUCTS: Product[] = applyProductOverrides(PRODUCTS_BASE)
 
 export const findProduct = (id: string) => PRODUCTS.find((p) => p.id === id)
 export const productById = findProduct

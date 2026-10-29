@@ -182,7 +182,10 @@ def shift_light(hex_value: str, factor: float) -> str:
 
 def read_colours() -> list[dict]:
     source = COLORS_TS.read_text(encoding="utf-8")
-    block = source.split("export const COLORS")[1]
+    # The exported COLORS is a one-line re-export of COLORS_BASE once the
+    # admin-override layer is applied (see app/src/lib/contentOverrides.ts) —
+    # the array literal itself is what this needs.
+    block = source.split("const COLORS_BASE")[1]
     block = block[: block.find("\nexport ")] if "\nexport " in block else block
     pattern = re.compile(
         r"id:\s*'(?P<id>[^']+)',\s*"

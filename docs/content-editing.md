@@ -4,6 +4,12 @@ Everything a marketing, technical or commercial colleague needs to change lives
 in `app/src/data/`. Each file is a typed list: the editor gets autocomplete and
 errors on a typo, and the page that shows the content already exists.
 
+A short, named list of fields — dealer verification/details, product claim
+status and pack stock, measured colour LRV, guide review metadata — can also be
+changed from a browser, without a development environment, at
+`/admin/content`. That is the admin layer described in
+[admin.md](admin.md); everything else still goes through this document.
+
 After any change:
 
 ```bash

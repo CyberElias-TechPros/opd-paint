@@ -25,7 +25,7 @@ That is the README's own standard, and it is the right one.
 | **G2** Requirements | Prioritised scope, traceability | ⚠️ Partial | Functional requirements are written. A traceability matrix (requirement → build → test) is not maintained, and nothing is signed off. |
 | **G3** Design | Journeys, wireframes, system, a11y | ✅ Nearly met | Design system, journeys and accessibility rules are built and documented (`/style-guide`). Missing only formal review and approval. |
 | **G4** Data & architecture | Data model, integrations, cost | ❌ Blocked | The *model* is good. The *data* is provisional: unverified dealers, unmeasured colours, unsigned product specs. Pricing is deliberately not part of the data model at all — see §2. No operating-cost assessment. |
-| **G5** Feature completeness | Core pages and journeys | ✅ Met | 18 routes + 404, all five core journeys work, 21-route render test. Needs a human review pass. |
+| **G5** Feature completeness | Core pages and journeys | ✅ Met | 19 routes + 404, all five core journeys work, 24-case render test. Needs a human review pass. |
 | **G6** System readiness | Integrations, security, monitoring | ⚠️ Technical half done | Notifications, error intake, structured logs, a restore drill, dependency/secret scanning, axe and Lighthouse gates now exist and run in CI. What is still missing is not code: the credentials for a real notification channel and a Sentry DSN are not issued, the production host is not provisioned, and nobody yet owns the alert. |
 | **G7** Acceptance | Functional, a11y, device, colour, UAT | ❌ Not met | Automated tests pass. No real-device testing, no assistive-technology audit, no colour QA against physical chips, no user acceptance testing. |
 | **G8** Launch | Go/no-go, rollback, smoke, support | ❌ Not started | No production environment, no DNS/TLS, no rollback exercise, no support rota. |
@@ -109,13 +109,28 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 
 ### Phase 09 — Content management (the biggest remaining build)
 
-- Headless CMS (Sanity/Payload/Directus) or an admin CRUD layer over the typed
-  data, for colours, products, guides, projects, dealers and palettes.
+**Partly built.** A scoped admin layer now exists at `/admin/content` — see
+[admin.md](admin.md) — covering exactly the fields the rest of this document
+marks provisional: dealer verification and details, product claim status and
+pack stock, measured LRV, and guide review metadata. It is deliberately not a
+full headless CMS: colour hex, product copy, guide text and project content
+stay code changes, reviewed like any other, because they are claims the
+business is legally and reputationally answerable for. It ships with two
+persistence backends (local filesystem for a host with a disk, a GitHub
+Contents-API commit for anything serverless) and full server-side validation
+and tests (`server/admin-content.test.mjs`).
+
+Still open if the business later wants more than that scoped list:
+
+- A full headless CMS (Sanity/Payload/Directus) or widening the admin CRUD
+  layer to cover colours, products, guides, projects and palettes themselves.
 - Editorial roles, draft/publish, preview, media library, scheduled publishing.
-- Migration of the 59 colours, 6 products, 6 guides, 19 projects and 14 dealers.
-- Content-operations guide update; the Git-based workflow in
-  `docs/content-editing.md` becomes the fallback rather than the method.
-- **Effort: 5 days bought-in headless, 15–20 days built.**
+- Migration tooling for the 59 colours, 6 products, 6 guides, 19 projects and
+  14 dealers into whichever system is chosen.
+- The Git-based workflow in `docs/content-editing.md` would become the
+  fallback rather than the method for those fields too.
+- **Effort: 5 days bought-in headless, 15–20 days built**, for that wider
+  scope — the scoped layer already shipped is a fraction of that.
 
 ### Phase 14 — Lead routing and communication
 
@@ -129,15 +144,29 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 
 ### Phase 11.02 — The missing decision-support tools
 
-- Finish-selection tool (surface → finish → product) as a guided flow, not a
-  filter. *(0.5 day)*
-- Surface-preparation decision support: what to do for new render, old gloss,
-  damp, efflorescence, salt air. *(1 day)*
-- Project checklist export (what to buy, in what order, what to check off).
-  *(1 day)*
-- Share a project: a durable link rather than the current clipboard message
-  *(1–2 days; needs a tiny backend or URL-encoded state)*.
-- **Effort: 3–5 days.**
+**Done**, all four:
+
+- ~~Finish-selection tool (surface → finish → product) as a guided flow, not a
+  filter.~~ `components/products/FinishFinder.tsx`, embedded in `/products`: a
+  two-question flow (surface, then priority) that hands its answer to the
+  existing finish/surface filters rather than duplicating the product grid.
+- ~~Surface-preparation decision support: what to do for new render, old gloss,
+  damp, efflorescence, salt air.~~ `/advice/surface-prep`
+  (`components/advice/SurfacePrepTool.tsx`, data in `data/surfacePrep.ts`):
+  pick one of seven situations, get the sequence in order, built from the
+  preparation guidance already written out in the `preparing-walls` and
+  `damp-and-mould` guides — not new claims, the same ones restructured as a
+  tool.
+- ~~Project checklist export (what to buy, in what order, what to check off).~~
+  `/project`: every saved product's own `application` steps, ordered filler →
+  primer → topcoat → trim (`lib/projectChecklist.ts`), with a checkbox per
+  step and a *Print checklist* button using the site's existing print
+  stylesheet — no PDF library, no backend.
+- ~~Share a project: a durable link rather than the current clipboard
+  message.~~ `/project` doubles as the destination: `?name=&c=&p=` is the
+  whole project, URL-encoded, so a link survives a closed tab or a forwarded
+  message with no backend and no expiry. Opening someone else's link shows a
+  read-only view with one job — add it to your own board.
 
 ### Phase 16 — Measurement
 
@@ -205,7 +234,7 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 | **B. Accessibility** | ⚠️ Designed in, unverified | Everything is keyboard-operable, focus-visible, reduced-motion aware, never colour-only. **Not yet verified with a real screen reader or an automated audit.** |
 | **C. Performance** | ⚠️ Budgeted, unmeasured | 118 kB gzip entry, lazy routes, WebP, preloaded hero, lazy fonts. **No measurement on a real Nigerian mobile connection.** Lighthouse CI closes this. |
 | **D. Security and privacy** | ⚠️ Good baseline | Headers, CSP, constant-time auth, rate limits, honeypot, consent-gated analytics. **Missing: monitoring, MFA, scanning, DSAR process, legal review.** |
-| **E. Maintainability** | ⚠️ Good, one hole | Typed data, tests, generated documents, reproducibility checks, four docs. **The hole is content editing without a CMS.** |
+| **E. Maintainability** | ⚠️ Good, hole narrowed | Typed data, tests, generated documents, reproducibility checks, five docs. A scoped admin layer (`/admin/content`, `docs/admin.md`) now covers dealer/product/colour/guide operational fields without a CMS; editing colour/product/guide/project *content* itself is still a code change by design. |
 | **F. Commercial integrity** | ✅ Strong | No price is ever shown — every inquiry routes to a person. `pending-verification` flags, no invented testimonials, no stock claims, concept work labelled as concept. |
 
 ---

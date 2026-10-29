@@ -34,8 +34,10 @@ import Calculator from '../src/routes/Calculator'
 import Inspiration from '../src/routes/Inspiration'
 import ProjectDetail from '../src/routes/ProjectDetail'
 import Advice from '../src/routes/Advice'
+import SurfacePrep from '../src/routes/SurfacePrep'
 import GuideDetail from '../src/routes/GuideDetail'
 import Dealers from '../src/routes/Dealers'
+import Project from '../src/routes/Project'
 import Quote from '../src/routes/Quote'
 import About from '../src/routes/About'
 import DataPage from '../src/routes/DataPage'
@@ -101,7 +103,9 @@ const pages: Page[] = [
   { pattern: '/calculator', url: '/calculator', Page: Calculator, chunk: 'Calculator' },
   { pattern: '/inspiration', url: '/inspiration', Page: Inspiration, chunk: 'Inspiration' },
   { pattern: '/advice', url: '/advice', Page: Advice, chunk: 'Advice' },
+  { pattern: '/advice/surface-prep', url: '/advice/surface-prep', Page: SurfacePrep, chunk: 'SurfacePrep' },
   { pattern: '/dealers', url: '/dealers', Page: Dealers, chunk: 'Dealers' },
+  { pattern: '/project', url: '/project', Page: Project, chunk: 'Project' },
   { pattern: '/quote', url: '/quote', Page: Quote, chunk: 'Quote' },
   { pattern: '/about', url: '/about', Page: About, chunk: 'About' },
   { pattern: '/data', url: '/data', Page: DataPage, chunk: 'DataPage' },

@@ -254,6 +254,15 @@ export function ProjectBoard() {
           >
             Request a quote for this project <ArrowRight className="size-4" aria-hidden />
           </ButtonLink>
+          <ButtonLink
+            to="/project"
+            variant="outline"
+            size="sm"
+            fullWidth
+            onClick={() => setBoardOpen(false)}
+          >
+            Open full project page, share link &amp; checklist
+          </ButtonLink>
           <div className="grid grid-cols-2 gap-2">
             <Button variant="paper" size="sm" onClick={share} disabled={!colours.length}>
               {copied ? <Check className="size-3.5" aria-hidden /> : <Share2 className="size-3.5" aria-hidden />}

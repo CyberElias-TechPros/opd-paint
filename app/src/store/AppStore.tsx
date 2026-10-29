@@ -50,9 +50,11 @@ type Action =
   | { type: 'saveColor'; id: string }
   | { type: 'removeColor'; id: string }
   | { type: 'toggleProduct'; id: string }
+  | { type: 'saveProduct'; id: string }
   | { type: 'pushRecent'; id: string }
   | { type: 'rename'; name: string }
   | { type: 'clear' }
+  | { type: 'import'; colours: string[]; products: string[] }
 
 function reducer(state: BoardState, action: Action): BoardState {
   const stamp = Date.now()
@@ -81,6 +83,10 @@ function reducer(state: BoardState, action: Action): BoardState {
         updatedAt: stamp,
       }
     }
+    case 'saveProduct':
+      return state.savedProducts.includes(action.id)
+        ? state
+        : { ...state, savedProducts: [action.id, ...state.savedProducts], updatedAt: stamp }
     case 'pushRecent': {
       const recent = [action.id, ...state.recentColors.filter((c) => c !== action.id)].slice(0, 8)
       return { ...state, recentColors: recent }
@@ -89,6 +95,15 @@ function reducer(state: BoardState, action: Action): BoardState {
       return { ...state, boardName: action.name.slice(0, 60), updatedAt: stamp }
     case 'clear':
       return { ...initialState, recentColors: state.recentColors, updatedAt: stamp }
+    // Merging a shared project link: union, never replace — a visitor who
+    // receives someone else's scheme should not lose what they already saved.
+    case 'import':
+      return {
+        ...state,
+        savedColors: [...new Set([...state.savedColors, ...action.colours])],
+        savedProducts: [...new Set([...state.savedProducts, ...action.products])],
+        updatedAt: stamp,
+      }
     default:
       return state
   }
@@ -101,9 +116,11 @@ type Ctx = {
   saveColor: (id: string) => void
   removeColor: (id: string) => void
   toggleProduct: (id: string) => void
+  saveProduct: (id: string) => void
   pushRecent: (id: string) => void
   renameBoard: (name: string) => void
   clearBoard: () => void
+  importBoard: (colours: string[], products: string[]) => void
   isSaved: (id: string) => boolean
   isProductSaved: (id: string) => boolean
   toasts: Toast[]
@@ -196,12 +213,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const removeColor = useCallback((id: string) => dispatch({ type: 'removeColor', id }), [])
   const toggleProduct = useCallback((id: string) => dispatch({ type: 'toggleProduct', id }), [])
+  const saveProduct = useCallback(
+    (id: string) => {
+      if (!board.savedProducts.includes(id)) {
+        dispatch({ type: 'saveProduct', id })
+        track('cta_click', { target: 'product-saved', productId: id })
+      }
+    },
+    [board.savedProducts],
+  )
   const pushRecent = useCallback((id: string) => dispatch({ type: 'pushRecent', id }), [])
   const renameBoard = useCallback((name: string) => dispatch({ type: 'rename', name }), [])
   const clearBoard = useCallback(() => {
     dispatch({ type: 'clear' })
     toast('Project board cleared', { tone: 'info' })
   }, [toast])
+  const importBoard = useCallback(
+    (colours: string[], products: string[]) => {
+      dispatch({ type: 'import', colours, products })
+      track('cta_click', { target: 'project-import', colours: colours.length, products: products.length })
+      toast('Added to your project', { description: 'Open your project board to review it.', tone: 'success' })
+    },
+    [toast],
+  )
 
   const grantConsent = useCallback(() => {
     persistConsent('granted')
@@ -222,9 +256,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       saveColor,
       removeColor,
       toggleProduct,
+      saveProduct,
       pushRecent,
       renameBoard,
       clearBoard,
+      importBoard,
       isSaved: (id: string) => board.savedColors.includes(id),
       isProductSaved: (id: string) => board.savedProducts.includes(id),
       toasts,
@@ -242,9 +278,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       saveColor,
       removeColor,
       toggleProduct,
+      saveProduct,
       pushRecent,
       renameBoard,
       clearBoard,
+      importBoard,
       toasts,
       toast,
       dismissToast,

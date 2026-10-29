@@ -18,10 +18,12 @@ import { COLORS, findColor } from '../src/data/colors.ts'
 import { PALETTES, findPalette } from '../src/data/palettes.ts'
 import { PRODUCTS, findProduct } from '../src/data/products.ts'
 import { DEALERS, STATES, directionsUrl, distanceKm } from '../src/data/dealers.ts'
-import { GUIDES } from '../src/data/guides.ts'
+import { GUIDES, findGuide } from '../src/data/guides.ts'
 import { PROJECTS } from '../src/data/projects.ts'
 import { INK, PAPER, contrast, estimateLrv, readableInk, swatchText } from '../src/lib/color.ts'
 import { ALT } from '../src/lib/media.ts'
+import { PREP_CONDITIONS } from '../src/data/surfacePrep.ts'
+import { orderProductsForWork } from '../src/lib/projectChecklist.ts'
 
 let passed = 0
 const test = (name, fn) => {
@@ -362,6 +364,33 @@ test('every image in the manifest is actually used by the interface', () => {
     .join('\n')
   const unused = [...mediaKeys].filter((key) => !source.includes(`'${key}'`) && !source.includes(`"${key}"`))
   assert.deepEqual(unused, [], 'manifest images not referenced anywhere')
+})
+
+test('every surface-prep condition points at real products and a real guide', () => {
+  for (const condition of PREP_CONDITIONS) {
+    assert.ok(condition.steps.length >= 3, `${condition.id} has fewer than three steps`)
+    assert.ok(findGuide(condition.relatedGuide), `${condition.id} points at an unknown guide`)
+    for (const productId of condition.relatedProducts) {
+      assert.ok(findProduct(productId), `${condition.id} recommends an unknown product "${productId}"`)
+    }
+  }
+})
+
+test('surface-prep condition ids are unique', () => {
+  const ids = PREP_CONDITIONS.map((c) => c.id)
+  assert.deepEqual(ids, [...new Set(ids)], 'duplicate surface-prep condition id')
+})
+
+test('the project checklist orders preparation before topcoats, and topcoats before trim', () => {
+  const screeding = findProduct('screeding')
+  const primer = findProduct('primer')
+  const matt = findProduct('matt')
+  const gloss = findProduct('gloss')
+  const ordered = orderProductsForWork([gloss, matt, screeding, primer])
+  assert.deepEqual(
+    ordered.map((p) => p.id),
+    ['screeding', 'primer', 'matt', 'gloss'],
+  )
 })
 
 const total = passed

@@ -23,8 +23,10 @@ import Calculator from '../src/routes/Calculator'
 import Inspiration from '../src/routes/Inspiration'
 import ProjectDetail from '../src/routes/ProjectDetail'
 import Advice from '../src/routes/Advice'
+import SurfacePrep from '../src/routes/SurfacePrep'
 import GuideDetail from '../src/routes/GuideDetail'
 import Dealers from '../src/routes/Dealers'
+import Project from '../src/routes/Project'
 import Quote from '../src/routes/Quote'
 import About from '../src/routes/About'
 import DataPage from '../src/routes/DataPage'
@@ -47,8 +49,11 @@ const cases: Array<{ pattern: string; path: string; Page: () => JSX.Element }> =
   { pattern: '/inspiration', path: '/inspiration', Page: Inspiration },
   { pattern: '/inspiration/:id', path: '/inspiration/arched-villa-gra', Page: ProjectDetail },
   { pattern: '/advice', path: '/advice', Page: Advice },
+  { pattern: '/advice/surface-prep', path: '/advice/surface-prep', Page: SurfacePrep },
   { pattern: '/advice/:id', path: '/advice/how-much-paint', Page: GuideDetail },
   { pattern: '/dealers', path: '/dealers?q=lekki', Page: Dealers },
+  { pattern: '/project', path: '/project', Page: Project },
+  { pattern: '/project', path: '/project?name=Trans+Amadi+flat&c=opuda-white,palm-shadow&p=matt,primer', Page: Project },
   { pattern: '/quote', path: '/quote', Page: Quote },
   { pattern: '/quote', path: '/quote?type=sample&colour=bone', Page: Quote },
   { pattern: '/about', path: '/about', Page: About },
@@ -61,7 +66,7 @@ const cases: Array<{ pattern: string; path: string; Page: () => JSX.Element }> =
 /** Every routable path prefix the app owns. */
 const KNOWN = [
   '/', '/colours', '/products', '/room-preview', '/calculator', '/inspiration',
-  '/advice', '/dealers', '/quote', '/about', '/data', '/style-guide', '/legal',
+  '/advice', '/dealers', '/project', '/quote', '/about', '/data', '/style-guide', '/legal',
 ]
 
 let failures = 0
