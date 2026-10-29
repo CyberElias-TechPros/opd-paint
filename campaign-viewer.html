@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPUDA'S PAINT — The Approval Call Video Campaign Hub</title>
+  <style>
+    :root {
+      --green: #0C6B45;
+      --green-light: #158356;
+      --gold: #F5A623;
+      --dark: #0F1412;
+      --dark-card: #18221D;
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #F3F5F4;
+      --text-muted: #A3B1AA;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-mark {
+      width: 48px;
+      height: 48px;
+      background: var(--green);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 24px;
+      color: #fff;
+    }
+    .brand-title h1 {
+      font-size: 22px;
+      letter-spacing: 0.5px;
+    }
+    .brand-title p {
+      font-size: 13px;
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      background: rgba(12, 107, 69, 0.35);
+      border: 1px solid var(--green);
+      color: #52C787;
+    }
+    .main-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 36px;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    /* Phone frame for vertical 9:16 video */
+    .phone-container {
+      position: sticky;
+      top: 24px;
+      background: #000;
+      border: 12px solid #28332E;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.08);
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .phone-notch {
+      width: 130px;
+      height: 22px;
+      background: #28332E;
+      margin: 0 auto;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      position: relative;
+      z-index: 10;
+    }
+    video {
+      width: 100%;
+      aspect-ratio: 9/16;
+      display: block;
+      background: #000;
+      object-fit: cover;
+    }
+    .video-tabs {
+      display: flex;
+      background: #151D19;
+      padding: 6px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      gap: 6px;
+    }
+    .video-tab {
+      flex: 1;
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .video-tab.active {
+      background: var(--green);
+      color: #fff;
+    }
+    .card {
+      background: var(--dark-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 14px;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scene-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .scene-item {
+      padding: 14px 16px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 10px;
+      border-left: 4px solid var(--green);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .scene-item:hover {
+      background: rgba(12, 107, 69, 0.15);
+    }
+    .scene-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .scene-time {
+      color: var(--gold);
+      font-family: monospace;
+    }
+    .scene-dialogue {
+      font-size: 13px;
+      color: #D3E0D8;
+      font-style: italic;
+    }
+    .scene-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+    .hook-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 600px) {
+      .hook-grid { grid-template-columns: 1fr; }
+    }
+    .hook-box {
+      background: rgba(0,0,0,0.3);
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .hook-box h3 {
+      font-size: 13px;
+      color: var(--gold);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .hook-box ul {
+      list-style: none;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .hook-box li {
+      padding-left: 12px;
+      border-left: 2px solid var(--green);
+    }
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #25D366;
+      color: #0A140F;
+      font-weight: bold;
+      font-size: 15px;
+      padding: 14px 24px;
+      border-radius: 30px;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 211, 102, 0.35);
+    }
+    .caption-box {
+      background: #0D1310;
+      padding: 16px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #D0DED5;
+      white-space: pre-wrap;
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">O</div>
+      <div class="brand-title">
+        <h1>OPUDA’S PAINT</h1>
+        <p>Colour, made in Nigeria.</p>
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <span class="badge">9:16 Vertical Video Campaign</span>
+      <a href="https://wa.me/2349026424350?text=Hello%20Opuda%27s%20Paint%2C%20I%20watched%20the%20ad%20and%20want%20to%20preview%20colours%20for%20my%20building%20project." class="cta-btn" target="_blank">
+        💬 WhatsApp: 0902 642 4350
+      </a>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    
+    <!-- LEFT: Phone Video Player -->
+    <div>
+      <div class="video-tabs">
+        <button class="video-tab active" onclick="switchVideo('opudas-approval-call-ad.mp4', this, 'The Approval Call (45s Flagship)')">Flagship (45s)</button>
+        <button class="video-tab" onclick="switchVideo('opudas-which-one-15s.mp4', this, 'Which One? (15s Organic)')">Which One? (15s)</button>
+        <button class="video-tab" onclick="switchVideo('opudas-stopped-guessing-30s.mp4', this, 'I Stopped Guessing (30s UGC)')">UGC Ad (30s)</button>
+      </div>
+
+      <div class="phone-container">
+        <div class="phone-notch"></div>
+        <video id="player" controls playsinline autoplay loop>
+          <source src="opudas-approval-call-ad.mp4" type="video/mp4">
+          Your browser does not support HTML5 video.
+        </video>
+      </div>
+
+      <div style="text-align: center; margin-top: 16px;">
+        <p id="video-title" style="font-weight: bold; color: var(--gold); font-size: 15px;">The Approval Call (45s Flagship)</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">1080×1920 (9:16) • Port Harcourt Reference Photography • Burned-in Subtitles</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: Campaign Execution Blueprint -->
+    <div>
+      
+      <!-- Video Scenes Breakdown -->
+      <div class="card">
+        <h2>🎬 Shot-by-Shot Scene Breakdown (The Approval Call)</h2>
+        <div class="scene-list">
+          <div class="scene-item" onclick="seekVideo(0)">
+            <div class="scene-header">
+              <span>SCENE 1 — THE HOOK</span>
+              <span class="scene-time">0:00 – 0:03</span>
+            </div>
+            <div class="scene-dialogue">Woman: "Daddy, I dey the site oh."</div>
+            <div class="scene-text">Text: MY HUSBAND IS IN LONDON. THE HOUSE IS IN PORT HARCOURT. AND HE HAS OPINIONS.</div>
+          </div>
+
+          <div class="scene-item" onclick="seekVideo(3)">
+            <div class="scene-header">
+              <span>SCENE 2 — THE FAMILY ARGUMENT</span>
+              <span class="scene-time">0:03 – 0:08</span>
+            </div>
+            <div class="scene-dialogue">Father: "Cream. Plain cream." • Woman: "Daddy, everybody house na cream?" • Father: "Nobody regret cream."</div>
+            <div class="scene-text">Opuda's Matt paint bucket shown on site • Text: EVERY FAMILY HAS THIS ARGUMENT.</div>
+          </div>
+
+          <div class="scene-item" onclick="seekVideo(8)">
+            <div class="scene-header">
+              <span>SCENE 3 — THE MONEY FEAR</span>
+              <span class="scene-time">0:08 – 0:10</span>
+            </div>
+            <div class="scene-dialogue">Father: "...I no wan make we spend this money twice. You know how much enter this building."</div>
+            <div class="scene-text">Weathered wall & rain texture • Text: RAIN. SUN. ONE WRONG COLOUR.</div>
+          </div>
+
+          <div class="scene-item" onclick="seekVideo(10)">
+            <div class="scene-header">
+              <span>SCENE 4 — THE DISCOVERY (ROOM PREVIEW TOOL)</span>
+              <span class="scene-time">0:10 – 0:17</span>
+            </div>
+            <div class="scene-dialogue">Woman: "Wait. Forget cream first. Look." • Father: "You mean I fit see am before we buy?" • Woman: "Yes na. Fifty-nine colours."</div>
+            <div class="scene-text">Interactive tool changes wall to Lilac Room OP-605, Bonny Haze OP-136, Palm Shadow OP-209.</div>
+          </div>
+
+          <div class="scene-item" onclick="seekVideo(17)">
+            <div class="scene-header">
+              <span>SCENE 5 — THE OBJECTION & GUARANTEE</span>
+              <span class="scene-time">0:17 – 0:22</span>
+            </div>
+            <div class="scene-dialogue">Father: "But this one go stay? Sun dey here." • Woman: "Opuda's get five-year guarantee for Matt and Silk. Port Harcourt, Daddy."</div>
+            <div class="scene-text">Close-up of Opuda's Matt & Silk buckets • 5-Year Guarantee on Matt & Silk*</div>
+          </div>
+
+          <div class="scene-item" onclick="seekVideo(22)">
+            <div class="scene-header">
+              <span>SCENE 6 — THE DECISION</span>
+              <span class="scene-time">0:22 – 0:25</span>
+            </div>
+            <div class="scene-dialogue">Woman: "So? Cream?" • Father: "...No. That lilac one. OP-605. Make we do am well."</div>
+            <div class="scene-text">Text: DON'T GUESS YOUR COLOUR. SEE IT FIRST.</div>
+          </div>
+
+          <div class="scene-item" onclick="seekVideo(25)">
+            <div class="scene-header">
+              <span>SCENE 7 — THE FINISHED-HOUSE REVEAL (BEAT DROP!)</span>
+              <span class="scene-time">0:25 – 0:32</span>
+            </div>
+            <div class="scene-dialogue">[Afrobeat groove swells] The Arched Villa (GRA Phase 2) • The Lilac Lounge (GRA Phase 2) • Blue Wall (Rumuola) • Creek Facade (Woji)</div>
+            <div class="scene-text">Text: WALLS. CEILINGS. FENCES. GATES.</div>
+          </div>
+
+          <div class="scene-item" onclick="seekVideo(32)">
+            <div class="scene-header">
+              <span>SCENE 8 — THE SHARE TRIGGER</span>
+              <span class="scene-time">0:32 – 0:38</span>
+            </div>
+            <div class="scene-dialogue">Neighbour: "Eh! Who painted your house?" • Woman: "Opuda’s. Go try your colour first. Free."</div>
+            <div class="scene-text">Golden hour finished house & ornate gate • Text: “WHO PAINTED YOUR HOUSE?”</div>
+          </div>
+
+          <div class="scene-item" onclick="seekVideo(38)">
+            <div class="scene-header">
+              <span>SCENE 9 — CALL TO ACTION & BRAND END CARD</span>
+              <span class="scene-time">0:38 – 0:45</span>
+            </div>
+            <div class="scene-dialogue">Voiceover: "Opuda’s Paint. Colour, made in Nigeria. Try your colour free at opudapaint.com, or WhatsApp us for a quote."</div>
+            <div class="scene-text">WhatsApp: 0902 642 4350 • opudapaint.com • Final WhatsApp chime.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hook Swipe Bank -->
+      <div class="card">
+        <h2>💡 24-Hook Swipe Bank (For Split-Testing)</h2>
+        <div class="hook-grid">
+          <div class="hook-box">
+            <h3>A. Curiosity Hooks</h3>
+            <ul>
+              <li>"Wait till you see what this colour does to a room."</li>
+              <li>"Don't choose your wall colour yet."</li>
+              <li>"What if you could test your paint colour before buying a single bucket?"</li>
+              <li>"This is the part of building a house nobody prepares you for."</li>
+              <li>"My husband is in London. The house is in Port Harcourt. And he has opinions."</li>
+              <li>"Fifty-nine colours, one wall. Let me show you."</li>
+            </ul>
+          </div>
+          <div class="hook-box">
+            <h3>B. Pain-Point Hooks</h3>
+            <ul>
+              <li>"If your painter is mixing his own special combination, watch this first."</li>
+              <li>"You approved cream, but the wall came out looking greenish. What happened?"</li>
+              <li>"You spent so much on the building. Don't leave the final colour to guesswork."</li>
+              <li>"Rain, sun and harmattan dust: what should you consider before choosing exterior paint?"</li>
+              <li>"Stop paying for paint twice."</li>
+              <li>"Nobody tells you this before you build, so let me show you."</li>
+            </ul>
+          </div>
+          <div class="hook-box">
+            <h3>C. Transformation Hooks</h3>
+            <ul>
+              <li>"From a bare wall to this. See the difference."</li>
+              <li>"One colour decision can change the whole room."</li>
+              <li>"Watch this wall change colour three times."</li>
+              <li>"Imagine the house the whole street stops to look at."</li>
+              <li>"When the work finishes, let the result speak."</li>
+              <li>"Which of these colours would you choose for a modern Nigerian home?"</li>
+            </ul>
+          </div>
+          <div class="hook-box">
+            <h3>D. Relatability & Viral Hooks</h3>
+            <ul>
+              <li>"POV: your brother funding the build just video-called to supervise."</li>
+              <li>"Every family has had a disagreement about house colours."</li>
+              <li>"Me, I'm no interior designer. But I know what I like when I see it."</li>
+              <li>"If you're building, save this before the painter arrives."</li>
+              <li>"If your family is always debating colours, send them this."</li>
+              <li>"Eh! Who painted your house?"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Social Captions & WhatsApp Flow -->
+      <div class="card">
+        <h2>📱 Social Media Caption & WhatsApp Funnel</h2>
+        <div class="caption-box">Every family has that one person who must approve the colour. 😂🎨
+
+But what if you could see your colour on your own wall before buying the paint?
+
+With Opuda’s Paint Room Preview, you can explore 59 colours and find a look that works for your home.
+
+Colour, made in Nigeria.
+
+Try your colour free at opudapaint.com or WhatsApp 0902 642 4350 for a quote.
+
+Building or renovating? Tag the person who always has an opinion about the colour. 👇
+
+#OpudasPaint #PaintNigeria #MadeInNigeria #PortHarcourt #NigerianHomes #HomeRenovation #BuildInNigeria #PaintTransformation</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    function switchVideo(src, btn, title) {
+      const player = document.getElementById('player');
+      player.src = src;
+      player.play();
+      document.querySelectorAll('.video-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('video-title').innerText = title;
+    }
+    function seekVideo(time) {
+      const player = document.getElementById('player');
+      player.currentTime = time;
+      player.play();
+    }
+  </script>
+</body>
+</html>
