@@ -12,8 +12,8 @@ import { Button, ButtonLink } from '../components/ui/Button'
 import { ColourCard } from '../components/colour/ColourCard'
 import { useApp } from '../store/AppStore'
 import { contrast, deltaE, harmony, swatchText } from '../lib/color'
-import { naira } from '../lib/format'
 import { track } from '../lib/analytics'
+import { WHATSAPP_NUMBER } from '../data/dealers'
 import NotFound from './NotFound'
 
 export default function ColourDetail() {
@@ -296,8 +296,7 @@ export default function ColourDetail() {
               Mixed in these products
             </h2>
             <ul className="mt-3 divide-y divide-ink/10 border-y border-ink/10">
-              {PRODUCTS.filter((p) => p.finish !== 'Filler').map((product) => {
-                const from = product.packs.filter((p) => p.guidePrice).map((p) => p.guidePrice as number)
+                {PRODUCTS.filter((p) => p.finish !== 'Filler').map((product) => {
                 return (
                   <li key={product.id}>
                     <Link to={`/products/${product.id}`} className="group flex items-center justify-between gap-4 py-3">
@@ -307,12 +306,7 @@ export default function ColourDetail() {
                           {product.finish} · {product.coveragePerUnit} m² per litre per coat
                         </span>
                       </span>
-                      <span className="shrink-0 text-right">
-                        <span className="block text-[0.82rem] font-semibold">
-                          {from.length ? naira(Math.min(...from)) : 'On request'}
-                        </span>
-                        <span className="block text-[0.6rem] uppercase tracking-[0.1em] text-ink/72">from · guide</span>
-                      </span>
+                      <ArrowRight className="size-4 shrink-0 text-ink/40 transition-transform group-hover:translate-x-1 group-hover:text-green" aria-hidden />
                     </Link>
                   </li>
                 )
@@ -375,16 +369,15 @@ export default function ColourDetail() {
             </p>
           </div>
           <div className="flex gap-2">
-            <ButtonLink to={`/quote?colour=${colour.id}`} size="sm">
-              Ask the colour desk
-            </ButtonLink>
             <ButtonLink
-              to={`https://wa.me/2349026424350?text=${encodeURIComponent(`Hello OPUDA'S PAINT, I'm interested in ${colour.name} (${colour.code}).`)}`}
+              to={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hello OPUDA'S PAINT, I'm interested in ${colour.name} (${colour.code}).`)}`}
               external
               size="sm"
-              variant="outline"
             >
               WhatsApp <ArrowUpRight className="size-3.5" aria-hidden />
+            </ButtonLink>
+            <ButtonLink to={`/quote?colour=${colour.id}`} size="sm" variant="outline">
+              Ask the colour desk
             </ButtonLink>
           </div>
         </div>

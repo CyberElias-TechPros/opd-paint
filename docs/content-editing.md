@@ -22,9 +22,11 @@ they encode the promise the site makes.
 1. **A digital swatch is an approximation.** Never write copy that says a screen
    colour is an exact match for paint. The colour detail page, the data page and
    every technical sheet already say what the screen cannot show.
-2. **No invented prices, testimonials, addresses or dealer names.** If a value
-   is a placeholder, it must be marked as one (`guidePrice`, `verified: false`,
-   `claimsStatus: 'pending-verification'`). The UI renders those marks.
+2. **No invented prices, testimonials, addresses or dealer names.** The site
+   does not publish prices at all — every inquiry path routes to WhatsApp, the
+   quote form or a dealer. If another value is a placeholder, it must be marked
+   as one (`verified: false`, `claimsStatus: 'pending-verification'`). The UI
+   renders those marks.
 3. **Codes are permanent.** `OP-001` identifies a colour in saved projects,
    dealer references and printed fan decks. Renaming a code breaks links.
 4. **Every image needs alt text.** Add it to `ALT` in `app/src/lib/media.ts` at
@@ -66,11 +68,10 @@ media manifest.
 
 ## Products — `products.ts`
 
-The `packs` array drives the calculator and the price display:
+The `packs` array drives the calculator and the pack-size display. There is no
+price field — the site does not publish prices; every pack-size and estimate
+surface links to WhatsApp or the quote form instead.
 
-- `guidePrice` is an indicative Port Harcourt retail guide **excluding VAT and
-  delivery**. Use `null` to render "Ask dealer". Every surface that shows it
-  labels it a guide price.
 - `inStock` is deliberately not a stock system: leave `false` unless the
   commercial team confirms availability.
 - `coveragePerUnit` is square metres per litre (or kg) for **one coat** on a

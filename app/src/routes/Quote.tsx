@@ -202,11 +202,11 @@ export default function Quote() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <ButtonLink to={`https://wa.me/${WHATSAPP_NUMBER}`} external size="sm">
+                <MessageCircle className="size-3.5" aria-hidden /> WhatsApp — usually faster
+              </ButtonLink>
               <ButtonLink to={`tel:${BRAND_PHONE_TEL}`} external variant="outline" size="sm">
                 <Phone className="size-3.5" aria-hidden /> Call
-              </ButtonLink>
-              <ButtonLink to={`https://wa.me/${WHATSAPP_NUMBER}`} external variant="outline" size="sm">
-                <MessageCircle className="size-3.5" aria-hidden /> WhatsApp
               </ButtonLink>
             </div>
           </div>

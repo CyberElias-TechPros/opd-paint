@@ -10,7 +10,7 @@ import { Badge, DataRow, ArrowLink } from '../components/ui/Bits'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { ColourCard } from '../components/colour/ColourCard'
 import { useApp } from '../store/AppStore'
-import { naira } from '../lib/format'
+import { WHATSAPP_NUMBER } from '../data/dealers'
 import NotFound from './NotFound'
 
 const SUGGESTED_COLOURS: Record<string, string[]> = {
@@ -48,15 +48,6 @@ export default function ProductDetail() {
           sku: product.sku,
           brand: { '@type': 'Brand', name: 'OPUDA’S PAINT' },
           description: product.description,
-          offers: product.packs
-            .filter((pack) => pack.guidePrice != null)
-            .map((pack) => ({
-              '@type': 'Offer',
-              priceCurrency: 'NGN',
-              price: pack.guidePrice,
-              name: `${pack.size} ${pack.unit}`,
-              availability: 'https://schema.org/InStock',
-            })),
         }
       : undefined,
   })
@@ -152,16 +143,15 @@ export default function ProductDetail() {
                 <h2 id="packs-title" className="text-[1.1rem] font-semibold">
                   Pack sizes
                 </h2>
-                <span className="text-[0.68rem] uppercase tracking-[0.1em] text-ink/72">Guide price · excl. VAT</span>
+                <span className="text-[0.68rem] uppercase tracking-[0.1em] text-ink/72">Stock varies by dealer</span>
               </div>
               <div className="mt-3 overflow-hidden rounded-sm border border-ink/12">
                 <table className="w-full text-left text-[0.84rem]">
-                  <caption className="sr-only">Available pack sizes and indicative prices</caption>
+                  <caption className="sr-only">Available pack sizes and coverage</caption>
                   <thead className="bg-plaster/40 text-[0.64rem] uppercase tracking-[0.12em] text-ink/72">
                     <tr>
                       <th scope="col" className="px-4 py-2.5 font-bold">Pack</th>
                       <th scope="col" className="px-4 py-2.5 font-bold">Covers (one coat)</th>
-                      <th scope="col" className="px-4 py-2.5 text-right font-bold">Guide price</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -173,18 +163,24 @@ export default function ProductDetail() {
                         <td className="tabular px-4 py-2.5 text-ink/72">
                           {Math.round(pack.size * product.coveragePerUnit)} m²
                         </td>
-                        <td className="tabular px-4 py-2.5 text-right font-semibold">
-                          {pack.guidePrice != null ? naira(pack.guidePrice) : 'Ask dealer'}
-                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <p className="mt-2 text-[0.72rem] leading-relaxed text-ink/72">
-                Guide prices are indicative Port Harcourt retail figures for the pack shown and are not a quotation. Your dealer
-                sets the price you pay.
-              </p>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-ink/12 bg-paper-2/60 p-4">
+                <p className="text-[0.8rem] leading-relaxed text-ink/72">
+                  Pricing is not published on the site — it depends on pack, dealer and delivery. WhatsApp us the pack
+                  size you need and we will confirm current pricing and stock.
+                </p>
+                <ButtonLink
+                  to={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hello OPUDA'S PAINT, I'd like pricing and stock for ${product.name}.`)}`}
+                  external
+                  size="sm"
+                >
+                  WhatsApp us
+                </ButtonLink>
+              </div>
             </section>
 
             <section className="mt-8" aria-labelledby="tech-title">
@@ -251,9 +247,18 @@ export default function ProductDetail() {
                 <p className="text-[0.9rem] font-semibold">Ready to specify it?</p>
                 <p className="text-[0.78rem] text-ink/72">Send the room dimensions with your colour and we will quote it.</p>
               </div>
-              <ButtonLink to={`/quote?product=${product.id}`} size="sm">
-                Request a quote
-              </ButtonLink>
+              <div className="flex flex-wrap gap-2">
+                <ButtonLink
+                  to={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hello OPUDA'S PAINT, I'd like a quote for ${product.name}.`)}`}
+                  external
+                  size="sm"
+                >
+                  WhatsApp us
+                </ButtonLink>
+                <ButtonLink to={`/quote?product=${product.id}`} size="sm" variant="outline">
+                  Request a quote
+                </ButtonLink>
+              </div>
             </div>
           </div>
         </section>

@@ -47,12 +47,6 @@ const DOMAINS: Array<{
     note: 'These are marked “spec in review” on their product pages. Coverage, recoat and dilution figures must be confirmed against the data sheets.',
   },
   {
-    domain: 'Guide prices',
-    source: 'Indicative Port Harcourt retail guide',
-    status: 'pending',
-    note: 'Excludes VAT and delivery, and is not a quotation. Must be replaced by a feed from the authoritative price list before launch.',
-  },
-  {
     domain: 'Dealer network',
     source: 'Commercial team trading areas',
     status: 'pending',
@@ -248,7 +242,7 @@ export default function DataPage() {
               <FileJson className="size-4 text-green" aria-hidden /> Structured data
             </p>
             <p className="mt-1.5 text-[0.8rem] leading-relaxed text-ink/72">
-              Pages emit schema.org markup for the organisation, product offers, colour records, guides and verified
+              Pages emit schema.org markup for the organisation, products, colour records, guides and verified
               dealer locations. Markup is only emitted for fields that are also visible on the page.
             </p>
           </div>

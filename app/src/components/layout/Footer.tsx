@@ -88,16 +88,16 @@ export function Footer() {
               Colour, made in Nigeria. Painted on more walls than any screen can show you.
             </p>
             <div className="mt-6 space-y-2.5 text-[0.85rem] text-paper-2/70">
-              <a className="flex items-center gap-2.5 hover:text-paper-2" href={`tel:${BRAND_PHONE_TEL}`}>
-                <Phone className="size-4 shrink-0" aria-hidden /> {BRAND_PHONE_DISPLAY}
-              </a>
               <a
-                className="flex items-center gap-2.5 hover:text-paper-2"
+                className="flex items-center gap-2.5 font-semibold text-paper-2 hover:text-green-bright"
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}
                 target="_blank"
                 rel="noreferrer noopener"
               >
                 <MessageCircle className="size-4 shrink-0" aria-hidden /> WhatsApp a colour advisor
+              </a>
+              <a className="flex items-center gap-2.5 hover:text-paper-2" href={`tel:${BRAND_PHONE_TEL}`}>
+                <Phone className="size-4 shrink-0" aria-hidden /> {BRAND_PHONE_DISPLAY}
               </a>
               <a className="flex items-center gap-2.5 hover:text-paper-2" href="mailto:hello@opudapaint.com">
                 <Mail className="size-4 shrink-0" aria-hidden /> hello@opudapaint.com
@@ -215,7 +215,7 @@ export function Footer() {
         <p className="mt-4 max-w-3xl text-[0.7rem] leading-relaxed text-paper-2/70">
           Colours shown on a screen are digital approximations and cannot guarantee a physical match. Paint appearance
           depends on lighting, substrate, finish and application. Always confirm with a sample pot or a physical chip.
-          Prices shown as “guide price” are indicative, exclude VAT and delivery, and are not a quotation.
+          This site does not publish prices — WhatsApp us or ask your nearest dealer for current pricing.
         </p>
       </div>
     </footer>

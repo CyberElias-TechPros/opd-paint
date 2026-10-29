@@ -215,7 +215,7 @@ export default function StyleGuide() {
               ['Motion is optional', 'All reveals, marquees and transitions collapse under prefers-reduced-motion.'],
               ['Contrast', 'Body text ≥ 4.5:1. Large display text ≥ 3:1. Non-text UI ≥ 3:1.'],
               ['Copy is specific', 'No “premium quality”. Say what the product does, for how long, and under which conditions.'],
-              ['Numbers carry provenance', 'A price is a guide price; an LRV is an estimate; a colour is a digital approximation.'],
+              ['Numbers carry provenance', 'An LRV is an estimate; a colour is a digital approximation; we never publish a price we cannot stand behind.'],
             ].map(([title, body]) => (
               <li key={title} className="rounded-sm border border-ink/12 bg-paper-2/60 p-4">
                 <p className="text-[0.86rem] font-semibold">{title}</p>
