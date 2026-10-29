@@ -25,6 +25,7 @@ import { createHash, randomUUID, timingSafeEqual } from 'node:crypto'
 import { log, requestId, describeError } from './logger.mjs'
 import { configuredChannels, notifyEnquiry } from './notify.mjs'
 import { recordError } from './errors.mjs'
+import { handleAdminContentApi, renderContentAdminPage } from './admin-content.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -720,6 +721,45 @@ ${rows}
     })
     res.end(html)
     return
+  }
+
+  /* ---------------------------------------------------------- content admin */
+
+  if (path === '/admin/content' && req.method === 'GET') {
+    if (!ADMIN_ENABLED) {
+      send(res, 404, { ok: false, error: 'Unknown endpoint' })
+      return
+    }
+    if (!isAdmin(req)) {
+      demandAuth(res)
+      return
+    }
+    const html = await renderContentAdminPage()
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Length': Buffer.byteLength(html),
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex, nofollow',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'no-referrer',
+      'Content-Security-Policy':
+        "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; form-action 'none'; base-uri 'none'",
+    })
+    res.end(html)
+    return
+  }
+
+  if (path.startsWith('/api/admin/content')) {
+    if (!ADMIN_ENABLED) {
+      send(res, 404, { ok: false, error: 'Unknown endpoint' })
+      return
+    }
+    if (!isAdmin(req)) {
+      demandAuth(res)
+      return
+    }
+    const handled = await handleAdminContentApi(req, res, path, send)
+    if (handled) return
   }
 
   if (req.method === 'OPTIONS') {

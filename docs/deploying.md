@@ -21,6 +21,7 @@ server/data/*.jsonl  the enquiry log — the only thing that must be backed up
 | `GET /api/health` | Liveness for Docker, systemd or an uptime monitor. |
 | `GET /admin` | Read-only enquiry inbox. **404 unless credentials are configured.** |
 | `GET /admin/enquiries.csv` | The same records as CSV, for a spreadsheet or a CRM import. |
+| `GET /admin/content` + `GET`/`POST /api/admin/content*` | Editable content layer (dealer details, product claim status and pack stock, measured LRV, guide review metadata). Same credentials, same 404-when-unconfigured rule. See [admin.md](admin.md). |
 
 ## Environment variables
 
@@ -38,6 +39,8 @@ server/data/*.jsonl  the enquiry log — the only thing that must be backed up
 | `OPD_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. |
 | `OPD_RELEASE` | unset | Name attached to error reports; Vercel supplies the commit SHA automatically. |
 | `OPD_API_ORIGIN` | unset | Vercel only: where `app/api/[...path].js` forwards `/api/*`. |
+| `OPD_CMS_BACKEND` | `fs` | `github` commits content-admin edits straight to the repo instead of writing the local filesystem. See [admin.md](admin.md). |
+| `OPD_CMS_GITHUB_TOKEN`, `OPD_CMS_GITHUB_REPO`, `OPD_CMS_GITHUB_BRANCH` | unset | Required for the `github` backend: a fine-grained PAT (Contents: Read & write, this repo only), `owner/name`, and the branch to commit to (default `main`). |
 
 The behaviour behind these — what is written where, what to alert on, what to do
 when a lead was never announced — is in [operations.md](operations.md). The

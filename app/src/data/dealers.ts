@@ -12,6 +12,8 @@
  * (0902 642 4350) until each dealer's direct line is confirmed.
  */
 
+import { applyDealerOverrides } from '../lib/contentOverrides'
+
 export type Dealer = {
   id: string
   name: string
@@ -30,7 +32,7 @@ export const BRAND_PHONE_DISPLAY = '0902 642 4350'
 export const BRAND_PHONE_TEL = '+2349026424350'
 export const WHATSAPP_NUMBER = '2349026424350'
 
-export const DEALERS: Dealer[] = [
+export const DEALERS_BASE: Dealer[] = [
   {
     id: 'ph-trans-amadi',
     name: "OPUDA'S Trade Counter — Port Harcourt",
@@ -214,6 +216,12 @@ export const DEALERS: Dealer[] = [
     hours: 'Mon–Sat, 8:00–18:00',
   },
 ]
+
+/**
+ * The published dealer list, with any admin edits/additions/removals from
+ * `data/overrides/dealers.json` applied. See `src/lib/contentOverrides.ts`.
+ */
+export const DEALERS: Dealer[] = applyDealerOverrides(DEALERS_BASE)
 
 export const STATES = [...new Set(DEALERS.map((d) => d.state))].sort()
 export const SERVICES = [...new Set(DEALERS.flatMap((d) => d.services))].sort()

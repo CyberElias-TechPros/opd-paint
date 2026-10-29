@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node ../tools/build-sitemap.mjs && tsc -b && vite build && npm run prerender",
+    "build": "node ../tools/build-sitemap.mjs && node --experimental-strip-types --no-warnings ../tools/export-content-snapshot.mjs && tsc -b && vite build && npm run prerender",
     "preview": "vite preview --host 0.0.0.0",
     "lint": "oxlint src",
     "typecheck": "tsc -b",
@@ -14,7 +14,7 @@
     "server": "node ../server/index.mjs",
     "test:routes": "vite build --ssr scripts/smoke.tsx --outDir .smoke --emptyOutDir --logLevel error && node .smoke/smoke.js",
     "test:unit": "node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/calculator.test.ts && node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/mask.test.ts && node --experimental-strip-types --no-warnings --import ./scripts/register.mjs scripts/data.test.ts",
-    "test:server": "node --test ../server/index.test.mjs ../server/proxy.test.mjs ../server/ops.test.mjs",
+    "test:server": "node --test ../server/index.test.mjs ../server/proxy.test.mjs ../server/ops.test.mjs ../server/admin-content.test.mjs",
     "prerender": "vite build --ssr scripts/prerender.tsx --outDir .prerender --emptyOutDir --logLevel error && node .prerender/prerender.js",
     "test:browser": "vite build --ssr scripts/browser.test.tsx --outDir .browser --emptyOutDir --logLevel error && node .browser/browser.test.js",
     "test:a11y": "node scripts/a11y.mjs"

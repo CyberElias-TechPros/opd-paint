@@ -1,0 +1,902 @@
+{
+  "generatedAt": "2026-10-29T05:50:13.111Z",
+  "dealers": [
+    {
+      "id": "ph-trans-amadi",
+      "name": "OPUDA'S Trade Counter — Port Harcourt",
+      "kind": "Brand trade counter",
+      "area": "Trans Amadi",
+      "city": "Port Harcourt",
+      "state": "Rivers",
+      "lat": 4.805,
+      "lng": 7.04,
+      "services": [
+        "Retail",
+        "Trade pricing",
+        "Colour mixing",
+        "Sample pots",
+        "Site visit"
+      ],
+      "verified": true,
+      "hours": "Mon–Sat, 8:00–18:00"
+    },
+    {
+      "id": "ph-gra",
+      "name": "Authorised dealer — GRA Phase 2",
+      "kind": "Authorised dealer",
+      "area": "GRA Phase 2",
+      "city": "Port Harcourt",
+      "state": "Rivers",
+      "lat": 4.806,
+      "lng": 7.003,
+      "services": [
+        "Retail",
+        "Delivery",
+        "Sample pots"
+      ],
+      "verified": true,
+      "hours": "Mon–Sat, 8:00–18:00"
+    },
+    {
+      "id": "ph-rumuokoro",
+      "name": "Authorised dealer — Rumuokoro",
+      "kind": "Authorised dealer",
+      "area": "Rumuokoro",
+      "city": "Port Harcourt",
+      "state": "Rivers",
+      "lat": 4.87,
+      "lng": 6.93,
+      "services": [
+        "Retail",
+        "Trade pricing",
+        "Delivery"
+      ],
+      "verified": true,
+      "hours": "Mon–Sat, 8:00–17:30"
+    },
+    {
+      "id": "ph-woji",
+      "name": "Authorised dealer — Woji",
+      "kind": "Authorised dealer",
+      "area": "Woji",
+      "city": "Port Harcourt",
+      "state": "Rivers",
+      "lat": 4.823,
+      "lng": 7.047,
+      "services": [
+        "Retail",
+        "Sample pots"
+      ],
+      "verified": false,
+      "hours": "Mon–Sat, 8:30–17:00"
+    },
+    {
+      "id": "ph-elelenwo",
+      "name": "Authorised dealer — Elelenwo",
+      "kind": "Authorised dealer",
+      "area": "Elelenwo",
+      "city": "Port Harcourt",
+      "state": "Rivers",
+      "lat": 4.844,
+      "lng": 7.033,
+      "services": [
+        "Retail",
+        "Delivery"
+      ],
+      "verified": false,
+      "hours": "Mon–Sat, 9:00–17:00"
+    },
+    {
+      "id": "bonny",
+      "name": "Distributor — Bonny Island",
+      "kind": "Distributor",
+      "area": "Bonny Main Town",
+      "city": "Bonny",
+      "state": "Rivers",
+      "lat": 4.432,
+      "lng": 7.17,
+      "services": [
+        "Retail",
+        "Delivery",
+        "Site visit"
+      ],
+      "verified": false,
+      "hours": "Mon–Sat, 8:00–17:00"
+    },
+    {
+      "id": "uyo",
+      "name": "Authorised dealer — Uyo",
+      "kind": "Authorised dealer",
+      "area": "Ewet Housing",
+      "city": "Uyo",
+      "state": "Akwa Ibom",
+      "lat": 5.0377,
+      "lng": 7.9128,
+      "services": [
+        "Retail",
+        "Delivery",
+        "Site visit"
+      ],
+      "verified": false,
+      "hours": "Mon–Fri, 8:00–17:00"
+    },
+    {
+      "id": "calabar",
+      "name": "Distributor — Calabar",
+      "kind": "Distributor",
+      "area": "Marian",
+      "city": "Calabar",
+      "state": "Cross River",
+      "lat": 4.9757,
+      "lng": 8.3417,
+      "services": [
+        "Retail",
+        "Trade pricing",
+        "Delivery"
+      ],
+      "verified": true,
+      "hours": "Mon–Sat, 8:00–17:30"
+    },
+    {
+      "id": "warri",
+      "name": "Distributor — Warri",
+      "kind": "Distributor",
+      "area": "Effurun",
+      "city": "Warri",
+      "state": "Delta",
+      "lat": 5.5173,
+      "lng": 5.7506,
+      "services": [
+        "Retail",
+        "Trade pricing",
+        "Colour mixing",
+        "Delivery"
+      ],
+      "verified": true,
+      "hours": "Mon–Sat, 8:00–18:00"
+    },
+    {
+      "id": "benin",
+      "name": "Authorised dealer — Benin City",
+      "kind": "Authorised dealer",
+      "area": "Ugbowo",
+      "city": "Benin City",
+      "state": "Edo",
+      "lat": 6.335,
+      "lng": 5.6037,
+      "services": [
+        "Retail",
+        "Delivery"
+      ],
+      "verified": false,
+      "hours": "Mon–Sat, 8:00–17:00"
+    },
+    {
+      "id": "owerri",
+      "name": "Authorised dealer — Owerri",
+      "kind": "Authorised dealer",
+      "area": "New Owerri",
+      "city": "Owerri",
+      "state": "Imo",
+      "lat": 5.4836,
+      "lng": 7.0332,
+      "services": [
+        "Retail",
+        "Sample pots"
+      ],
+      "verified": false,
+      "hours": "Mon–Sat, 8:00–17:00"
+    },
+    {
+      "id": "aba",
+      "name": "Distributor — Aba",
+      "kind": "Distributor",
+      "area": "Ariaria",
+      "city": "Aba",
+      "state": "Abia",
+      "lat": 5.1066,
+      "lng": 7.3667,
+      "services": [
+        "Retail",
+        "Trade pricing",
+        "Delivery"
+      ],
+      "verified": true,
+      "hours": "Mon–Sat, 8:00–17:30"
+    },
+    {
+      "id": "abuja",
+      "name": "Distributor — Abuja",
+      "kind": "Distributor",
+      "area": "Wuse 2",
+      "city": "Abuja",
+      "state": "FCT",
+      "lat": 9.0765,
+      "lng": 7.4697,
+      "services": [
+        "Retail",
+        "Trade pricing",
+        "Delivery",
+        "Site visit"
+      ],
+      "verified": true,
+      "hours": "Mon–Sat, 8:00–18:00"
+    },
+    {
+      "id": "lagos",
+      "name": "Distributor — Lagos",
+      "kind": "Distributor",
+      "area": "Ikeja GRA",
+      "city": "Lagos",
+      "state": "Lagos",
+      "lat": 6.6018,
+      "lng": 3.3515,
+      "services": [
+        "Retail",
+        "Trade pricing",
+        "Delivery"
+      ],
+      "verified": true,
+      "hours": "Mon–Sat, 8:00–18:00"
+    }
+  ],
+  "products": [
+    {
+      "id": "matt",
+      "sku": "OPD-MT",
+      "name": "OPUDA'S MATT Emulsion",
+      "finish": "Matt",
+      "claimsStatus": "label-verified",
+      "packs": [
+        {
+          "size": 20,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 10,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 4,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 1,
+          "unit": "L",
+          "inStock": true
+        }
+      ]
+    },
+    {
+      "id": "silk",
+      "sku": "OPD-SLK",
+      "name": "OPUDA'S SILK Emulsion",
+      "finish": "Silk",
+      "claimsStatus": "label-verified",
+      "packs": [
+        {
+          "size": 20,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 10,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 4,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 1,
+          "unit": "L",
+          "inStock": true
+        }
+      ]
+    },
+    {
+      "id": "primer",
+      "sku": "OPD-PRM",
+      "name": "OPUDA'S Alkali-Resisting Primer",
+      "finish": "Primer",
+      "claimsStatus": "pending-verification",
+      "packs": [
+        {
+          "size": 20,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 4,
+          "unit": "L",
+          "inStock": true
+        }
+      ]
+    },
+    {
+      "id": "gloss",
+      "sku": "OPD-GLS",
+      "name": "OPUDA'S Synthetic Gloss",
+      "finish": "Gloss",
+      "claimsStatus": "pending-verification",
+      "packs": [
+        {
+          "size": 20,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 4,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 1,
+          "unit": "L",
+          "inStock": true
+        }
+      ]
+    },
+    {
+      "id": "weathershield",
+      "sku": "OPD-WS",
+      "name": "OPUDA'S Weathershield",
+      "finish": "Texture",
+      "claimsStatus": "pending-verification",
+      "packs": [
+        {
+          "size": 20,
+          "unit": "L",
+          "inStock": true
+        },
+        {
+          "size": 10,
+          "unit": "L",
+          "inStock": true
+        }
+      ]
+    },
+    {
+      "id": "screeding",
+      "sku": "OPD-SCR",
+      "name": "OPUDA'S Screeding Compound",
+      "finish": "Filler",
+      "claimsStatus": "pending-verification",
+      "packs": [
+        {
+          "size": 25,
+          "unit": "kg",
+          "inStock": true
+        },
+        {
+          "size": 10,
+          "unit": "kg",
+          "inStock": true
+        }
+      ]
+    }
+  ],
+  "colours": [
+    {
+      "id": "opuda-white",
+      "code": "OP-001",
+      "name": "Opuda White",
+      "hex": "#F8F5EE",
+      "family": "White & Off-White",
+      "measuredLrv": null
+    },
+    {
+      "id": "coconut-milk",
+      "code": "OP-004",
+      "name": "Coconut Milk",
+      "hex": "#F3EDE1",
+      "family": "White & Off-White",
+      "measuredLrv": null
+    },
+    {
+      "id": "limestone",
+      "code": "OP-008",
+      "name": "Limestone",
+      "hex": "#EBE4D5",
+      "family": "White & Off-White",
+      "measuredLrv": null
+    },
+    {
+      "id": "bone",
+      "code": "OP-010",
+      "name": "Bone",
+      "hex": "#E6DFCF",
+      "family": "White & Off-White",
+      "measuredLrv": null
+    },
+    {
+      "id": "ivory-coast",
+      "code": "OP-012",
+      "name": "Ivory Coast",
+      "hex": "#F0E8D6",
+      "family": "White & Off-White",
+      "measuredLrv": null
+    },
+    {
+      "id": "cotton-paper",
+      "code": "OP-016",
+      "name": "Cotton Paper",
+      "hex": "#E2DCD0",
+      "family": "White & Off-White",
+      "measuredLrv": null
+    },
+    {
+      "id": "stone-white",
+      "code": "OP-020",
+      "name": "Stone White",
+      "hex": "#EEEEEA",
+      "family": "White & Off-White",
+      "measuredLrv": null
+    },
+    {
+      "id": "savannah-sand",
+      "code": "OP-104",
+      "name": "Savannah Sand",
+      "hex": "#DBC7A6",
+      "family": "Warm Neutral",
+      "measuredLrv": null
+    },
+    {
+      "id": "warm-oat",
+      "code": "OP-108",
+      "name": "Warm Oat",
+      "hex": "#D4C0A1",
+      "family": "Warm Neutral",
+      "measuredLrv": null
+    },
+    {
+      "id": "clay-beige",
+      "code": "OP-112",
+      "name": "Clay Beige",
+      "hex": "#C6AA88",
+      "family": "Warm Neutral",
+      "measuredLrv": null
+    },
+    {
+      "id": "desert-linen",
+      "code": "OP-116",
+      "name": "Desert Linen",
+      "hex": "#CCB498",
+      "family": "Warm Neutral",
+      "measuredLrv": null
+    },
+    {
+      "id": "mushroom",
+      "code": "OP-120",
+      "name": "Mushroom",
+      "hex": "#A69788",
+      "family": "Warm Neutral",
+      "measuredLrv": null
+    },
+    {
+      "id": "taupe-drift",
+      "code": "OP-124",
+      "name": "Taupe Drift",
+      "hex": "#A3917C",
+      "family": "Warm Neutral",
+      "measuredLrv": null
+    },
+    {
+      "id": "bronze-dust",
+      "code": "OP-128",
+      "name": "Bronze Dust",
+      "hex": "#8F7A62",
+      "family": "Warm Neutral",
+      "measuredLrv": null
+    },
+    {
+      "id": "pebble",
+      "code": "OP-132",
+      "name": "Pebble",
+      "hex": "#A8A69C",
+      "family": "Warm Neutral",
+      "measuredLrv": null
+    },
+    {
+      "id": "bonny-haze",
+      "code": "OP-136",
+      "name": "Bonny Haze",
+      "hex": "#C2C1B8",
+      "family": "Warm Neutral",
+      "measuredLrv": null
+    },
+    {
+      "id": "opuda-green",
+      "code": "OP-201",
+      "name": "Opuda Green",
+      "hex": "#0C6B45",
+      "family": "Green",
+      "measuredLrv": null
+    },
+    {
+      "id": "forest-floor",
+      "code": "OP-205",
+      "name": "Forest Floor",
+      "hex": "#2B4A37",
+      "family": "Green",
+      "measuredLrv": null
+    },
+    {
+      "id": "palm-shadow",
+      "code": "OP-209",
+      "name": "Palm Shadow",
+      "hex": "#3E5C46",
+      "family": "Green",
+      "measuredLrv": null
+    },
+    {
+      "id": "delta-emerald",
+      "code": "OP-213",
+      "name": "Delta Emerald",
+      "hex": "#15734F",
+      "family": "Green",
+      "measuredLrv": null
+    },
+    {
+      "id": "moss-room",
+      "code": "OP-217",
+      "name": "Moss Room",
+      "hex": "#6B7B55",
+      "family": "Green",
+      "measuredLrv": null
+    },
+    {
+      "id": "olive-branch",
+      "code": "OP-221",
+      "name": "Olive Branch",
+      "hex": "#7D7F4E",
+      "family": "Green",
+      "measuredLrv": null
+    },
+    {
+      "id": "sage-whisper",
+      "code": "OP-225",
+      "name": "Sage Whisper",
+      "hex": "#B9C1A7",
+      "family": "Green",
+      "measuredLrv": null
+    },
+    {
+      "id": "eucalyptus-mist",
+      "code": "OP-229",
+      "name": "Eucalyptus Mist",
+      "hex": "#CED7C8",
+      "family": "Green",
+      "measuredLrv": null
+    },
+    {
+      "id": "atlantic-blue",
+      "code": "OP-301",
+      "name": "Atlantic Blue",
+      "hex": "#1E4E6B",
+      "family": "Blue",
+      "measuredLrv": null
+    },
+    {
+      "id": "lagoon",
+      "code": "OP-305",
+      "name": "Lagoon",
+      "hex": "#2C6E85",
+      "family": "Blue",
+      "measuredLrv": null
+    },
+    {
+      "id": "harmattan-sky",
+      "code": "OP-309",
+      "name": "Harmattan Sky",
+      "hex": "#A7BECD",
+      "family": "Blue",
+      "measuredLrv": null
+    },
+    {
+      "id": "powder-blue",
+      "code": "OP-313",
+      "name": "Powder Blue",
+      "hex": "#C2D2DD",
+      "family": "Blue",
+      "measuredLrv": null
+    },
+    {
+      "id": "denim-room",
+      "code": "OP-317",
+      "name": "Denim Room",
+      "hex": "#566F8A",
+      "family": "Blue",
+      "measuredLrv": null
+    },
+    {
+      "id": "indigo-night",
+      "code": "OP-321",
+      "name": "Indigo Night",
+      "hex": "#263050",
+      "family": "Blue",
+      "measuredLrv": null
+    },
+    {
+      "id": "blue-fence",
+      "code": "OP-325",
+      "name": "Blue Fence",
+      "hex": "#2F7FA8",
+      "family": "Blue",
+      "measuredLrv": null
+    },
+    {
+      "id": "terracotta",
+      "code": "OP-401",
+      "name": "Terracotta",
+      "hex": "#B4654A",
+      "family": "Terracotta & Red",
+      "measuredLrv": null
+    },
+    {
+      "id": "clay-pot",
+      "code": "OP-405",
+      "name": "Clay Pot",
+      "hex": "#A9553C",
+      "family": "Terracotta & Red",
+      "measuredLrv": null
+    },
+    {
+      "id": "brick-lane",
+      "code": "OP-409",
+      "name": "Brick Lane",
+      "hex": "#8C4533",
+      "family": "Terracotta & Red",
+      "measuredLrv": null
+    },
+    {
+      "id": "coral-dust",
+      "code": "OP-413",
+      "name": "Coral Dust",
+      "hex": "#D08B72",
+      "family": "Terracotta & Red",
+      "measuredLrv": null
+    },
+    {
+      "id": "crimson-seal",
+      "code": "OP-417",
+      "name": "Crimson Seal",
+      "hex": "#A8101B",
+      "family": "Terracotta & Red",
+      "measuredLrv": null
+    },
+    {
+      "id": "festival-red",
+      "code": "OP-421",
+      "name": "Festival Red",
+      "hex": "#C1121F",
+      "family": "Terracotta & Red",
+      "measuredLrv": null
+    },
+    {
+      "id": "rust-ember",
+      "code": "OP-425",
+      "name": "Rust Ember",
+      "hex": "#8A4A2B",
+      "family": "Terracotta & Red",
+      "measuredLrv": null
+    },
+    {
+      "id": "harmattan-sun",
+      "code": "OP-501",
+      "name": "Harmattan Sun",
+      "hex": "#E3B45F",
+      "family": "Yellow & Ochre",
+      "measuredLrv": null
+    },
+    {
+      "id": "ochre",
+      "code": "OP-505",
+      "name": "Ochre",
+      "hex": "#C58A3C",
+      "family": "Yellow & Ochre",
+      "measuredLrv": null
+    },
+    {
+      "id": "golden-hour",
+      "code": "OP-509",
+      "name": "Golden Hour",
+      "hex": "#DAAF69",
+      "family": "Yellow & Ochre",
+      "measuredLrv": null
+    },
+    {
+      "id": "marigold",
+      "code": "OP-513",
+      "name": "Marigold",
+      "hex": "#DF9F2A",
+      "family": "Yellow & Ochre",
+      "measuredLrv": null
+    },
+    {
+      "id": "apricot-wall",
+      "code": "OP-517",
+      "name": "Apricot Wall",
+      "hex": "#E8C3A1",
+      "family": "Yellow & Ochre",
+      "measuredLrv": null
+    },
+    {
+      "id": "aubergine",
+      "code": "OP-601",
+      "name": "Aubergine",
+      "hex": "#4A2B45",
+      "family": "Purple & Mauve",
+      "measuredLrv": null
+    },
+    {
+      "id": "lilac-room",
+      "code": "OP-605",
+      "name": "Lilac Room",
+      "hex": "#D1BFD5",
+      "family": "Purple & Mauve",
+      "measuredLrv": null
+    },
+    {
+      "id": "plum-velvet",
+      "code": "OP-609",
+      "name": "Plum Velvet",
+      "hex": "#6B3FA3",
+      "family": "Purple & Mauve",
+      "measuredLrv": null
+    },
+    {
+      "id": "mauve-linen",
+      "code": "OP-613",
+      "name": "Mauve Linen",
+      "hex": "#C2A5AD",
+      "family": "Purple & Mauve",
+      "measuredLrv": null
+    },
+    {
+      "id": "dusty-grape",
+      "code": "OP-617",
+      "name": "Dusty Grape",
+      "hex": "#8C6D85",
+      "family": "Purple & Mauve",
+      "measuredLrv": null
+    },
+    {
+      "id": "blush-room",
+      "code": "OP-621",
+      "name": "Blush Room",
+      "hex": "#E6C8C0",
+      "family": "Purple & Mauve",
+      "measuredLrv": null
+    },
+    {
+      "id": "graphite",
+      "code": "OP-701",
+      "name": "Graphite",
+      "hex": "#3A3F3C",
+      "family": "Grey",
+      "measuredLrv": null
+    },
+    {
+      "id": "slate-grey",
+      "code": "OP-705",
+      "name": "Slate Grey",
+      "hex": "#6A7371",
+      "family": "Grey",
+      "measuredLrv": null
+    },
+    {
+      "id": "morning-mist",
+      "code": "OP-709",
+      "name": "Morning Mist",
+      "hex": "#CACFCB",
+      "family": "Grey",
+      "measuredLrv": null
+    },
+    {
+      "id": "charcoal-wall",
+      "code": "OP-713",
+      "name": "Charcoal Wall",
+      "hex": "#2A2E2B",
+      "family": "Grey",
+      "measuredLrv": null
+    },
+    {
+      "id": "window-black",
+      "code": "OP-717",
+      "name": "Window Black",
+      "hex": "#1B1D1C",
+      "family": "Grey",
+      "measuredLrv": null
+    },
+    {
+      "id": "midnight-teal",
+      "code": "OP-801",
+      "name": "Midnight Teal",
+      "hex": "#14332F",
+      "family": "Deep & Architectural",
+      "measuredLrv": null
+    },
+    {
+      "id": "deep-ocean",
+      "code": "OP-805",
+      "name": "Deep Ocean",
+      "hex": "#1B3A50",
+      "family": "Deep & Architectural",
+      "measuredLrv": null
+    },
+    {
+      "id": "cocoa-brown",
+      "code": "OP-809",
+      "name": "Cocoa Brown",
+      "hex": "#593A2B",
+      "family": "Deep & Architectural",
+      "measuredLrv": null
+    },
+    {
+      "id": "espresso",
+      "code": "OP-813",
+      "name": "Espresso",
+      "hex": "#3A2A22",
+      "family": "Deep & Architectural",
+      "measuredLrv": null
+    },
+    {
+      "id": "bronze-patina",
+      "code": "OP-817",
+      "name": "Bronze Patina",
+      "hex": "#6D7A62",
+      "family": "Deep & Architectural",
+      "measuredLrv": null
+    }
+  ],
+  "guides": [
+    {
+      "id": "how-much-paint",
+      "title": "How much paint do I actually need?",
+      "category": "Planning",
+      "reviewer": "OPUDA’S technical desk",
+      "updated": "2026-08-12"
+    },
+    {
+      "id": "preparing-walls",
+      "title": "Preparing walls in Nigerian weather",
+      "category": "Preparation",
+      "reviewer": "OPUDA’S technical desk",
+      "updated": "2026-08-20"
+    },
+    {
+      "id": "matt-or-silk",
+      "title": "Matt or Silk? Choosing the right finish",
+      "category": "Application",
+      "reviewer": "OPUDA’S technical desk",
+      "updated": "2026-07-30"
+    },
+    {
+      "id": "colour-on-screen",
+      "title": "Why your wall will look different from your screen",
+      "category": "Colour",
+      "reviewer": "OPUDA’S colour desk",
+      "updated": "2026-09-02"
+    },
+    {
+      "id": "cutting-in",
+      "title": "Cutting in: the skill that decides the job",
+      "category": "Application",
+      "reviewer": "OPUDA’S technical desk",
+      "updated": "2026-06-18"
+    },
+    {
+      "id": "damp-and-mould",
+      "title": "Damp walls, mould and what paint can and cannot fix",
+      "category": "Troubleshooting",
+      "reviewer": "OPUDA’S technical desk",
+      "updated": "2026-09-14"
+    }
+  ]
+}

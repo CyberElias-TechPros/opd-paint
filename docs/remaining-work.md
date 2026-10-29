@@ -109,13 +109,28 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 
 ### Phase 09 — Content management (the biggest remaining build)
 
-- Headless CMS (Sanity/Payload/Directus) or an admin CRUD layer over the typed
-  data, for colours, products, guides, projects, dealers and palettes.
+**Partly built.** A scoped admin layer now exists at `/admin/content` — see
+[admin.md](admin.md) — covering exactly the fields the rest of this document
+marks provisional: dealer verification and details, product claim status and
+pack stock, measured LRV, and guide review metadata. It is deliberately not a
+full headless CMS: colour hex, product copy, guide text and project content
+stay code changes, reviewed like any other, because they are claims the
+business is legally and reputationally answerable for. It ships with two
+persistence backends (local filesystem for a host with a disk, a GitHub
+Contents-API commit for anything serverless) and full server-side validation
+and tests (`server/admin-content.test.mjs`).
+
+Still open if the business later wants more than that scoped list:
+
+- A full headless CMS (Sanity/Payload/Directus) or widening the admin CRUD
+  layer to cover colours, products, guides, projects and palettes themselves.
 - Editorial roles, draft/publish, preview, media library, scheduled publishing.
-- Migration of the 59 colours, 6 products, 6 guides, 19 projects and 14 dealers.
-- Content-operations guide update; the Git-based workflow in
-  `docs/content-editing.md` becomes the fallback rather than the method.
-- **Effort: 5 days bought-in headless, 15–20 days built.**
+- Migration tooling for the 59 colours, 6 products, 6 guides, 19 projects and
+  14 dealers into whichever system is chosen.
+- The Git-based workflow in `docs/content-editing.md` would become the
+  fallback rather than the method for those fields too.
+- **Effort: 5 days bought-in headless, 15–20 days built**, for that wider
+  scope — the scoped layer already shipped is a fraction of that.
 
 ### Phase 14 — Lead routing and communication
 
@@ -205,7 +220,7 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 | **B. Accessibility** | ⚠️ Designed in, unverified | Everything is keyboard-operable, focus-visible, reduced-motion aware, never colour-only. **Not yet verified with a real screen reader or an automated audit.** |
 | **C. Performance** | ⚠️ Budgeted, unmeasured | 118 kB gzip entry, lazy routes, WebP, preloaded hero, lazy fonts. **No measurement on a real Nigerian mobile connection.** Lighthouse CI closes this. |
 | **D. Security and privacy** | ⚠️ Good baseline | Headers, CSP, constant-time auth, rate limits, honeypot, consent-gated analytics. **Missing: monitoring, MFA, scanning, DSAR process, legal review.** |
-| **E. Maintainability** | ⚠️ Good, one hole | Typed data, tests, generated documents, reproducibility checks, four docs. **The hole is content editing without a CMS.** |
+| **E. Maintainability** | ⚠️ Good, hole narrowed | Typed data, tests, generated documents, reproducibility checks, five docs. A scoped admin layer (`/admin/content`, `docs/admin.md`) now covers dealer/product/colour/guide operational fields without a CMS; editing colour/product/guide/project *content* itself is still a code change by design. |
 | **F. Commercial integrity** | ✅ Strong | No price is ever shown — every inquiry routes to a person. `pending-verification` flags, no invented testimonials, no stock claims, concept work labelled as concept. |
 
 ---

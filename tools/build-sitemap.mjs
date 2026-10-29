@@ -44,10 +44,14 @@ const staticRoutes = [
   ['/data', '0.4', 'monthly'],
 ]
 
+// Colours, products and guides are declared as a `*_BASE` array and then
+// re-exported under their public name after the admin-override layer is
+// applied (see app/src/lib/contentOverrides.ts) — the marker has to point at
+// the array literal itself, not the one-line re-export, or this finds zero ids.
 const [colors, products, guides, projects] = await Promise.all([
-  ids('colors.ts', 'export const COLORS'),
-  ids('products.ts', 'export const PRODUCTS'),
-  ids('guides.ts', 'export const GUIDES'),
+  ids('colors.ts', 'const COLORS_BASE'),
+  ids('products.ts', 'const PRODUCTS_BASE'),
+  ids('guides.ts', 'const GUIDES_BASE'),
   ids('projects.ts', 'export const PROJECTS'),
 ])
 
