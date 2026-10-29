@@ -548,6 +548,8 @@ async function main(): Promise<void> {
     const { default: QuotePage } = await import('../src/routes/Quote')
     const { default: ProductsPage } = await import('../src/routes/Products')
     const { default: DealersPage } = await import('../src/routes/Dealers')
+    const { default: SurfacePrepPage } = await import('../src/routes/SurfacePrep')
+    const { default: ProjectPage } = await import('../src/routes/Project')
 
     for (const [path, pattern, Page] of [
       ['/colours', '/colours', ColoursPage],
@@ -555,6 +557,8 @@ async function main(): Promise<void> {
       ['/quote', '/quote', QuotePage],
       ['/products', '/products', ProductsPage],
       ['/dealers', '/dealers', DealersPage],
+      ['/advice/surface-prep', '/advice/surface-prep', SurfacePrepPage],
+      ['/project', '/project', ProjectPage],
     ] as const) {
       await check(`headings descend in order: ${path}`, async () => {
         await headingAudit(path, pattern, Page)

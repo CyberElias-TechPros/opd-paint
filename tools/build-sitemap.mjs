@@ -38,6 +38,7 @@ const staticRoutes = [
   ['/calculator', '0.8', 'monthly'],
   ['/inspiration', '0.8', 'monthly'],
   ['/advice', '0.8', 'weekly'],
+  ['/advice/surface-prep', '0.7', 'monthly'],
   ['/dealers', '0.8', 'weekly'],
   ['/quote', '0.7', 'monthly'],
   ['/about', '0.6', 'yearly'],

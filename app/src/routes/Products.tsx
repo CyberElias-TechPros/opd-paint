@@ -4,6 +4,7 @@ import { ArrowRight, Check, Droplet, FileDown, Layers, MessageCircle, ShieldChec
 import { usePageMeta } from '../lib/seo'
 import { track } from '../lib/analytics'
 import { PRODUCTS, FINISH_SHEEN_LABEL, type Finish, type Surface } from '../data/products'
+import { FinishFinder } from '../components/products/FinishFinder'
 import { WHATSAPP_NUMBER } from '../data/dealers'
 import { SmartImage } from '../components/media/SmartImage'
 import { PlankWall } from '../components/brand/Devices'
@@ -85,6 +86,14 @@ export default function Products() {
       </header>
 
       <div className="shell py-8">
+        <FinishFinder
+          onApply={(nextFinish, nextSurface) => {
+            setFinish(nextFinish)
+            setSurface(nextSurface)
+            document.getElementById('product-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }}
+        />
+
         <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-2" role="group" aria-label="Filter by finish">
           {FINISHES.map((option) => (
             <Pill key={option} active={finish === option} onClick={() => setFinish(option)}>
@@ -100,7 +109,7 @@ export default function Products() {
           ))}
         </div>
 
-        <p className="mt-4 text-[0.82rem] text-ink/72" aria-live="polite">
+        <p id="product-results" className="mt-4 text-[0.82rem] text-ink/72" aria-live="polite">
           {list.length} product{list.length === 1 ? '' : 's'}
         </p>
 

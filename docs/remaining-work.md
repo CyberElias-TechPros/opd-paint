@@ -25,7 +25,7 @@ That is the README's own standard, and it is the right one.
 | **G2** Requirements | Prioritised scope, traceability | ⚠️ Partial | Functional requirements are written. A traceability matrix (requirement → build → test) is not maintained, and nothing is signed off. |
 | **G3** Design | Journeys, wireframes, system, a11y | ✅ Nearly met | Design system, journeys and accessibility rules are built and documented (`/style-guide`). Missing only formal review and approval. |
 | **G4** Data & architecture | Data model, integrations, cost | ❌ Blocked | The *model* is good. The *data* is provisional: unverified dealers, unmeasured colours, unsigned product specs. Pricing is deliberately not part of the data model at all — see §2. No operating-cost assessment. |
-| **G5** Feature completeness | Core pages and journeys | ✅ Met | 18 routes + 404, all five core journeys work, 21-route render test. Needs a human review pass. |
+| **G5** Feature completeness | Core pages and journeys | ✅ Met | 19 routes + 404, all five core journeys work, 24-case render test. Needs a human review pass. |
 | **G6** System readiness | Integrations, security, monitoring | ⚠️ Technical half done | Notifications, error intake, structured logs, a restore drill, dependency/secret scanning, axe and Lighthouse gates now exist and run in CI. What is still missing is not code: the credentials for a real notification channel and a Sentry DSN are not issued, the production host is not provisioned, and nobody yet owns the alert. |
 | **G7** Acceptance | Functional, a11y, device, colour, UAT | ❌ Not met | Automated tests pass. No real-device testing, no assistive-technology audit, no colour QA against physical chips, no user acceptance testing. |
 | **G8** Launch | Go/no-go, rollback, smoke, support | ❌ Not started | No production environment, no DNS/TLS, no rollback exercise, no support rota. |
@@ -144,15 +144,29 @@ Still open if the business later wants more than that scoped list:
 
 ### Phase 11.02 — The missing decision-support tools
 
-- Finish-selection tool (surface → finish → product) as a guided flow, not a
-  filter. *(0.5 day)*
-- Surface-preparation decision support: what to do for new render, old gloss,
-  damp, efflorescence, salt air. *(1 day)*
-- Project checklist export (what to buy, in what order, what to check off).
-  *(1 day)*
-- Share a project: a durable link rather than the current clipboard message
-  *(1–2 days; needs a tiny backend or URL-encoded state)*.
-- **Effort: 3–5 days.**
+**Done**, all four:
+
+- ~~Finish-selection tool (surface → finish → product) as a guided flow, not a
+  filter.~~ `components/products/FinishFinder.tsx`, embedded in `/products`: a
+  two-question flow (surface, then priority) that hands its answer to the
+  existing finish/surface filters rather than duplicating the product grid.
+- ~~Surface-preparation decision support: what to do for new render, old gloss,
+  damp, efflorescence, salt air.~~ `/advice/surface-prep`
+  (`components/advice/SurfacePrepTool.tsx`, data in `data/surfacePrep.ts`):
+  pick one of seven situations, get the sequence in order, built from the
+  preparation guidance already written out in the `preparing-walls` and
+  `damp-and-mould` guides — not new claims, the same ones restructured as a
+  tool.
+- ~~Project checklist export (what to buy, in what order, what to check off).~~
+  `/project`: every saved product's own `application` steps, ordered filler →
+  primer → topcoat → trim (`lib/projectChecklist.ts`), with a checkbox per
+  step and a *Print checklist* button using the site's existing print
+  stylesheet — no PDF library, no backend.
+- ~~Share a project: a durable link rather than the current clipboard
+  message.~~ `/project` doubles as the destination: `?name=&c=&p=` is the
+  whole project, URL-encoded, so a link survives a closed tab or a forwarded
+  message with no backend and no expiry. Opening someone else's link shows a
+  read-only view with one job — add it to your own board.
 
 ### Phase 16 — Measurement
 

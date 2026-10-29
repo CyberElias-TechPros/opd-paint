@@ -28,7 +28,9 @@ const CalculatorPage = lazy(() => import('./routes/Calculator'))
 const Inspiration = lazy(() => import('./routes/Inspiration'))
 const ProjectDetail = lazy(() => import('./routes/ProjectDetail'))
 const Advice = lazy(() => import('./routes/Advice'))
+const SurfacePrep = lazy(() => import('./routes/SurfacePrep'))
 const GuideDetail = lazy(() => import('./routes/GuideDetail'))
+const Project = lazy(() => import('./routes/Project'))
 const Dealers = lazy(() => import('./routes/Dealers'))
 const Quote = lazy(() => import('./routes/Quote'))
 const About = lazy(() => import('./routes/About'))
@@ -173,8 +175,10 @@ export function App() {
               <Route path="/inspiration" element={<Inspiration />} />
               <Route path="/inspiration/:id" element={<ProjectDetail />} />
               <Route path="/advice" element={<Advice />} />
+              <Route path="/advice/surface-prep" element={<SurfacePrep />} />
               <Route path="/advice/:id" element={<GuideDetail />} />
               <Route path="/dealers" element={<Dealers />} />
+              <Route path="/project" element={<Project />} />
               <Route path="/quote" element={<Quote />} />
               <Route path="/about" element={<About />} />
               <Route path="/data" element={<DataPage />} />

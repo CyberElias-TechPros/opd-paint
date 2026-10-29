@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ListChecks } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
 import { CATEGORIES, GUIDES } from '../data/guides'
 import { SmartImage } from '../components/media/SmartImage'
@@ -73,6 +73,22 @@ export default function Advice() {
       </header>
 
       <div className="shell py-8">
+        <Link
+          to="/advice/surface-prep"
+          className="mb-6 flex items-center justify-between gap-3 rounded-sm border border-ink/14 bg-paper-2/60 px-5 py-4 transition-colors hover:border-green"
+        >
+          <span className="flex items-center gap-3">
+            <ListChecks className="size-4 shrink-0 text-green" aria-hidden />
+            <span>
+              <span className="block text-[0.92rem] font-semibold">What does the wall need right now?</span>
+              <span className="block text-[0.76rem] text-ink/68">
+                New render, old gloss, a damp patch, salt bloom — pick your situation and get the sequence.
+              </span>
+            </span>
+          </span>
+          <span className="shrink-0 text-[0.76rem] font-bold uppercase tracking-[0.08em] text-green">Open the tool</span>
+        </Link>
+
         <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-2" role="group" aria-label="Filter guides by category">
           <Pill active={category === 'All'} onClick={() => setCategory('All')}>
             All

@@ -49,7 +49,7 @@ cd app && npm run check
 ```
 
 - `npm run lint` — oxlint, zero errors.
-- `npm test` — 14 calculator, 9 colour-mask and 32 content-integrity tests, plus
+- `npm test` — 14 calculator, 9 colour-mask and 36 content-integrity tests, plus
   19 HTTP-level tests against the real enquiry service (validation, honeypot,
   routing and SLA, malformed JSON, 413 on an oversized body, subscriptions,
   colour search, inbox auth, CSV escaping, rate limiting). Content tests check
@@ -59,11 +59,12 @@ cd app && npm run check
   completed work, no unused image.
 - `tsc -b` — full type check, `verbatimModuleSyntax` and
   `exactOptionalPropertyTypes` on.
-- `npm run test:routes` — all 21 routes rendered through the real router, each
-  asserting an `<h1>`, no `undefined`/`NaN`/`[object Object]` in the markup, and
-  no link to a route the app does not own.
-- `npm run test:server` — 39 tests: the HTTP contract above, the Vercel proxy
-  (`app/api/[...path].js`) against the real service, and the operational paths —
+- `npm run test:routes` — all 24 route cases rendered through the real router,
+  each asserting an `<h1>`, no `undefined`/`NaN`/`[object Object]` in the
+  markup, and no link to a route the app does not own.
+- `npm run test:server` — 55 tests: the HTTP contract above, the Vercel proxy
+  (`app/api/[...path].js`) against the real service, the content-admin API
+  (`/admin/content`, `/api/admin/content/*`), and the operational paths —
   notification delivery and retry, a dead webhook not failing an enquiry,
   error-report scrubbing, and the health check.
 - `npm run test:browser` — 7 tests in a jsdom DOM against a real enquiry service
@@ -115,8 +116,16 @@ so this part is human.
    animation runs, and content is fully visible.
 7. **Offline API** — stop `npm run server`, submit an enquiry: the failure must
    keep the visitor's answers and offer the phone number.
-8. **Print** — the colour detail page and the calculator printed to PDF: no
-   navigation chrome, figures legible in black and white.
+8. **Print** — the colour detail page, the calculator and `/project` (with a
+   saved board) printed to PDF: no navigation chrome, figures legible in black
+   and white, checklist steps still numbered.
+9. **Decision tools** — the finish finder on `/products` and the surface-prep
+   tool on `/advice/surface-prep`: every path ends in a real, existing
+   product or guide link, never a dead end.
+10. **Project sharing** — save a colour and a product, copy the link from
+    `/project`, open it in a private window: it must show the same selection
+    read-only, and "Add to my project" must merge it without clearing
+    anything already saved in that window.
 
 ## Known gaps against the README roadmap
 
