@@ -83,7 +83,10 @@ def read_claims_status() -> dict[str, str]:
     exactly once per product, in that document order, so zipping the two flat
     lists is simpler and safer than trying to delimit object boundaries."""
     source = PRODUCTS_TS.read_text(encoding="utf-8")
-    block = source.split("export const PRODUCTS")[1].split("export const findProduct")[0]
+    # The exported PRODUCTS is a one-line re-export of PRODUCTS_BASE once the
+    # admin-override layer is applied (see app/src/lib/contentOverrides.ts) —
+    # the array literal itself is what this needs.
+    block = source.split("const PRODUCTS_BASE")[1].split("export const findProduct")[0]
     ids = re.findall(r"\bid:\s*'([^']+)'", block)
     values = re.findall(r"claimsStatus:\s*'([^']+)'", block)
     if len(ids) != len(values) or len(ids) < len(PRODUCT_ORDER):
