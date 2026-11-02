@@ -14,7 +14,7 @@ teams, not in a repository.
 | Colour library | 59 colours with permanent codes, families, undertones, room suitability and editorial notes. Every hex is a digital proof, not a chip match. |
 | Quantity engine | Formula documented on the page, verified by 14 unit tests against hand-worked examples — and an estimate can be saved to the project board, printed on a checklist and attached to an enquiry as a measured quantity. |
 | Decision-support tools | Finish finder, surface-preparation advisor, project checklist and a durable share link: `/tools`, `/tools/finish-finder`, `/tools/surface-prep`, `/project`. The recommendation engine is an explicit rule table with 30 tests, not a black box, and every reason it gives is a sentence a person can read aloud. |
-| Room visualiser | Runs entirely in the browser on the visitor's own photo; the image never leaves the device. |
+| Room visualiser | Runs entirely in the browser on the visitor's own photo; the image never leaves the device. Upload, drag-and-drop or paste; magic fill with a tolerance, brush and eraser; undo; a before/after divider that opens showing the paint; matt and silk; a saved PNG. Where a browser has no canvas to draw on, the page says so and offers the library, the printed colour book and physical samples instead of a dead rectangle. Verified against every task in roadmap 12.02 — see `implementation-audit.md` §2. |
 | Guides | Six articles with a named reviewer, review date and label-sourced technical content. |
 | Enquiry pipeline | Real server, real validation, real reference numbers, real routing and SLA — the desk and the SLA are stored with the record, not only returned to the browser. |
 | Newsletter consent | Sign-up *and* opt-out: `POST /api/unsubscribe` writes a timestamped suppression record, and re-subscribing is recorded as fresh consent with the opt-out retired beside it. |
@@ -50,14 +50,17 @@ teams, not in a repository.
 cd app && npm run check
 ```
 
-199 automated checks run on every `npm run check`, plus four CI jobs that need a
+207 automated checks run on every `npm run check`, plus four CI jobs that need a
 browser.
 
 - `npm run lint` — oxlint, zero errors. (Twelve warnings remain, all of them
   deliberate: `react/set-state-in-effect` on the store's hydration effect and
   `react/only-export-components` on two hooks exported beside their provider.)
-- `npm test` — **88 tests**: 14 calculator, 9 colour-mask, 35 content-integrity
-  and 30 covering the advisor, the share-link codec and the tools data. One of the
+- `npm test` — **92 tests**: 14 calculator, 13 covering the wall picker and the
+  preview compositor, 35 content-integrity and 30 covering the advisor, the
+  share-link codec and the tools data. The mask tests include the load timeout —
+  the one failure mode a test cannot otherwise reach, because it is an image that
+  fires neither `load` nor `error`. One of the
   content tests is a contrast guard: it reads the accent tokens out of
   `theme.css`, composites them over the dark panel they are used on and fails
   below 4.5:1 — the browser-free version of the check axe runs in CI, added after
@@ -95,7 +98,7 @@ browser.
   rather than the proxy, the generated colour index, an encoded path traversal
   against a sibling of the static root, CSV formula injection, measured
   quantities, and the newsletter opt-out round trip.
-- `npm run test:browser` — **21 tests** in a jsdom DOM against a real enquiry
+- `npm run test:browser` — **25 tests** in a jsdom DOM against a real enquiry
   service on a real socket: an invalid submission focuses the first bad field, a
   valid one stores exactly one record and shows its reference, a server-side
   field error lands on the right input without losing the typed answers, the
@@ -104,8 +107,13 @@ browser.
   specification **and refuses to recommend anything for a damp wall**, a saved
   estimate becomes a checklist line and then a share link that opens the same
   project in a browser that has never seen it, the footer's opt-out reaches the
-  service and writes a suppression record, and headings descend in order on nine
-  routes.
+  service and writes a suppression record, the room preview opens with the paint
+  visible rather than hidden behind its own divider, tells a browser with no
+  canvas where to go instead, paints on a tap but not on a scroll, and selects a
+  wall with no pointer at all — and headings descend in order on nine routes.
+  jsdom has no canvas implementation, so the suite installs a recording stand-in
+  for the visualiser; it exercises the real code path and asserts what the visitor
+  is told, not what the pixels look like.
 - `bash tools/verify-restore.sh` — the real backup and restore scripts, end to
   end, including a damaged archive and a traversal attempt.
 
@@ -159,6 +167,13 @@ so this part is human.
 10. **Opt out** — switch the footer form to "remove an address", submit an
     address that is on the list, and confirm no further mail would be sent. The
     suppression record is in `server/data/unsubscriptions.jsonl`.
+11. **Your own wall, on a real phone** — `/room-preview`: upload a photograph,
+    then drag one in and paste one; tap a wall and check the paint appears on the
+    right of the divider; scroll the page *starting on the picture* and confirm it
+    scrolls instead of painting; brush a doorframe out of the selection; undo;
+    switch colour and finish; save the preview and open the PNG. Then repeat on a
+    second-hand low-end Android — the 1400 px working frame and the reused
+    offscreen canvases are what keep a stroke smooth there.
 
 ## Known gaps against the README roadmap
 

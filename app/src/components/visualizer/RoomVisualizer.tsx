@@ -10,6 +10,7 @@ import {
   RotateCcw,
   Search,
   ShieldCheck,
+  TriangleAlert,
   Undo2,
   Wand2,
 } from 'lucide-react'
@@ -26,8 +27,8 @@ import {
   prepareCanvas,
   strokeBrush,
 } from '../../lib/mask'
-import { composeFrame, type FinishLook } from '../../lib/render'
-import { Button } from '../ui/Button'
+import { composeFrame, createScratch, type FinishLook, type Scratch } from '../../lib/render'
+import { Button, ButtonLink } from '../ui/Button'
 import { Pill } from '../ui/Bits'
 import { useApp } from '../../store/AppStore'
 import { track } from '../../lib/analytics'
@@ -40,6 +41,20 @@ const DEMO_ROOMS = [
 ]
 
 type Tool = 'fill' | 'brush' | 'erase'
+
+/**
+ * Where the compare divider starts: half the frame original, half painted.
+ *
+ * It used to start at 100 — which is the whole frame showing the *original*
+ * photograph, so a visitor who selected a wall and picked a colour saw nothing
+ * change until they dragged a slider towards the end labelled "Before".
+ * Roadmap 12.02.09 asks for an original-versus-preview comparison; a comparison
+ * that hides the preview by default is not one.
+ */
+const DEFAULT_SPLIT = 50
+
+/** Travel, in CSS pixels, that still counts as a tap rather than a scroll. */
+const TAP_SLOP_CSS_PX = 12
 
 /** The formats the file input offers and the canvas can actually decode. */
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -58,7 +73,12 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
   const [tolerance, setTolerance] = useState(26)
   const [brushSize, setBrushSize] = useState(42)
   const [coverage, setCoverage] = useState(0)
-  const [split, setSplit] = useState(100)
+  const [split, setSplit] = useState(DEFAULT_SPLIT)
+  /** Roadmap 12.02.11 — a usable fallback where the canvas itself is missing. */
+  const [supported, setSupported] = useState(true)
+  const [dragging, setDragging] = useState(false)
+  /** The keyboard cursor, mirrored into state so it can be drawn. */
+  const [keyPoint, setKeyPoint] = useState<{ x: number; y: number } | null>(null)
   const [busy, setBusy] = useState(false)
   const [query, setQuery] = useState('')
   const [family, setFamily] = useState<string>('All')
@@ -72,6 +92,9 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
   const undoRef = useRef<HTMLCanvasElement[]>([])
   const paintingRef = useRef(false)
   const lastPointRef = useRef<{ x: number; y: number } | null>(null)
+  /** A touch that has gone down but not yet come up, so a scroll is not a fill. */
+  const pendingFillRef = useRef<{ x: number; y: number } | null>(null)
+  const scratchRef = useRef<Scratch | null>(null)
   const [canUndo, setCanUndo] = useState(false)
   const { toggleColor, isSaved, toast } = useApp()
   const objectUrlRef = useRef<string | null>(null)
@@ -84,11 +107,24 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
     const source = sourceRef.current
     const mask = maskRef.current
     if (!ctx || !source || !mask) return
-    composeFrame({ ctx, source, mask, hex: colour.hex, finish })
-    if (maskCtxRef.current) {
-      setCoverage(Math.round(maskCoverage(maskCtxRef.current, mask.width, mask.height) * 100))
-    }
+    // One pair of offscreen canvases for the lifetime of the image: a brush
+    // stroke calls this for every pointer event, and allocating two frame-sized
+    // canvases each time is what turns a drag into a stutter.
+    scratchRef.current ??= createScratch()
+    composeFrame({ ctx, source, mask, hex: colour.hex, finish, scratch: scratchRef.current })
   }, [colour.hex, finish])
+
+  /**
+   * Read the selection back out of the mask.
+   *
+   * Separate from `render` on purpose: it is a full-frame `getImageData`, so it
+   * belongs at the end of a gesture, not inside every frame of one.
+   */
+  const measure = useCallback(() => {
+    const mask = maskRef.current
+    if (!mask || !maskCtxRef.current) return
+    setCoverage(Math.round(maskCoverage(maskCtxRef.current, mask.width, mask.height) * 100))
+  }, [])
 
   /* --------------------------------------------------------- load an image */
   const loadSource = useCallback(
@@ -97,6 +133,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
       setBusy(true)
       setReady(false)
       setStatus('Loading the room…')
+      track('visualizer_start', { source: label.startsWith('Your photo') ? 'upload' : 'demo' })
       try {
         const img = await loadImage(src)
         if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth < MIN_DIMENSION || img.naturalHeight < MIN_DIMENSION) {
@@ -112,7 +149,10 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
         maskCtxRef.current = maskCtx
         undoRef.current = []
         setCanUndo(false)
-        setSplit(100)
+        setSplit(DEFAULT_SPLIT)
+        keyPointRef.current = null
+        setKeyPoint(null)
+        scratchRef.current = null
         setStatus('Tap or click the wall you want to paint.')
         setUploadedName(label.startsWith('Your photo') ? label : null)
 
@@ -125,7 +165,17 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
         setCoverage(0)
         render()
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'That image could not be opened.')
+        const message = err instanceof Error ? err.message : 'That image could not be opened.'
+        // `prepareCanvas` only throws when the browser has no 2D context to give.
+        // That is not a broken photograph, it is an unsupported device, and the
+        // honest response is the fallback rather than an error the visitor can
+        // do nothing about.
+        if (/canvas is not available/i.test(message)) {
+          setSupported(false)
+          setStatus('This browser cannot run the preview.')
+          return
+        }
+        setError(message)
         setStatus('Image could not be loaded.')
       } finally {
         setBusy(false)
@@ -145,10 +195,45 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
     if (ready) render()
   }, [ready, render])
 
+  /**
+   * Probe for a canvas the browser can actually draw on.
+   *
+   * Roadmap 12.02.11 wants a usable fallback on unsupported devices. Doing it
+   * here rather than in the catch means the visitor is told at once, instead of
+   * after an image has been fetched into a page that cannot paint it.
+   */
   useEffect(() => {
-    track('visualizer_start', { room: uploadedName ? 'upload' : roomId })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    try {
+      if (!document.createElement('canvas').getContext('2d')) setSupported(false)
+    } catch {
+      setSupported(false)
+    }
   }, [])
+
+  /**
+   * Follow the colour the visitor arrived with.
+   *
+   * `?colour=` is read once by `useState`, so a link clicked from the project
+   * board while this page was already open — the same route, a new search string
+   * — used to be ignored. The identity is the library object itself, so this
+   * only fires when the colour genuinely changes.
+   */
+  useEffect(() => {
+    if (initialColour) setColour(initialColour)
+  }, [initialColour])
+
+  // A photograph is held as an object URL for as long as it is on screen. It is
+  // revoked on the next upload and here, on the way out — roadmap 12.02.13 in the
+  // only form that applies when nothing is ever uploaded.
+  useEffect(
+    () => () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+        objectUrlRef.current = null
+      }
+    },
+    [],
+  )
 
   /* ------------------------------------------------------------- undo stack */
   const pushUndo = () => {
@@ -166,6 +251,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
     ctx.drawImage(previous, 0, 0)
     setCanUndo(undoRef.current.length > 0)
     render()
+    measure()
     setStatus('Undone.')
   }
 
@@ -176,6 +262,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
     pushUndo()
     clearMask(ctx, mask.width, mask.height)
     render()
+    measure()
     setStatus('Selection cleared. Choose a wall again.')
   }
 
@@ -184,10 +271,19 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
     const canvas = outputRef.current
     if (!canvas) return { x: 0, y: 0 }
     const rect = canvas.getBoundingClientRect()
+    if (!rect.width || !rect.height) return { x: 0, y: 0 }
     return {
       x: ((event.clientX - rect.left) / rect.width) * canvas.width,
       y: ((event.clientY - rect.top) / rect.height) * canvas.height,
     }
+  }
+
+  /** Canvas pixels per CSS pixel, so a tap slop means the same thing zoomed in. */
+  const canvasScale = () => {
+    const canvas = outputRef.current
+    if (!canvas) return 1
+    const rect = canvas.getBoundingClientRect()
+    return rect.width ? canvas.width / rect.width : 1
   }
 
   const applyFill = (x: number, y: number) => {
@@ -197,27 +293,59 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
     if (!maskCtx || !mask || !sourceData) return
     pushUndo()
     const maskImage = maskCtx.getImageData(0, 0, mask.width, mask.height)
-    const { changed } = floodFill(sourceData, maskImage, x, y, tolerance, tool === 'erase' ? 'erase' : 'add')
+    const { changed } = floodFill(sourceData, maskImage, x, y, tolerance, 'add')
     maskCtx.putImageData(maskImage, 0, 0)
     render()
+    measure()
     setStatus(
       changed
-        ? tool === 'erase'
-          ? 'Area removed from the selection.'
-          : 'Wall selected. Adjust tolerance to catch more or less of it.'
+        ? 'Wall selected. Adjust tolerance to catch more or less of it.'
         : 'Nothing to select there — try a slightly higher tolerance, or use the brush.',
     )
     if (changed) track('visualizer_apply', { tool: 'fill', tolerance })
   }
 
+  /**
+   * Apply whatever tool is selected, at one point.
+   *
+   * The keyboard route used to flood-fill no matter which tool was chosen, so a
+   * visitor who had switched to the brush and set a size got a different tool
+   * from the one on screen. Enter now does what the pointer does.
+   */
+  const applyAtPoint = (x: number, y: number) => {
+    if (tool === 'fill') {
+      applyFill(x, y)
+      return
+    }
+    const maskCtx = maskCtxRef.current
+    if (!maskCtx) return
+    pushUndo()
+    const point = { x, y }
+    strokeBrush(maskCtx, point, point, brushSize / 2, tool === 'erase' ? 'erase' : 'add')
+    render()
+    measure()
+    setStatus(tool === 'erase' ? 'Erased at the cursor.' : 'Brushed at the cursor.')
+    track('visualizer_apply', { tool, size: brushSize, input: 'keyboard' })
+  }
+
   const onPointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!ready) return
-    event.currentTarget.setPointerCapture(event.pointerId)
+    if (!ready || !supported) return
     const point = toCanvasPoint(event)
     if (tool === 'fill') {
+      // A finger that lands on the picture is more often the start of a scroll
+      // than a request to paint — and the canvas is the first thing on the page
+      // on a phone, so swallowing the scroll traps the visitor at the top. Fill
+      // on release instead, and only if the finger stayed put. Mouse and pen are
+      // unambiguous, so they still fill at once.
+      if (event.pointerType === 'touch') {
+        pendingFillRef.current = point
+        return
+      }
+      event.currentTarget.setPointerCapture(event.pointerId)
       applyFill(point.x, point.y)
       return
     }
+    event.currentTarget.setPointerCapture(event.pointerId)
     pushUndo()
     paintingRef.current = true
     lastPointRef.current = point
@@ -268,7 +396,7 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
       case 'Enter':
       case ' ':
         event.preventDefault()
-        applyFill(x, y)
+        applyAtPoint(x, y)
         return
       default:
         return
@@ -278,22 +406,51 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
     x = Math.max(0, Math.min(mask.width - 1, x))
     y = Math.max(0, Math.min(mask.height - 1, y))
     keyPointRef.current = { x, y }
+    // Mirrored into state because a ref cannot draw the cursor: a keyboard-only
+    // visitor gets the position announced *and* shown.
+    setKeyPoint({ x, y })
     setStatus(
-      `Cursor ${Math.round((x / mask.width) * 100)}% from the left, ${Math.round((y / mask.height) * 100)}% from the top. Press Enter to ${tool === 'erase' ? 'remove' : 'select'} this area.`,
+      `Cursor ${Math.round((x / mask.width) * 100)}% from the left, ${Math.round((y / mask.height) * 100)}% from the top. Press Enter to ${
+        tool === 'fill' ? 'select' : tool === 'erase' ? 'erase' : 'brush'
+      } here.`,
     )
   }
 
-  const endStroke = () => {
+  const endStroke = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const pending = pendingFillRef.current
+    if (pending) {
+      pendingFillRef.current = null
+      const point = toCanvasPoint(event)
+      const slop = TAP_SLOP_CSS_PX * canvasScale()
+      if (Math.hypot(point.x - pending.x, point.y - pending.y) <= slop) {
+        applyFill(point.x, point.y)
+      } else {
+        setStatus('That was a scroll, not a tap, so nothing was painted. Tap the wall once to select it.')
+      }
+      return
+    }
     if (paintingRef.current) {
       paintingRef.current = false
       lastPointRef.current = null
+      measure()
       setStatus('Selection updated.')
       track('visualizer_apply', { tool, size: brushSize })
     }
   }
 
+  /** The gesture was taken away — cancelled, or dragged off the picture. */
+  const cancelStroke = () => {
+    pendingFillRef.current = null
+    if (paintingRef.current) {
+      paintingRef.current = false
+      lastPointRef.current = null
+      measure()
+      setStatus('Selection updated.')
+    }
+  }
+
   /* --------------------------------------------------------------- upload */
-  const onUpload = async (file: File) => {
+  const onUpload = useCallback(async (file: File) => {
     // Roadmap 12.02.02: type, size and dimensions are all validated, and the
     // accepted list here is the same list the file input offers. Accepting any
     // `image/*` while advertising three formats is how a visitor gets a canvas
@@ -314,18 +471,65 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
     const url = URL.createObjectURL(file)
     objectUrlRef.current = url
     await loadSource(url, `Your photo — ${file.name.slice(0, 40)}`)
+  }, [loadSource])
+
+  /**
+   * Drop and paste go through exactly the same validation as the file input.
+   *
+   * A tool that asks for a photograph is a tool people drag one onto; making them
+   * find the input first is the difference between a feature and a form. The
+   * accepted list, the size limit and the decode errors are shared, so there is
+   * one set of rules however the picture arrives.
+   */
+  const onDrop = (event: React.DragEvent) => {
+    event.preventDefault()
+    setDragging(false)
+    const file = event.dataTransfer?.files?.[0]
+    if (file) void onUpload(file)
   }
+
+  useEffect(() => {
+    const onPaste = (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items
+      if (!items) return
+      for (const item of items) {
+        if (!item.type.startsWith('image/')) continue
+        const file = item.getAsFile()
+        if (!file) continue
+        event.preventDefault()
+        void onUpload(file)
+        return
+      }
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [onUpload])
 
   const download = () => {
     const canvas = outputRef.current
     if (!canvas) return
+    setStatus('Encoding your preview…')
     try {
-      const link = document.createElement('a')
-      link.download = `opudas-preview-${colour.id}-${finish}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
-      track('visualizer_export', { colourId: colour.id, finish })
-      toast('Preview saved', { description: 'A simulation only — confirm the colour with a sample pot.' })
+      // `toBlob` rather than `toDataURL`: a 1400px frame is a base64 string of
+      // several megabytes held in memory twice, and iOS Safari drops data-URL
+      // downloads of that size without saying so. The blob is revoked once the
+      // browser has taken the click.
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setError('This browser could not encode the preview. A screenshot will capture exactly what you see.')
+          setStatus('Preview could not be saved.')
+          return
+        }
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.download = `opudas-preview-${colour.id}-${finish}.png`
+        link.href = url
+        link.click()
+        setTimeout(() => URL.revokeObjectURL(url), 10_000)
+        setStatus('Preview saved to your downloads.')
+        track('visualizer_export', { colourId: colour.id, finish })
+        toast('Preview saved', { description: 'A simulation only — confirm the colour with a sample pot.' })
+      }, 'image/png')
     } catch {
       setError('The browser blocked the download. You can still screenshot the preview.')
     }
@@ -342,28 +546,101 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
 
   const saved = isSaved(colour.id)
 
+  if (!supported) {
+    // Roadmap 12.02.11. A browser with no 2D canvas cannot run this tool at
+    // all, and the alternative to a real fallback is a grey rectangle with a
+    // spinner that never stops — which is what the page used to do.
+    return (
+      <div className="rounded-sm border border-ink/12 bg-paper-2/60 p-6 sm:p-8">
+        <p className="flex items-center gap-2 text-[0.78rem] font-bold uppercase tracking-[0.14em] text-ink/72">
+          <TriangleAlert className="size-4 text-green-deep" aria-hidden /> Preview unavailable here
+        </p>
+        <h2 className="mt-3 font-[var(--font-display)] text-[clamp(1.5rem,3vw,2rem)]">
+          This browser cannot paint the photograph.
+        </h2>
+        <p className="mt-3 max-w-xl text-[0.9rem] leading-relaxed text-ink/72">
+          The room preview draws your wall on a canvas, and this browser has no canvas to draw on — usually an old
+          version, or a locked-down one. Nothing is wrong with your photograph. The rest of the site works normally, and
+          every colour is available as a printed document or a physical sample.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <ButtonLink to="/colours">Browse the {COLORS.length} colours</ButtonLink>
+          <ButtonLink to="/documents/opudas-colour-book.pdf" variant="paper" external>
+            Download the colour book
+          </ButtonLink>
+          <ButtonLink to="/quote" variant="outline">
+            Ask for physical samples
+          </ButtonLink>
+        </div>
+        <p className="mt-4 text-[0.76rem] text-ink/72">
+          On a phone? The preview runs in Safari 15+ and Chrome 90+.{' '}
+          <Link to="/advice/colour-on-screen" className="underline hover:text-green">
+            Why a screen is not a wall
+          </Link>
+          .
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-10">
       {/* ------------------------------------------------------- canvas panel */}
       <div className="lg:sticky lg:top-24 lg:self-start">
-        <div className="relative overflow-hidden rounded-sm bg-ink shadow-[0_40px_90px_-50px_rgba(11,26,19,0.7)]">
+        <div
+          className={cn(
+            'relative overflow-hidden rounded-sm bg-ink shadow-[0_40px_90px_-50px_rgba(11,26,19,0.7)] transition-shadow',
+            dragging && 'ring-2 ring-green-bright ring-offset-2 ring-offset-paper',
+          )}
+          onDragOver={(event) => {
+            event.preventDefault()
+            setDragging(true)
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
+        >
           <div className="relative">
             <canvas
               ref={outputRef}
               role="img"
               aria-label={`Room preview painted in ${colour.name}. Use the controls to select walls, then choose a colour.`}
+              aria-describedby="visualizer-help"
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={endStroke}
-              onPointerLeave={endStroke}
+              onPointerCancel={cancelStroke}
+              onPointerLeave={cancelStroke}
               onKeyDown={onCanvasKeyDown}
               tabIndex={0}
               className={cn(
-                'block w-full touch-none select-none',
+                'block w-full select-none',
+                // With the fill tool the page still has to scroll past the
+                // picture on a phone; the brush and eraser need the gesture.
+                tool === 'fill' ? 'touch-pan-y' : 'touch-none',
                 tool === 'fill' ? 'cursor-crosshair' : 'cursor-cell',
                 !ready && 'opacity-40',
               )}
             />
+
+            {/* the keyboard cursor — announced *and* drawn */}
+            {ready && keyPoint && sourceRef.current ? (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute size-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper-2 bg-paper-2/10 shadow-[0_0_0_2px_rgba(11,26,19,0.45)]"
+                style={{
+                  left: `${(keyPoint.x / sourceRef.current.width) * 100}%`,
+                  top: `${(keyPoint.y / sourceRef.current.height) * 100}%`,
+                }}
+              />
+            ) : null}
+
+            {dragging ? (
+              <div className="pointer-events-none absolute inset-0 grid place-items-center bg-ink/70 backdrop-blur-[2px]">
+                <span className="flex items-center gap-2 rounded-full bg-paper-2 px-4 py-2 text-[0.8rem] font-semibold">
+                  <ImagePlus className="size-4" aria-hidden /> Drop the photograph here
+                </span>
+              </div>
+            ) : null}
 
             {/* original image revealed from the left by the compare slider */}
             {ready && split > 0 ? (
@@ -392,8 +669,11 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
                 className="pointer-events-none absolute inset-y-0 w-px bg-paper-2/90 shadow-[0_0_18px_rgba(0,0,0,0.5)]"
                 style={{ left: `${split}%` }}
               >
-                <span className="absolute left-1/2 top-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-paper-2 text-ink shadow-lg">
-                  <span className="text-[0.55rem] font-bold tracking-tight">BEFORE</span>
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-ink/70 px-2 py-0.5 text-[0.55rem] font-bold tracking-[0.1em] text-paper-2/90 backdrop-blur">
+                  BEFORE
+                </span>
+                <span className="absolute left-2 top-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-paper-2 text-ink shadow-lg">
+                  <span className="text-[0.55rem] font-bold tracking-tight">AFTER</span>
                 </span>
               </div>
             ) : null}
@@ -416,7 +696,9 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
             </div>
           </div>
 
-          {/* compare slider — a real range input so it is keyboard operable */}
+          {/* compare slider — a real range input so it is keyboard operable.
+              The left of the frame is the original, the right is the paint, so
+              the value says how much of the photograph is still showing. */}
           <div className="flex items-center gap-3 border-t border-paper-2/10 bg-ink px-4 py-3">
             <span className="kicker shrink-0 text-paper-2/65">Before</span>
             <input
@@ -425,7 +707,8 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
               max={100}
               value={split}
               onChange={(event) => setSplit(Number(event.target.value))}
-              aria-label="Reveal the original photograph"
+              aria-label="Move the divider between the original photograph and the painted preview"
+              aria-valuetext={`${split}% of the frame shows the original photograph, ${100 - split}% shows it painted in ${colour.name}`}
               className="flex-1 [&::-webkit-slider-runnable-track]:bg-paper-2/25 [&::-moz-range-track]:bg-paper-2/25 [&::-webkit-slider-thumb]:border-ink"
             />
             <span className="kicker shrink-0 text-paper-2/65">After</span>
@@ -446,6 +729,11 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
 
         <p aria-live="polite" className="mt-2 min-h-5 text-[0.78rem] font-medium text-green">
           {status}
+        </p>
+        <p id="visualizer-help" className="mt-1 text-[0.74rem] leading-relaxed text-ink/72">
+          With a mouse: click the wall to select it, or switch to the brush and drag. Drag a photograph onto the picture
+          to use your own. With a keyboard: focus the picture, move the ring with the arrow keys — hold Shift for larger
+          steps — and press Enter to select or erase at that point.
         </p>
         {error ? (
           <p role="alert" className="mt-2 rounded-sm border border-crimson/30 bg-crimson/5 px-3 py-2 text-[0.8rem] text-crimson">
@@ -506,6 +794,9 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
               }}
             />
           </label>
+          <p className="mt-1.5 text-[0.7rem] text-ink/72">
+            Or drop a photograph onto the picture, or paste one from the clipboard.
+          </p>
         </section>
 
         {/* 02 mask */}
@@ -726,8 +1017,10 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor |
         </section>
 
         <p className="text-[0.72rem] leading-relaxed text-ink/72">
-          Your photograph is processed in this browser tab and is never uploaded. The preview is a simulation: it
-          preserves the light and shadow in your photo, but it cannot reproduce how a real film looks in your room.{' '}
+          Your photograph is processed in this browser tab and is never uploaded, so there is nothing for us to store or
+          delete — and the file you save is a new PNG carrying none of your camera's location or device metadata. The
+          preview is a simulation: it preserves the light and shadow in your photo, but it cannot reproduce how a real
+          film looks in your room.{' '}
           <Link to="/advice/colour-on-screen" className="underline hover:text-green">
             Why screens differ from paint
           </Link>

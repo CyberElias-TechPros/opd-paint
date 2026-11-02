@@ -192,11 +192,12 @@ Evidence: `app/src/routes/{Tools,FinishFinder,SurfacePrep,Project}.tsx`,
 
 | Test | Status | Effort |
 | --- | --- | --- |
-| Unit, content-integrity, server, route render | ✅ Done (87 + 60 + 29) | — |
-| Browser end-to-end (Playwright: quote, calculator, visualiser, dealer search) | ❌ | 4 days |
-| Automated accessibility (axe on 22 pages, in CI) | ⚠️ Script and CI job exist; needs a browser binary to run locally | — |
+| Unit, content-integrity, server, route render | ✅ Done (92 + 61 + 29) | — |
+| Browser end-to-end in jsdom (quote, calculator, tools, project, footer, room preview) | ✅ Done (25) | — |
+| Browser end-to-end on real Chromium (Playwright: dealer geolocation, visual regression, pixels) | ❌ jsdom has no canvas implementation, so the room preview's *pixels* are only checked by axe and Lighthouse in CI | 4 days |
+| Automated accessibility (axe on 22 pages, in CI) | ✅ Runs on every pull request — and caught three contrast defects on a new page that no local check could see | — |
 | Visual regression on key pages | ❌ | 2 days |
-| Lighthouse budgets in CI (LCP, CLS, INP on 3G) | ❌ | 1 day |
+| Lighthouse budgets in CI (LCP, CLS, TBT, weight caps) | ✅ Green on every pull request | — |
 | Manual screen-reader audit (NVDA + VoiceOver) | ❌ | 2–3 days + fixes |
 | Real-device testing on a low-end Android over throttled 4G | ❌ | 2 days |
 | Usability testing with 5–8 real customers | ❌ | Human time, 1–2 weeks elapsed |
@@ -233,7 +234,7 @@ Evidence: `app/src/routes/{Tools,FinishFinder,SurfacePrep,Project}.tsx`,
 | **B. Accessibility** | ⚠️ Designed in, unverified | Everything is keyboard-operable, focus-visible, reduced-motion aware, never colour-only. **Not yet verified with a real screen reader or an automated audit.** |
 | **C. Performance** | ⚠️ Budgeted, unmeasured | 118 kB gzip entry, lazy routes, WebP, preloaded hero, lazy fonts. **No measurement on a real Nigerian mobile connection.** Lighthouse CI closes this. |
 | **D. Security and privacy** | ⚠️ Good baseline | Headers, CSP, constant-time auth, rate limits, honeypot, consent-gated analytics, single-origin CORS, proxy-aware limiting, a traversal-safe static root, CSV formula-injection escaping, and a working newsletter opt-out. **Missing: monitoring, MFA, a DSAR process, legal review.** |
-| **E. Maintainability** | ⚠️ Good, one hole | Typed data, 199 automated checks, generated documents, reproducibility checks, strict TypeScript across `src/`, the config and the test scripts, and seven docs. **The hole is content editing without a CMS.** |
+| **E. Maintainability** | ⚠️ Good, one hole | Typed data, 207 automated checks, generated documents, reproducibility checks, strict TypeScript across `src/`, the config and the test scripts, and seven docs. **The hole is content editing without a CMS.** |
 | **F. Commercial integrity** | ✅ Strong | No price is ever shown — every inquiry routes to a person — and that is now enforced rather than merely intended: the route render test fails the build if any page emits a price, an offer or an availability claim in its structured data. `pending-verification` flags, no invented testimonials, no stock claims, concept work labelled as concept. |
 
 ---

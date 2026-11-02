@@ -46,7 +46,8 @@ cd app
 npm install
 npm run dev        # site on http://localhost:5173
 npm run server     # enquiry API on http://localhost:8787
-npm test           # calculator, colour-mask, content integrity, advisor and share-link tests
+npm test           # calculator, wall-picker and compositor, content integrity,
+                   # advisor and share-link tests
 npm run test:server # enquiry API: validation, routing, auth, rate limits
 npm run test:routes # 29 cases across 22 route modules render through the real router
 npm run test:browser # quote form and calculator, driven in a DOM against the real service

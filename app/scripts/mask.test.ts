@@ -10,21 +10,40 @@
  * touches — `{ data, width, height }` — rather than mocking a whole 2D context.
  */
 import assert from 'node:assert/strict'
-import { floodFill } from '../src/lib/mask.ts'
+import { floodFill, withTimeout } from '../src/lib/mask.ts'
+import { sizeCanvas } from '../src/lib/render.ts'
 
 let passed = 0
+// The timeout tests are the only asynchronous ones in the file, so the runner
+// collects them and the summary waits for the lot rather than printing early.
+const pending: Array<Promise<void>> = []
 // Typed because `tsc -b` now covers the test scripts too (tsconfig.scripts.json):
 // an untyped runner is how a suite keeps passing after the module it exercises
 // changes shape.
-const test = (name: string, fn: () => void) => {
-  try {
-    fn()
-    passed += 1
-    console.log(`  ok   ${name}`)
-  } catch (error) {
+const test = (name: string, fn: () => void | Promise<void>) => {
+  const fail = (error: unknown) => {
     console.error(`  FAIL ${name}`)
     console.error(error instanceof Error ? error.stack ?? error.message : String(error))
     process.exitCode = 1
+  }
+  try {
+    const result = fn()
+    if (result instanceof Promise) {
+      pending.push(
+        result.then(
+          () => {
+            passed += 1
+            console.log(`  ok   ${name}`)
+          },
+          fail,
+        ),
+      )
+      return
+    }
+    passed += 1
+    console.log(`  ok   ${name}`)
+  } catch (error) {
+    fail(error)
   }
 }
 
@@ -160,4 +179,55 @@ test('diagonal neighbours are not connected (4-way fill)', () => {
   assert.equal(filledPixels(mask), 1, 'fill jumped to a diagonal neighbour')
 })
 
+/* ----------------------------------------------------- loading a photograph */
+
+test('a photograph that settles in time is passed straight through', async () => {
+  const value = await withTimeout(Promise.resolve('loaded'), 500, 'too slow')
+  assert.equal(value, 'loaded')
+})
+
+test('a decode that never finishes is reported, not waited on forever', async () => {
+  // Roadmap 12.02.12 wants a timeout state. This is the case no other test can
+  // reach: an <img> that fires neither load nor error, which is what a truncated
+  // download or a suspended phone does.
+  //
+  // The deadline is deliberately `unref`'d, so that a load that never settles
+  // cannot be the reason a Node process stays open — which means this test has
+  // to hold the loop itself, or Node exits before the deadline arrives. Both
+  // halves of that trade-off are the point of the assertion.
+  const never = new Promise<string>(() => {})
+  const hold = new Promise((resolve) => setTimeout(resolve, 120))
+  await Promise.all([
+    assert.rejects(
+      () => withTimeout(never, 20, 'That photograph took too long to open.'),
+      /took too long to open/,
+    ),
+    hold,
+  ])
+})
+
+test('a real failure is reported as itself, not as a timeout', async () => {
+  await assert.rejects(
+    () => withTimeout(Promise.reject(new Error('That photograph could not be opened.')), 500, 'too slow'),
+    /could not be opened/,
+  )
+})
+
+/* ------------------------------------------------------- offscreen canvases */
+
+test('an offscreen canvas is resized only when it has to be', () => {
+  // The visualiser composes a frame per pointer event and reuses two offscreen
+  // canvases to do it. Reusing one that is already the right size is the whole
+  // point; resizing it anyway would throw away the allocation on every stroke.
+  const canvas = { width: 0, height: 0 } as unknown as HTMLCanvasElement
+  assert.equal(sizeCanvas(canvas, 800, 600), true, 'first use has to size it')
+  assert.equal(canvas.width, 800)
+  assert.equal(canvas.height, 600)
+  assert.equal(sizeCanvas(canvas, 800, 600), false, 'the same frame must not resize')
+  assert.equal(sizeCanvas(canvas, 400, 300), true, 'a new photograph resizes it')
+  assert.equal(canvas.width, 400)
+  assert.equal(canvas.height, 300)
+})
+
+await Promise.all(pending)
 console.log(`\n${passed} passed${process.exitCode ? ' — with failures' : ''}`)

@@ -368,6 +368,132 @@ async function chooseAnswer(question: string, value: string): Promise<void> {
   await click(radio)
 }
 
+/* ------------------------------------------------- a canvas jsdom can run */
+
+type Restore = () => void
+
+/**
+ * Give jsdom the parts of a canvas the visualiser touches.
+ *
+ * jsdom ships the element but not the 2D context, and the room preview is
+ * nothing *but* drawing — so without this the whole feature is untestable here
+ * and only Chromium ever sees it. The stand-in keeps no pixels: it exists so the
+ * component can run its real code path (decode, compose, measure, report). These
+ * tests therefore assert what the visitor is told and which controls come alive,
+ * never what the picture looks like — that is axe's and Lighthouse's job.
+ */
+function installCanvas({ supported = true }: { supported?: boolean } = {}): Restore {
+  const canvasProto = window.HTMLCanvasElement.prototype as unknown as Record<string, unknown>
+  const elementProto = window.Element.prototype as unknown as Record<string, unknown>
+  const previousContext = canvasProto.getContext
+  const previousCapture = elementProto.setPointerCapture
+
+  const blank = (width: number, height: number) => ({
+    data: new Uint8ClampedArray(Math.max(1, width * height) * 4),
+    width,
+    height,
+    colorSpace: 'srgb' as const,
+  })
+  const gradient = { addColorStop() {} }
+  const context = {
+    globalAlpha: 1,
+    globalCompositeOperation: 'source-over',
+    fillStyle: '#000000',
+    drawImage() {},
+    clearRect() {},
+    fillRect() {},
+    save() {},
+    restore() {},
+    beginPath() {},
+    arc() {},
+    fill() {},
+    createRadialGradient: () => gradient,
+    createLinearGradient: () => gradient,
+    getImageData: (_x: number, _y: number, width: number, height: number) => blank(width, height),
+    putImageData() {},
+  }
+
+  canvasProto.getContext = supported ? () => context : () => null
+  // Pointer capture is what lets a brush stroke survive leaving the canvas.
+  // jsdom has no implementation, and the visualiser calls it on every mouse down.
+  elementProto.setPointerCapture = function setPointerCapture() {}
+
+  return () => {
+    canvasProto.getContext = previousContext
+    if (previousCapture === undefined) delete elementProto.setPointerCapture
+    else elementProto.setPointerCapture = previousCapture
+  }
+}
+
+/** An <img> that decodes at once, so a load can be tested without a browser. */
+function installDecodedImage(width = 800, height = 600): Restore {
+  const previousGlobal = Object.getOwnPropertyDescriptor(globalThis, 'Image')
+
+  class Decoded {
+    naturalWidth = width
+    naturalHeight = height
+    crossOrigin: string | null = null
+    onload: (() => void) | null = null
+    onerror: (() => void) | null = null
+    set src(_value: string) {
+      setTimeout(() => this.onload?.(), 0)
+    }
+  }
+
+  Object.defineProperty(globalThis, 'Image', { value: Decoded, configurable: true, writable: true })
+  return () => {
+    if (previousGlobal) Object.defineProperty(globalThis, 'Image', previousGlobal)
+    else delete (globalThis as unknown as Record<string, unknown>).Image
+  }
+}
+
+/** jsdom measures nothing, so a canvas has to be told how big it appears. */
+function stubRect(node: Element, width = 400, height = 300): void {
+  ;(node as HTMLElement).getBoundingClientRect = () =>
+    ({ x: 0, y: 0, left: 0, top: 0, right: width, bottom: height, width, height, toJSON: () => ({}) }) as DOMRect
+}
+
+/** Dispatch a pointer event React will read as one, including its pointer type. */
+async function pointer(
+  node: Element,
+  type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel',
+  x: number,
+  y: number,
+  pointerType: 'mouse' | 'touch' | 'pen' = 'mouse',
+): Promise<void> {
+  const { act } = await import('react')
+  await act(async () => {
+    const event = new window.MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y })
+    Object.defineProperty(event, 'pointerType', { value: pointerType })
+    Object.defineProperty(event, 'pointerId', { value: 1 })
+    node.dispatchEvent(event)
+  })
+  await flush()
+}
+
+async function key(node: Element, keyName: string, shiftKey = false): Promise<void> {
+  const { act } = await import('react')
+  await act(async () => {
+    node.dispatchEvent(new window.KeyboardEvent('keydown', { key: keyName, shiftKey, bubbles: true, cancelable: true }))
+  })
+  await flush()
+}
+
+/** The visualiser's own live region — its promises to the visitor. */
+function liveRegion(container: HTMLElement): string {
+  return (container.querySelector('p[aria-live="polite"]')?.textContent ?? '').trim()
+}
+
+async function mountVisualizer(path = '/room-preview') {
+  const { default: RoomPreviewPage } = await import('../src/routes/RoomPreview')
+  const mounted = await mountPage(path, RoomPreviewPage)
+  const canvas = mounted.container.querySelector('canvas')
+  assert(canvas, 'the preview draws on a canvas')
+  stubRect(canvas)
+  await waitFor(() => liveRegion(mounted.container).includes('Tap or click the wall'), 'the room to finish loading')
+  return { ...mounted, canvas }
+}
+
 function unsubsOnDisk(): Array<Record<string, unknown>> {
   const file = join(dataDir, 'unsubscriptions.jsonl')
   if (!existsSync(file)) return []
@@ -718,6 +844,134 @@ async function main(): Promise<void> {
         assert(typeof record.at === 'string', 'the opt-out is timestamped')
       } finally {
         await unmount()
+      }
+    })
+
+    /* -------------------------------------------- "try it on your wall" */
+
+    await check('the room preview opens showing the paint, not only the photograph', async () => {
+      const restore = [installCanvas(), installDecodedImage()]
+      try {
+        const { container, unmount } = await mountVisualizer()
+        try {
+          const divider = container.querySelector('input[type="range"][aria-label*="divider"]') as HTMLInputElement | null
+          assert(divider, 'the before/after divider is a real range input, so it is keyboard operable')
+          // It used to open at 100 — which is the whole frame showing the
+          // *original*, so selecting a wall and a colour changed nothing on
+          // screen until the visitor dragged a slider towards "Before".
+          assertEqual(divider.value, '50', 'the divider opens half and half')
+          assert(
+            (divider.getAttribute('aria-valuetext') ?? '').includes('50% of the frame shows the original'),
+            'what the divider means is said, not only shown',
+          )
+
+          const paint = container.querySelector('canvas[role="img"]') as HTMLCanvasElement
+          assert(paint.getAttribute('aria-describedby') === 'visualizer-help', 'the canvas points at its instructions')
+          assert(
+            (container.querySelector('#visualizer-help')?.textContent ?? '').includes('arrow keys'),
+            'the keyboard route is written down where a keyboard user will find it',
+          )
+          assert(
+            text().includes('drop a photograph onto the picture') && text().includes('paste one from the clipboard'),
+            'dragging and pasting a photo are offered, not only the file input',
+          )
+        } finally {
+          await unmount()
+        }
+      } finally {
+        for (const undo of restore.reverse()) undo()
+      }
+    })
+
+    await check('a browser with no canvas is told so, and given somewhere to go', async () => {
+      const restore = [installCanvas({ supported: false }), installDecodedImage()]
+      try {
+        const { default: RoomPreviewPage } = await import('../src/routes/RoomPreview')
+        const { container, unmount } = await mountPage('/room-preview', RoomPreviewPage)
+        try {
+          await waitFor(
+            () => text().includes('This browser cannot paint the photograph.'),
+            'the fallback to replace the tool',
+          )
+          // Roadmap 12.02.11: a usable fallback. A dead canvas with a spinner
+          // that never stops is not one.
+          assertEqual(container.querySelectorAll('canvas').length, 0, 'no canvas is offered that cannot be drawn on')
+          assert(container.querySelector('a[href="/colours"]') !== null, 'the colour library still works without a canvas')
+          assert(
+            container.querySelector('a[href="/documents/opudas-colour-book.pdf"]') !== null,
+            'the printed colour book is offered instead',
+          )
+          assert(container.querySelector('a[href="/quote"]') !== null, 'and so are physical samples')
+        } finally {
+          await unmount()
+        }
+      } finally {
+        for (const undo of restore.reverse()) undo()
+      }
+    })
+
+    await check('a tap paints the wall and a scroll does not', async () => {
+      const restore = [installCanvas(), installDecodedImage()]
+      try {
+        const { container, canvas, unmount } = await mountVisualizer()
+        try {
+          // On a phone the picture is the first thing on the page, so a swipe
+          // that started on it used to be read as "paint this wall" — and the
+          // canvas swallowed the scroll as well.
+          await pointer(canvas, 'pointerdown', 100, 120, 'touch')
+          assert(
+            liveRegion(container).includes('Tap or click the wall'),
+            'touching the picture does not paint before the finger lifts',
+          )
+          await pointer(canvas, 'pointerup', 100, 120, 'touch')
+          assert(liveRegion(container).includes('Wall selected'), 'a tap that stays put selects the wall')
+
+          await pointer(canvas, 'pointerdown', 100, 120, 'touch')
+          await pointer(canvas, 'pointermove', 300, 260, 'touch')
+          await pointer(canvas, 'pointerup', 300, 260, 'touch')
+          assert(
+            liveRegion(container).includes('That was a scroll, not a tap'),
+            'a swipe is reported as a scroll rather than painting somewhere else',
+          )
+
+          // A mouse has no such ambiguity, so it still paints on the way down.
+          await pointer(canvas, 'pointerdown', 200, 150, 'mouse')
+          assert(liveRegion(container).includes('Wall selected'), 'a mouse click paints at once')
+          const undo = allButtonsByText('Undo')[0] as HTMLButtonElement
+          assert(!undo.disabled, 'undo comes alive once there is something to undo')
+        } finally {
+          await unmount()
+        }
+      } finally {
+        for (const undo of restore.reverse()) undo()
+      }
+    })
+
+    await check('the wall can be selected without a pointer at all', async () => {
+      const restore = [installCanvas(), installDecodedImage()]
+      try {
+        const { container, canvas, unmount } = await mountVisualizer()
+        try {
+          await key(canvas, 'ArrowRight')
+          assert(/Cursor \d+% from the left/.test(liveRegion(container)), 'moving the cursor is announced')
+          assert(
+            container.querySelector('span[aria-hidden].rounded-full.border-2') !== null,
+            'and drawn, so the position is not only spoken',
+          )
+          await key(canvas, 'Enter')
+          assert(liveRegion(container).includes('Wall selected'), 'Enter applies the selected tool at the cursor')
+
+          // Switching to the brush has to change what Enter does; it used to
+          // flood-fill whatever the tool said.
+          await click(allButtonsByText('Brush')[0])
+          await key(canvas, 'ArrowDown', true)
+          await key(canvas, 'Enter')
+          assert(liveRegion(container).includes('Brushed at the cursor'), 'Enter uses the brush when the brush is chosen')
+        } finally {
+          await unmount()
+        }
+      } finally {
+        for (const undo of restore.reverse()) undo()
       }
     })
 

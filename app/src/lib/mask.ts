@@ -16,16 +16,58 @@
 
 export const MAX_EDGE = 1400
 
+/**
+ * How long a photograph may take to decode before the preview gives up.
+ *
+ * Roadmap 12.02.12 asks for progress, timeout and failure states. Without a
+ * deadline a decode that never settles — a truncated download, a phone asleep
+ * mid-read, a browser that fires neither `load` nor `error` — leaves the visitor
+ * staring at "Preparing…" with nothing to do about it. Twenty seconds is far
+ * longer than any supported file needs and shorter than patience.
+ */
+export const LOAD_TIMEOUT_MS = 20_000
+
 export type MaskMode = 'add' | 'erase'
 
-export function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('The image could not be loaded.'))
-    img.src = src
+/**
+ * Reject `promise` after `ms` with `message`.
+ *
+ * Exported, and tested on its own, because the case it exists for is the one a
+ * test can otherwise never reach: an image that neither loads nor fails.
+ */
+export function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const handle = setTimeout(() => reject(new Error(message)), ms)
+    // Node keeps the process alive for a pending timer. A deadline that may
+    // never arrive must not be the reason a test run does not finish; browsers
+    // have no `unref`, so the call is guarded rather than assumed.
+    const unref = (handle as unknown as { unref?: () => void }).unref
+    if (typeof unref === 'function') unref.call(handle)
+    promise.then(
+      (value) => {
+        clearTimeout(handle)
+        resolve(value)
+      },
+      (error: unknown) => {
+        clearTimeout(handle)
+        reject(error instanceof Error ? error : new Error(String(error)))
+      },
+    )
   })
+}
+
+export function loadImage(src: string, timeoutMs = LOAD_TIMEOUT_MS): Promise<HTMLImageElement> {
+  return withTimeout(
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error('That photograph could not be opened. It may be damaged, or still uploading.'))
+      img.src = src
+    }),
+    timeoutMs,
+    'That photograph took too long to open. Try a smaller version — phone resolution is plenty for this preview.',
+  )
 }
 
 /** Draw an image into a canvas scaled so its longest edge is at most MAX_EDGE. */
@@ -138,9 +180,10 @@ export function stampBrush(
   hardness = 0.55,
 ) {
   const gradient = ctx.createRadialGradient(x, y, radius * hardness, x, y, radius)
-  const alpha = mode === 'add' ? 1 : 1
+  // In `erase` mode the composite operation does the work and only the gradient's
+  // alpha matters, so both branches can be opaque at the centre.
   const colour = mode === 'add' ? '255,255,255' : '0,0,0'
-  gradient.addColorStop(0, `rgba(${colour},${alpha})`)
+  gradient.addColorStop(0, `rgba(${colour},1)`)
   gradient.addColorStop(1, `rgba(${colour},0)`)
   ctx.save()
   ctx.globalCompositeOperation = mode === 'add' ? 'source-over' : 'destination-out'
@@ -167,14 +210,6 @@ export function strokeBrush(
   for (let i = 0; i <= steps; i += 1) {
     stampBrush(ctx, from.x + (dx * i) / steps, from.y + (dy * i) / steps, radius, mode)
   }
-}
-
-export function maskIsEmpty(ctx: CanvasRenderingContext2D, width: number, height: number): boolean {
-  const data = ctx.getImageData(0, 0, width, height).data
-  for (let i = 3; i < data.length; i += 4 * 16) {
-    if (data[i] > 8) return false
-  }
-  return true
 }
 
 /** Share of the image that has been masked — used for the progress read-out. */

@@ -85,6 +85,53 @@ in the interface with nothing behind it:
   were called from nowhere. They fire now, consent-gated like every other event.
   No vendor is wired up — that is phase 16 and needs the consent review first.
 
+### "Try it on your wall" — phase 12.02, against its own acceptance list
+
+The room preview is the one feature the roadmap specifies task by task, so it was
+checked the same way: 12.02.01 to 12.02.14, each against the code. Four of the
+fourteen were not met, one of them in a way that made the headline feature
+silently do nothing.
+
+| Roadmap | What was there | What it is now |
+| --- | --- | --- |
+| **12.02.01** Clear upload and consent experience | A file input, a "stays on your device" badge and a privacy note. | The same, plus **drag a photograph onto the picture** and **paste one from the clipboard** — through identical validation, so there is one set of rules however the picture arrives. |
+| **12.02.02** Validate type, size, dimensions, malformed uploads | Met: three declared formats, a 12 MB ceiling, a 16 px floor, and a sentence for a decode that fails. | Unchanged. |
+| **12.02.03** Manage embedded metadata | True but unsaid: nothing is uploaded, so no EXIF travels, and a canvas-encoded PNG carries none. | **Said on the page** — the note now states that the saved preview carries none of the camera's location or device metadata. |
+| **12.02.04** Secure storage and access controls | Not applicable by construction: there is no storage. | Unchanged, and the local object URL is now released on unmount as well as on the next upload (12.02.13). |
+| **12.02.05** Detect or allow selection of walls | Met: tolerance flood fill (scanline, iterative, so a 1400 px wall cannot blow the stack) plus brush and eraser. | Unchanged. |
+| **12.02.06** Preserve edges, windows, doors, furniture, shadows | Met: the `color` blend takes hue and saturation from the paint and luminance from the photograph, with a low-alpha multiply so the colour reaches into the shaded half. | Unchanged. |
+| **12.02.07** Apply colour overlays without distortion | Met. | Unchanged. |
+| **12.02.08** Switch between approved colours | Library colours only, with search, family filter and palette shortcuts. **Bug:** `?colour=` was read once by `useState`, so a link followed while the page was already open — the project board links exactly this way — was ignored. | The component now follows the colour it is given. |
+| **12.02.09** Original-versus-preview comparison | **Not met, and it hid the feature.** The divider opened at 100, and 100 is the whole frame showing the *original*. A visitor selected a wall, chose a colour, and saw nothing change until they dragged a slider towards the end labelled "Before". | Opens half and half, so the paint is on screen the moment the wall is selected; the handle is labelled on both sides; the value is spoken (`aria-valuetext`: "50% of the frame shows the original photograph, 50% shows it painted in Lilac Room"). |
+| **12.02.10** Manual correction when segmentation fails | Undo ten deep, clear, tolerance, brush size. **Bug:** Enter flood-filled whatever the tool said, so a keyboard user who had chosen the brush and set a size got a different tool from the one on screen. | Enter applies the tool that is selected, and says which one it used. |
+| **12.02.11** Usable fallback on unsupported devices | **Absent.** A browser with no 2D canvas got an error sentence underneath a dead grey rectangle with a spinner that never stopped. | The page says plainly that this browser cannot paint the photograph, why, and offers three routes that work without a canvas: the colour library, the printed colour book, and physical samples. |
+| **12.02.12** Progress, timeout and failure states | Progress and failure; **no timeout.** An `<img>` that fires neither `load` nor `error` — a truncated download, a phone asleep mid-read — left "Preparing…" on screen forever. | A 20-second deadline, with a message that says what to do about it. Tested on its own, because it is the one case a test cannot otherwise reach. |
+| **12.02.13** Delete uploads per the retention policy | Nothing is uploaded, so there is nothing to delete — but the object URL holding the photograph was only released by the *next* upload. | Released on unmount too. |
+| **12.02.14** Load-test the service, measure processing cost | No service exists to load-test. | The client-side cost is bounded instead and measured: the working frame is capped at 1400 px on its longest edge, and the two offscreen canvases a frame needs are **reused** rather than allocated per pointer event — a brush stroke across a 1400 px frame was allocating several megabytes for every event the pointer fired. Coverage is now read at the end of a gesture instead of on every frame of one. |
+
+Two more defects were about touch, which no desktop check would ever find:
+
+- The canvas was `touch-none` for every tool. On a phone the picture is the first
+  thing on the page, so it swallowed the scroll and trapped the visitor at the
+  top — and a swipe that began on the wall painted a wall somewhere else. The
+  fill tool is now `touch-pan-y` and a touch paints **on release, only if the
+  finger stayed within 12 px**; a swipe is reported as a scroll rather than
+  silently doing something.
+- The keyboard cursor was announced to a screen reader but invisible on screen,
+  and nothing on the page said the keyboard route existed. The cursor is now
+  drawn, and the canvas points at written instructions (`aria-describedby`).
+
+**Tests.** jsdom ships the canvas element but not its 2D context, so the feature
+was untestable outside Chromium. `scripts/browser.test.tsx` now installs a
+recording stand-in — a context that keeps no pixels but throws nothing, and an
+`<img>` that decodes at once — which lets the real code path run: decode, compose,
+measure, report. Four checks use it (the divider's default, the unsupported-browser
+fallback, tap-versus-scroll, and selecting a wall with no pointer at all), and
+four more cover the timeout and the canvas reuse as pure functions. The stand-in
+is documented in the test file as what it is: these tests assert what the visitor
+is told and which controls come alive, never what the picture looks like. Pixels
+are axe's and Lighthouse's job, in CI, on real Chromium.
+
 ---
 
 ## 3. Flaws found and fixed
@@ -150,10 +197,10 @@ cd app && npm run check
 | Check | Before this audit | After |
 | --- | --- | --- |
 | `npm run lint` (oxlint) | 12 warnings, 0 errors | 12 warnings, 0 errors — the same twelve, all pre-existing (`react/set-state-in-effect` on store hydration, `react/only-export-components` on `useApp`/`readConsent`); no new warning was introduced |
-| `npm run test:unit` | 55 (14 calculator, 9 mask, 32 content) | **88** (14 calculator, 9 mask, 35 content, 30 advisor/share/tools) |
+| `npm run test:unit` | 55 (14 calculator, 9 mask, 32 content) | **92** (14 calculator, 13 mask and render, 35 content, 30 advisor/share/tools) |
 | `npm run test:server` | 39 (19 HTTP, 9 proxy, 11 ops) | **61** (19 HTTP, 9 proxy, 11 ops, 22 deployment-edge) |
 | `npm run test:routes` | 21 route renders | **29** cases across 22 route modules, each asserting an `<h1>`, no `undefined`/`NaN`/`[object Object]` in the markup, no link to a route the app does not own, and no price or stock claim in structured data |
-| `npm run test:browser` | 12 | **21** (jsdom against a real service on a real socket — now covering the finish finder's recommendation *and* its refusal, the calculator → checklist → share-link → fresh-browser round trip, and the footer opt-out writing a suppression record) |
+| `npm run test:browser` | 12 | **25** (jsdom against a real service on a real socket — covering the finish finder's recommendation *and* its refusal, the calculator → checklist → share-link → fresh-browser round trip, the footer opt-out writing a suppression record, and the room preview's divider, fallback, tap-versus-scroll and keyboard-only selection) |
 | `tsc -b` | clean, not strict | clean, **strict + `exactOptionalPropertyTypes`**, now covering `src/`, `vite.config.ts` and `scripts/` |
 | Build | 101 sitemap URLs, 106 prerendered heads | **104 sitemap URLs** (59 colours, 6 products, 6 guides, 19 projects, plus `/tools`, `/tools/finish-finder`, `/tools/surface-prep`), **110 prerendered heads** |
 
@@ -195,7 +242,7 @@ Numbers and claims that had fallen out of step with the build:
 | `docs/remaining-work.md` §4 | Phase 11.02 listed as remaining work | Built | Marked done with evidence |
 | `docs/remaining-work.md` §4 | "Newsletter: double opt-in, unsubscribe" both outstanding | Unsubscribe is built; double opt-in is not | Split |
 | `docs/running.md` | "renders all 92 routes" | 110 prerendered heads, 104 sitemap URLs | Corrected, with the new pages named |
-| `docs/qa-checklist.md` | "14 calculator, 9 colour-mask and 32 content-integrity tests, plus 19 HTTP-level tests"; "all 21 routes"; "39 tests"; "7 tests in jsdom"; "axe … on thirteen pages"; "`exactOptionalPropertyTypes` on" | 88 unit, 29 route cases, 61 server, 21 browser, 22 axe pages; strict typing was *not* on | All corrected, and strict typing is now genuinely on |
+| `docs/qa-checklist.md` | "14 calculator, 9 colour-mask and 32 content-integrity tests, plus 19 HTTP-level tests"; "all 21 routes"; "39 tests"; "7 tests in jsdom"; "axe … on thirteen pages"; "`exactOptionalPropertyTypes` on" | 92 unit, 29 route cases, 61 server, 25 browser, 22 axe pages; strict typing was *not* on | All corrected, and strict typing is now genuinely on |
 | `docs/qa-checklist.md` | "All 22 images derive from the supplied originals" | 49 served images in the manifest (34 project, 7 interior, 4 product, 2 brand, 2 concept renders) from 54 originals in `opuda/` | Restated with the real counts and the two renders labelled as artwork |
 | `docs/brochure.md`, `docs/remaining-work.md`, and the printed copy in four generators | "8 palettes" | 9 — on the cover of the colour book, in the catalogue description, on the colour wheel index and in the room book cross-reference | Corrected, and the four affected PDFs regenerated and committed |
 | `docs/content-editing.md` | No mention of `src/data/tools.ts` or the colour index | Both are content files with rules | Added |
