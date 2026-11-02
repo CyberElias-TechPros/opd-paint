@@ -39,6 +39,19 @@ const test = (name: string, fn: () => void) => {
   }
 }
 
+/**
+ * Composite `foreground` over `background` at `alpha`, the way a browser does,
+ * so a test can reason about `bg-paper-2/8` over `bg-ink` instead of guessing at
+ * the resulting hex.
+ */
+function blend(foreground: string, background: string, alpha: number): string {
+  const channel = (hex: string, offset: number) => parseInt(hex.slice(offset, offset + 2), 16)
+  const mixed = [1, 3, 5].map((offset) =>
+    Math.round(channel(foreground, offset) * alpha + channel(background, offset) * (1 - alpha)),
+  )
+  return `#${mixed.map((value) => value.toString(16).padStart(2, '0')).join('')}`
+}
+
 const manifest = JSON.parse(
   readFileSync(new URL('../public/media/manifest.json', import.meta.url), 'utf8'),
 )
@@ -358,6 +371,43 @@ test('every image in the manifest is actually used by the interface', () => {
     .join('\n')
   const unused = [...mediaKeys].filter((key) => !source.includes(`'${key}'`) && !source.includes(`"${key}"`))
   assert.deepEqual(unused, [], 'manifest images not referenced anywhere')
+})
+
+/* ------------------------------------------------ accents on dark surfaces */
+
+test('the accents used for text on a dark panel clear AA', () => {
+  // axe caught three contrast failures on the finish finder's specification
+  // panel: a `green` badge at 2.59:1 and a `green-bright` link at 3.85:1, both
+  // on surfaces darker than the paper they were designed for. This is the same
+  // check without a browser, reading the real tokens out of the stylesheet so it
+  // cannot drift from them — the next pairing like that fails here, in
+  // `npm test`, instead of in CI on a page nobody has looked at yet.
+  const theme = readFileSync(new URL('../src/styles/theme.css', import.meta.url), 'utf8')
+  const token = (name: string): string => {
+    const match = theme.match(new RegExp(`--color-${name}:\\s*(#[0-9a-fA-F]{6})`))
+    assert.ok(match, `--color-${name} is not defined in theme.css`)
+    return match[1]
+  }
+
+  const ink = token('ink')
+  // The panel sections inside a dark card, as axe measured them: ink under a
+  // paper-2 wash. Computed rather than hardcoded, so a change to either token is
+  // reflected here.
+  const tinted = blend(token('paper-2'), ink, 0.08)
+  const accents: Array<[string, string]> = [
+    ['green-mist', token('green-mist')],
+    ['paper-2', token('paper-2')],
+    ['gold', token('gold')],
+  ]
+  for (const [name, foreground] of accents) {
+    for (const [surface, background] of [['ink', ink], ['a tinted dark panel', tinted]] as const) {
+      const ratio = contrast(foreground, background)
+      assert.ok(
+        ratio >= 4.5,
+        `${name} on ${surface} is ${ratio.toFixed(2)}:1 — under the 4.5:1 AA requires for text this small`,
+      )
+    }
+  }
 })
 
 /* ------------------------------------------------- the service's own index */

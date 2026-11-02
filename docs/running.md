@@ -31,7 +31,7 @@ answers in local storage and tells them to call instead of losing the enquiry.
 
 ```bash
 npm run lint         # oxlint, zero errors expected
-npm test             # 87 tests: 14 calculator + 9 colour-mask + 34 content
+npm test             # 88 tests: 14 calculator + 9 colour-mask + 35 content
                      # integrity + 30 advisor / share-link / tools-data
 npm run typecheck    # tsc -b — strict, exactOptionalPropertyTypes, and covering
                      # src/, vite.config.ts and the test scripts themselves

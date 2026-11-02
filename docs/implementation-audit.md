@@ -150,7 +150,7 @@ cd app && npm run check
 | Check | Before this audit | After |
 | --- | --- | --- |
 | `npm run lint` (oxlint) | 12 warnings, 0 errors | 12 warnings, 0 errors — the same twelve, all pre-existing (`react/set-state-in-effect` on store hydration, `react/only-export-components` on `useApp`/`readConsent`); no new warning was introduced |
-| `npm run test:unit` | 55 (14 calculator, 9 mask, 32 content) | **87** (14 calculator, 9 mask, 34 content, 30 advisor/share/tools) |
+| `npm run test:unit` | 55 (14 calculator, 9 mask, 32 content) | **88** (14 calculator, 9 mask, 35 content, 30 advisor/share/tools) |
 | `npm run test:server` | 39 (19 HTTP, 9 proxy, 11 ops) | **61** (19 HTTP, 9 proxy, 11 ops, 22 deployment-edge) |
 | `npm run test:routes` | 21 route renders | **29** cases across 22 route modules, each asserting an `<h1>`, no `undefined`/`NaN`/`[object Object]` in the markup, no link to a route the app does not own, and no price or stock claim in structured data |
 | `npm run test:browser` | 12 | **21** (jsdom against a real service on a real socket — now covering the finish finder's recommendation *and* its refusal, the calculator → checklist → share-link → fresh-browser round trip, and the footer opt-out writing a suppression record) |
@@ -195,7 +195,7 @@ Numbers and claims that had fallen out of step with the build:
 | `docs/remaining-work.md` §4 | Phase 11.02 listed as remaining work | Built | Marked done with evidence |
 | `docs/remaining-work.md` §4 | "Newsletter: double opt-in, unsubscribe" both outstanding | Unsubscribe is built; double opt-in is not | Split |
 | `docs/running.md` | "renders all 92 routes" | 110 prerendered heads, 104 sitemap URLs | Corrected, with the new pages named |
-| `docs/qa-checklist.md` | "14 calculator, 9 colour-mask and 32 content-integrity tests, plus 19 HTTP-level tests"; "all 21 routes"; "39 tests"; "7 tests in jsdom"; "axe … on thirteen pages"; "`exactOptionalPropertyTypes` on" | 87 unit, 29 route cases, 60 server, 12 browser, 22 axe pages; strict typing was *not* on | All corrected, and strict typing is now genuinely on |
+| `docs/qa-checklist.md` | "14 calculator, 9 colour-mask and 32 content-integrity tests, plus 19 HTTP-level tests"; "all 21 routes"; "39 tests"; "7 tests in jsdom"; "axe … on thirteen pages"; "`exactOptionalPropertyTypes` on" | 88 unit, 29 route cases, 61 server, 21 browser, 22 axe pages; strict typing was *not* on | All corrected, and strict typing is now genuinely on |
 | `docs/qa-checklist.md` | "All 22 images derive from the supplied originals" | 49 served images in the manifest (34 project, 7 interior, 4 product, 2 brand, 2 concept renders) from 54 originals in `opuda/` | Restated with the real counts and the two renders labelled as artwork |
 | `docs/brochure.md`, `docs/remaining-work.md`, and the printed copy in four generators | "8 palettes" | 9 — on the cover of the colour book, in the catalogue description, on the colour wheel index and in the room book cross-reference | Corrected, and the four affected PDFs regenerated and committed |
 | `docs/content-editing.md` | No mention of `src/data/tools.ts` or the colour index | Both are content files with rules | Added |

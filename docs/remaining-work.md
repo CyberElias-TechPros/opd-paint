@@ -233,7 +233,7 @@ Evidence: `app/src/routes/{Tools,FinishFinder,SurfacePrep,Project}.tsx`,
 | **B. Accessibility** | ⚠️ Designed in, unverified | Everything is keyboard-operable, focus-visible, reduced-motion aware, never colour-only. **Not yet verified with a real screen reader or an automated audit.** |
 | **C. Performance** | ⚠️ Budgeted, unmeasured | 118 kB gzip entry, lazy routes, WebP, preloaded hero, lazy fonts. **No measurement on a real Nigerian mobile connection.** Lighthouse CI closes this. |
 | **D. Security and privacy** | ⚠️ Good baseline | Headers, CSP, constant-time auth, rate limits, honeypot, consent-gated analytics, single-origin CORS, proxy-aware limiting, a traversal-safe static root, CSV formula-injection escaping, and a working newsletter opt-out. **Missing: monitoring, MFA, a DSAR process, legal review.** |
-| **E. Maintainability** | ⚠️ Good, one hole | Typed data, 198 automated checks, generated documents, reproducibility checks, strict TypeScript across `src/`, the config and the test scripts, and seven docs. **The hole is content editing without a CMS.** |
+| **E. Maintainability** | ⚠️ Good, one hole | Typed data, 199 automated checks, generated documents, reproducibility checks, strict TypeScript across `src/`, the config and the test scripts, and seven docs. **The hole is content editing without a CMS.** |
 | **F. Commercial integrity** | ✅ Strong | No price is ever shown — every inquiry routes to a person — and that is now enforced rather than merely intended: the route render test fails the build if any page emits a price, an offer or an availability claim in its structured data. `pending-verification` flags, no invented testimonials, no stock claims, concept work labelled as concept. |
 
 ---

@@ -50,14 +50,18 @@ teams, not in a repository.
 cd app && npm run check
 ```
 
-198 automated checks run on every `npm run check`, plus four CI jobs that need a
+199 automated checks run on every `npm run check`, plus four CI jobs that need a
 browser.
 
 - `npm run lint` — oxlint, zero errors. (Twelve warnings remain, all of them
   deliberate: `react/set-state-in-effect` on the store's hydration effect and
   `react/only-export-components` on two hooks exported beside their provider.)
-- `npm test` — **87 tests**: 14 calculator, 9 colour-mask, 34 content-integrity
-  and 30 covering the advisor, the share-link codec and the tools data.
+- `npm test` — **88 tests**: 14 calculator, 9 colour-mask, 35 content-integrity
+  and 30 covering the advisor, the share-link codec and the tools data. One of the
+  content tests is a contrast guard: it reads the accent tokens out of
+  `theme.css`, composites them over the dark panel they are used on and fails
+  below 4.5:1 — the browser-free version of the check axe runs in CI, added after
+  axe found three real failures on a new page.
   Content tests check unique ids and codes, valid hex, palette/guide/project
   cross-references, media manifest coverage, alt text, PDF existence, dealer
   coordinates, no render labelled as completed work, no unused image — and that
