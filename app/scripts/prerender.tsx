@@ -36,6 +36,10 @@ import ProjectDetail from '../src/routes/ProjectDetail'
 import Advice from '../src/routes/Advice'
 import GuideDetail from '../src/routes/GuideDetail'
 import Dealers from '../src/routes/Dealers'
+import Tools from '../src/routes/Tools'
+import FinishFinder from '../src/routes/FinishFinder'
+import SurfacePrep from '../src/routes/SurfacePrep'
+import Project from '../src/routes/Project'
 import Quote from '../src/routes/Quote'
 import About from '../src/routes/About'
 import DataPage from '../src/routes/DataPage'
@@ -99,6 +103,12 @@ const pages: Page[] = [
   { pattern: '/products', url: '/products', Page: Products, chunk: 'Products' },
   { pattern: '/room-preview', url: '/room-preview', Page: RoomPreview, chunk: 'RoomPreview' },
   { pattern: '/calculator', url: '/calculator', Page: Calculator, chunk: 'Calculator' },
+  { pattern: '/tools', url: '/tools', Page: Tools, chunk: 'Tools' },
+  { pattern: '/tools/finish-finder', url: '/tools/finish-finder', Page: FinishFinder, chunk: 'FinishFinder' },
+  { pattern: '/tools/surface-prep', url: '/tools/surface-prep', Page: SurfacePrep, chunk: 'SurfacePrep' },
+  // A board is device-specific and a shared link carries its state in the URL,
+  // so this one is prerendered (its head is still worth having) but noindexed.
+  { pattern: '/project', url: '/project', Page: Project, chunk: 'Project' },
   { pattern: '/inspiration', url: '/inspiration', Page: Inspiration, chunk: 'Inspiration' },
   { pattern: '/advice', url: '/advice', Page: Advice, chunk: 'Advice' },
   { pattern: '/dealers', url: '/dealers', Page: Dealers, chunk: 'Dealers' },

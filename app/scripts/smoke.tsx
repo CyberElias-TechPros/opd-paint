@@ -9,6 +9,7 @@
  *
  *   npm run test:routes
  */
+import type { JSX } from 'react'
 import { renderToString } from 'react-dom/server'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { AppProvider } from '../src/store/AppStore'
@@ -25,6 +26,10 @@ import ProjectDetail from '../src/routes/ProjectDetail'
 import Advice from '../src/routes/Advice'
 import GuideDetail from '../src/routes/GuideDetail'
 import Dealers from '../src/routes/Dealers'
+import Tools from '../src/routes/Tools'
+import FinishFinder from '../src/routes/FinishFinder'
+import SurfacePrep from '../src/routes/SurfacePrep'
+import Project from '../src/routes/Project'
 import Quote from '../src/routes/Quote'
 import About from '../src/routes/About'
 import DataPage from '../src/routes/DataPage'
@@ -44,6 +49,18 @@ const cases: Array<{ pattern: string; path: string; Page: () => JSX.Element }> =
   { pattern: '/products/:id', path: '/products/screeding', Page: ProductDetail },
   { pattern: '/room-preview', path: '/room-preview?colour=lilac-room', Page: RoomPreview },
   { pattern: '/calculator', path: '/calculator?product=silk', Page: Calculator },
+  { pattern: '/tools', path: '/tools', Page: Tools },
+  { pattern: '/tools/finish-finder', path: '/tools/finish-finder', Page: FinishFinder },
+  {
+    pattern: '/tools/finish-finder',
+    path: '/tools/finish-finder?surface=kitchen-bath&condition=uneven&wear=heavy&sheen=unsure',
+    Page: FinishFinder,
+  },
+  { pattern: '/tools/finish-finder', path: '/tools/finish-finder?surface=interior-wall&condition=damp&wear=light&sheen=flat', Page: FinishFinder },
+  { pattern: '/tools/surface-prep', path: '/tools/surface-prep', Page: SurfacePrep },
+  { pattern: '/tools/surface-prep', path: '/tools/surface-prep?situation=new-render', Page: SurfacePrep },
+  { pattern: '/tools/surface-prep', path: '/tools/surface-prep?situation=not-a-real-situation', Page: SurfacePrep },
+  { pattern: '/project', path: '/project', Page: Project },
   { pattern: '/inspiration', path: '/inspiration', Page: Inspiration },
   { pattern: '/inspiration/:id', path: '/inspiration/arched-villa-gra', Page: ProjectDetail },
   { pattern: '/advice', path: '/advice', Page: Advice },
@@ -60,8 +77,8 @@ const cases: Array<{ pattern: string; path: string; Page: () => JSX.Element }> =
 
 /** Every routable path prefix the app owns. */
 const KNOWN = [
-  '/', '/colours', '/products', '/room-preview', '/calculator', '/inspiration',
-  '/advice', '/dealers', '/quote', '/about', '/data', '/style-guide', '/legal',
+  '/', '/colours', '/products', '/room-preview', '/calculator', '/tools', '/project',
+  '/inspiration', '/advice', '/dealers', '/quote', '/about', '/data', '/style-guide', '/legal',
 ]
 
 let failures = 0
@@ -84,6 +101,24 @@ for (const { pattern, path, Page } of cases) {
   if (!/<h1[\s>]/.test(html)) fail(`${path} has no h1`)
   for (const bad of ['undefined', 'NaN', '[object Object]', '&lt;script']) {
     if (html.includes(bad)) fail(`${path} renders "${bad}"`)
+  }
+
+  /*
+   * Structured data may not claim a price or a stock position.
+   *
+   * This site publishes no prices and has no stock system, so any `offers`,
+   * `price` or `availability` in JSON-LD is invented — and search engines print
+   * it in rich results as though the business had said it. Fifty-nine colour
+   * pages once carried a fabricated ₦6,200–₦132,000 range with
+   * `availability: InStock` (roadmap 10.03.12–13 forbids exactly this). Checking
+   * the rendered markup rather than the source catches it however the JSON is
+   * assembled, including from a helper or a data file.
+   */
+  const bannedClaims = ['"price"', '"lowPrice"', '"highPrice"', '"priceCurrency"', '"availability"', '"offers"']
+  for (const block of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+    for (const claim of bannedClaims) {
+      if (block[1].includes(claim)) fail(`${path} publishes ${claim} in structured data`)
+    }
   }
 
   const hrefs = [...html.matchAll(/href="(\/[^"#?]*)/g)].map((match) => match[1])

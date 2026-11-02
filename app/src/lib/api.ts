@@ -30,11 +30,11 @@ export type ApiOk<T> = { ok: true; data: T }
 export type QuotePayload = {
   name: string
   phone: string
-  email?: string
+  email?: string | undefined
   city: string
   projectType: string
-  rooms?: string
-  message?: string
+  rooms?: string | undefined
+  message?: string | undefined
   colors?: string[]
   products?: string[]
   quantities?: Array<{ label: string; amount: number; unit: string }>
@@ -96,25 +96,90 @@ export async function submitQuote(payload: QuotePayload): Promise<QuoteResponse>
   return res.data
 }
 
-export async function subscribe(email: string, interest: string): Promise<{ email: string }> {
-  const res = await post<{ email: string }>('/api/subscribe', { email, interest })
+export async function subscribe(email: string, interest: string): Promise<{ email: string; resubscribed?: boolean }> {
+  const res = await post<{ email: string; resubscribed?: boolean }>('/api/subscribe', { email, interest })
   return res.data
 }
 
-export async function searchColours(query: string): Promise<{ results: Array<{ id: string; name: string; code: string; hex: string }> }> {
+/**
+ * Withdraw consent to the newsletter.
+ *
+ * NDPA section 34 makes opting out as important as opting in, and the copy under
+ * the sign-up form has always promised it — so this is not a convenience, it is
+ * the other half of a promise the site already makes in public. The service
+ * records a suppression entry rather than deleting the address: we have to be
+ * able to show that an opt-out was honoured.
+ */
+export async function unsubscribe(email: string, source = 'footer'): Promise<{ email: string }> {
+  const res = await post<{ email: string }>('/api/unsubscribe', { email, source })
+  return res.data
+}
+
+export type ColourHit = { id: string; name: string; code: string; hex?: string | undefined; family?: string | undefined }
+
+/**
+ * Server-side colour search.
+ *
+ * The palette indexes the library locally, which is why this is not on the
+ * critical path — but the service can be updated without redeploying the bundle
+ * (a colour added to the index by hand on a host, a future CMS), so the palette
+ * falls back to it when the local index finds nothing. A failure here is
+ * indistinguishable from "no results" by design: search must never break a page.
+ */
+export async function searchColours(query: string): Promise<ColourHit[]> {
   const url = new URL('/api/search/colours', window.location.origin)
   url.searchParams.set('q', query)
   const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) })
-  if (!res.ok) throw new Error('Search unavailable')
-  return (await res.json()) as { results: Array<{ id: string; name: string; code: string; hex: string }> }
+  if (!res.ok) return []
+  const json = (await res.json()) as { results?: ColourHit[] }
+  return Array.isArray(json.results) ? json.results : []
 }
 
-/** Keeps an unsent submission on the device so nothing is lost on failure. */
+/**
+ * Failed-submission drafts.
+ *
+ * Storing an unsent enquiry is only half of the promise "nothing is lost": the
+ * other half is giving it back. A draft is read once when the form mounts, shown
+ * as a notice the visitor can dismiss, and deleted the moment a submission
+ * succeeds — a form that quietly re-fills yesterday's phone number is how stale
+ * personal data ends up being sent to the wrong desk.
+ */
+export type StashedSubmission<T> = { body: T; at: number }
+
+/** Discard drafts older than a day: an enquiry that old has been phoned in. */
+const DRAFT_MAX_AGE_MS = 24 * 60 * 60 * 1000
+
+const draftKey = (kind: string) => `opd.draft.${kind}`
+
 export function stashFailedSubmission(kind: string, body: unknown) {
   try {
-    const key = `opd.draft.${kind}`
-    localStorage.setItem(key, JSON.stringify({ body, at: Date.now() }))
+    localStorage.setItem(draftKey(kind), JSON.stringify({ body, at: Date.now() }))
   } catch {
-    /* quota — nothing else we can do */
+    /* quota or private mode — nothing else we can do */
+  }
+}
+
+export function readStashedSubmission<T>(kind: string): StashedSubmission<T> | null {
+  try {
+    const raw = localStorage.getItem(draftKey(kind))
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<StashedSubmission<T>>
+    if (!parsed || typeof parsed !== 'object' || !parsed.body) return null
+    const at = typeof parsed.at === 'number' ? parsed.at : 0
+    if (!at || Date.now() - at > DRAFT_MAX_AGE_MS) {
+      localStorage.removeItem(draftKey(kind))
+      return null
+    }
+    return { body: parsed.body as T, at }
+  } catch {
+    return null
+  }
+}
+
+export function clearStashedSubmission(kind: string) {
+  try {
+    localStorage.removeItem(draftKey(kind))
+  } catch {
+    /* noop */
   }
 }

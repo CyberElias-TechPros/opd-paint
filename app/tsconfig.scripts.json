@@ -1,0 +1,28 @@
+{
+  /*
+   * The build and test scripts.
+   *
+   * These were the only TypeScript in the repository that nothing type-checked:
+   * `tsconfig.node.json` covers vite.config.ts alone, and Vite strips types from
+   * the scripts without checking them. That is how a test suite comes to assert
+   * against a signature that no longer exists — it fails at runtime, or worse,
+   * passes while testing the wrong thing. Same strictness as `src/`.
+   */
+  "extends": "./tsconfig.node.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.scripts.tsbuildinfo",
+    /* The scripts are bundled by Vite and run through this repo's own
+     * type-stripping loader, so they resolve imports the way src/ does —
+     * extensionless relative paths. nodenext (inherited for vite.config.ts,
+     * which Node loads directly) would demand .js extensions on files that are
+     * .tsx on disk, so this project resolves as a bundler instead. */
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM"],
+    "types": ["node", "vite/client"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "exactOptionalPropertyTypes": true
+  },
+  "include": ["scripts/**/*.ts", "scripts/**/*.tsx"]
+}

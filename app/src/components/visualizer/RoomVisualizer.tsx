@@ -41,7 +41,13 @@ const DEMO_ROOMS = [
 
 type Tool = 'fill' | 'brush' | 'erase'
 
-export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }) {
+/** The formats the file input offers and the canvas can actually decode. */
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+/** A 1×1 photo or a corrupt header decodes to nothing paintable. */
+const MIN_DIMENSION = 16
+
+export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor | undefined }) {
   const [colour, setColour] = useState<PaintColor>(initialColour ?? COLORS[0])
   const [finish, setFinish] = useState<FinishLook>('matt')
   const [roomId, setRoomId] = useState<string>(DEMO_ROOMS[0].id)
@@ -93,6 +99,9 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
       setStatus('Loading the room…')
       try {
         const img = await loadImage(src)
+        if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth < MIN_DIMENSION || img.naturalHeight < MIN_DIMENSION) {
+          throw new Error('That image has no readable dimensions. It may be damaged, or not a photograph at all.')
+        }
         const { canvas, ctx, width, height } = prepareCanvas(img)
 
         sourceRef.current = canvas
@@ -285,12 +294,20 @@ export function RoomVisualizer({ initialColour }: { initialColour?: PaintColor }
 
   /* --------------------------------------------------------------- upload */
   const onUpload = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setError('Please choose a JPG, PNG or WebP image.')
+    // Roadmap 12.02.02: type, size and dimensions are all validated, and the
+    // accepted list here is the same list the file input offers. Accepting any
+    // `image/*` while advertising three formats is how a visitor gets a canvas
+    // error instead of a sentence they can act on.
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setError('Please choose a JPG, PNG or WebP image — that is what the preview can read.')
       return
     }
-    if (file.size > 12 * 1024 * 1024) {
+    if (file.size > MAX_UPLOAD_BYTES) {
       setError('That photo is larger than 12 MB. Try a smaller version — the preview works well at phone resolution.')
+      return
+    }
+    if (file.size === 0) {
+      setError('That file is empty. Choose the photograph again.')
       return
     }
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)

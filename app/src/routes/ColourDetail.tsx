@@ -64,6 +64,19 @@ export default function ColourDetail() {
     path: `/colours/${id}`,
     image: colour ? `/media/${PROJECTS.find((p) => p.colorIds.includes(colour.id))?.cover ?? 'interior-lilac-lounge'}.webp` : undefined,
     noIndex: !colour,
+    /*
+      * No `offers` here, and that is deliberate.
+      *
+      * An earlier revision published `lowPrice`/`highPrice` and
+      * `availability: InStock` for every colour. Both were invented: this site
+      * publishes no prices and holds no stock system (see `docs/qa-checklist.md`
+      * and roadmap 10.03.12–13, which allows structured data only for fields the
+      * visible page supports). Search engines surface those numbers directly in
+      * rich results, so a fabricated price range on 59 pages is not a small
+      * error — it is the business quoting prices it has not set, to the whole
+      * internet. `scripts/data.test.ts` now fails the build if any route emits a
+      * price or an availability claim in its structured data.
+      */
     jsonLd: colour
       ? {
           '@context': 'https://schema.org',
@@ -74,13 +87,11 @@ export default function ColourDetail() {
           brand: { '@type': 'Brand', name: 'OPUDA’S PAINT' },
           color: colour.hex,
           description: colour.note,
-          offers: {
-            '@type': 'AggregateOffer',
-            priceCurrency: 'NGN',
-            lowPrice: 6200,
-            highPrice: 132000,
-            availability: 'https://schema.org/InStock',
-            seller: { '@type': 'Organization', name: 'OPUDA’S PAINT' },
+          /* Truthful and supported by the page: how to get a price or a chip. */
+          potentialAction: {
+            '@type': 'CommunicateAction',
+            name: 'Ask the colour desk about this colour',
+            target: { '@type': 'EntryPoint', urlTemplate: 'https://opudapaint.com/quote', actionApplication: 'https://opudapaint.com' },
           },
         }
       : undefined,

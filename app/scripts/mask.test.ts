@@ -13,19 +13,26 @@ import assert from 'node:assert/strict'
 import { floodFill } from '../src/lib/mask.ts'
 
 let passed = 0
-const test = (name, fn) => {
+// Typed because `tsc -b` now covers the test scripts too (tsconfig.scripts.json):
+// an untyped runner is how a suite keeps passing after the module it exercises
+// changes shape.
+const test = (name: string, fn: () => void) => {
   try {
     fn()
     passed += 1
     console.log(`  ok   ${name}`)
   } catch (error) {
     console.error(`  FAIL ${name}`)
-    console.error(error.message)
+    console.error(error instanceof Error ? error.stack ?? error.message : String(error))
     process.exitCode = 1
   }
 }
 
-type Pixels = { data: Uint8ClampedArray; width: number; height: number }
+// Structurally an ImageData: Node has no canvas, so the tests build the object
+// `floodFill` reads rather than mocking a 2D context. `colorSpace` is part of the
+// DOM type, and leaving it out made every call a type error once the scripts were
+// type-checked.
+type Pixels = { data: Uint8ClampedArray<ArrayBuffer>; width: number; height: number; colorSpace: 'srgb' }
 
 const blank = (width: number, height: number, rgba: [number, number, number, number] = [0, 0, 0, 0]): Pixels => {
   const data = new Uint8ClampedArray(width * height * 4)
@@ -35,7 +42,7 @@ const blank = (width: number, height: number, rgba: [number, number, number, num
     data[i + 2] = rgba[2]
     data[i + 3] = rgba[3]
   }
-  return { data, width, height }
+  return { data, width, height, colorSpace: 'srgb' }
 }
 
 const solid = (width: number, height: number, rgb: [number, number, number]): Pixels => blank(width, height, [...rgb, 255])

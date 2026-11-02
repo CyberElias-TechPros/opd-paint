@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Copy, Check, Trash2, X, Share2, ArrowRight } from 'lucide-react'
+import { Copy, Check, Trash2, X, Share2, ArrowRight, ClipboardList } from 'lucide-react'
 import { useApp } from '../../store/AppStore'
 import { colorsByIds, COLOR_LRV } from '../../data/colors'
 import { PRODUCTS } from '../../data/products'
 import { Button, ButtonLink } from '../ui/Button'
 import { cn } from '../../lib/cn'
 import { track } from '../../lib/analytics'
+import { projectUrl } from '../../lib/share'
 import { EmptyState } from '../ui/EmptyState'
 
 /**
@@ -26,15 +27,49 @@ export function ProjectBoard() {
     [board.savedProducts],
   )
 
+  /**
+   * Share the whole board, not four colours in a compare tray.
+   *
+   * The link carries the project name, every saved colour and product and every
+   * quantity the calculator produced, encoded in the URL itself (`lib/share.ts`)
+   * — so it opens on any device, needs no account and stores nothing on a
+   * server. The native share sheet is used where the device has one, because on
+   * a phone that means WhatsApp directly; the clipboard is the fallback and a
+   * prompt is the last resort for a browser that blocks both.
+   */
   const share = async () => {
-    const url = `${window.location.origin}/colours?scheme=${board.savedColors.join(',')}`
+    const url = projectUrl({
+      name: board.boardName,
+      colours: board.savedColors,
+      products: board.savedProducts,
+      estimates: board.estimates,
+      prep: board.prep,
+    })
+    track('project_shared_created', {
+      colours: board.savedColors.length,
+      products: board.savedProducts.length,
+      estimates: board.estimates.length,
+    })
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({
+          title: `${board.boardName} — OPUDA’S PAINT project`,
+          text: `${colours.length} colour${colours.length === 1 ? '' : 's'}${
+            board.estimates.length ? ` and ${board.estimates.length} saved quantit${board.estimates.length === 1 ? 'y' : 'ies'}` : ''
+          }, as a checklist.`,
+          url,
+        })
+        return
+      }
+    } catch {
+      // A dismissed share sheet is not a failure — fall through to the clipboard.
+    }
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
-      track('cta_click', { target: 'share-project-board', count: board.savedColors.length })
       window.setTimeout(() => setCopied(false), 2200)
     } catch {
-      window.prompt('Copy this link to share your board:', url)
+      window.prompt('Copy this link to share your project:', url)
     }
   }
 
@@ -254,8 +289,16 @@ export function ProjectBoard() {
           >
             Request a quote for this project <ArrowRight className="size-4" aria-hidden />
           </ButtonLink>
+          <ButtonLink
+            to="/project"
+            fullWidth
+            variant="paper"
+            onClick={() => track('cta_click', { target: 'board-to-checklist', count: colours.length })}
+          >
+            <ClipboardList className="size-4" aria-hidden /> Open the project checklist
+          </ButtonLink>
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="paper" size="sm" onClick={share} disabled={!colours.length}>
+            <Button variant="paper" size="sm" onClick={share} disabled={!colours.length && !board.estimates.length}>
               {copied ? <Check className="size-3.5" aria-hidden /> : <Share2 className="size-3.5" aria-hidden />}
               {copied ? 'Link copied' : 'Share link'}
             </Button>

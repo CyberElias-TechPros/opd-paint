@@ -15,6 +15,7 @@ still a placeholder.
 | [deploying.md](deploying.md) | You are putting it on a server: Docker, systemd, nginx, env vars, backups, post-deploy smoke test. |
 | [operations.md](operations.md) | You are on call: notifications, error reports, log events, what to alert on, backup and restore, incident playbooks. |
 | [remaining-work.md](remaining-work.md) | You are planning what is left: a gate-by-gate gap analysis against the root README roadmap, with the business blockers named. |
+| [implementation-audit.md](implementation-audit.md) | You want to know what was checked against the docs, what was found wrong, what was fixed and how that is proven — and what is still wrong on purpose. |
 
 ## Layout
 
@@ -23,15 +24,18 @@ app/                    React 19 + Vite + Tailwind v4 front end
   public/               brand marks, media (WebP), generated PDFs, robots, sitemap
   scripts/              test runners and content tests (run by `npm test`)
   src/
-    components/         UI kit, layout, room visualiser, calculator, colour cards
+    components/         UI kit, layout, room visualiser, calculator, colour cards,
+                        search palette
       brand/            wordmark, brush sweep, guarantee seal, plank wall
-    data/               colours, products, palettes, projects, dealers, guides
-    lib/                colour maths, quantity engine, API client, SEO, analytics
+    data/               colours, products, palettes, projects, dealers, guides, tools
+    lib/                colour maths, quantity engine, advisor, share links, API
+                        client, SEO, analytics
     routes/             one module per URL
     store/              saved project board, toasts, consent
 server/                 Node http enquiry API (no framework, no database)
 deploy/                 nginx and systemd samples for a host without Docker
-tools/                  media pipeline, PDF generation (TDS, SDS, guide, fan deck, master catalogue), icons, sitemap, backups
+tools/                  media pipeline, PDF generation (TDS, SDS, guide, fan deck,
+                        master catalogue), icons, sitemap, colour index, backups
 opuda/                  the original photographs the media pipeline derives from
 ```
 
@@ -42,9 +46,9 @@ cd app
 npm install
 npm run dev        # site on http://localhost:5173
 npm run server     # enquiry API on http://localhost:8787
-npm test           # calculator, colour-mask and content integrity tests
+npm test           # calculator, colour-mask, content integrity, advisor and share-link tests
 npm run test:server # enquiry API: validation, routing, auth, rate limits
-npm run test:routes # every one of the 21 routes renders through the real router
+npm run test:routes # 29 cases across 22 route modules render through the real router
 npm run test:browser # quote form and calculator, driven in a DOM against the real service
 npm run test:a11y  # axe + keyboard + reduced motion + 360px, in real Chromium
 npm run check      # lint, all of the above, production build

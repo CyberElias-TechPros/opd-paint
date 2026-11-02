@@ -11,7 +11,7 @@ Sources, in order of authority:
 
   · `app/src/data/colors.ts` — the colours, their codes, families, undertones and
     hex values. Read by regex, exactly as `build-fandeck.py` reads it.
-  · `app/src/data/palettes.ts` and `projects.ts` — the eight palettes and the
+  · `app/src/data/palettes.ts` and `projects.ts` — the nine palettes and the
     sites the photographs come from.
   · `build-documents.py` — the product dictionary, imported rather than copied,
     so the specification page and the data sheets show one set of numbers.

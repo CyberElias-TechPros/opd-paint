@@ -11,9 +11,9 @@ export type Meta = {
   description: string
   /** absolute path, e.g. /colours/lilac-room */
   path: string
-  image?: string
-  jsonLd?: Record<string, unknown> | Record<string, unknown>[]
-  noIndex?: boolean
+  image?: string | undefined
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[] | undefined
+  noIndex?: boolean | undefined
 }
 
 export const SITE = 'OPUDA’S PAINT'

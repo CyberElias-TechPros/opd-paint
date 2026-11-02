@@ -135,7 +135,7 @@ Two independent streams, both plain files:
 | --- | --- | --- |
 | `errors.jsonl` | `POST /api/errors` from the browser, and server-side faults | kind, message, capped stack, path, release, user agent, request id |
 | `notifications.jsonl` | the notifier | delivery outcomes |
-| `quotes.jsonl` / `subscriptions.jsonl` | the enquiry service | the enquiries themselves |
+| `quotes.jsonl` / `subscriptions.jsonl` / `unsubscriptions.jsonl` | the enquiry service | the enquiries themselves, newsletter sign-ups, and newsletter opt-outs |
 
 **There is no personal data in an error report, by construction.** The client
 sends the path *without* its query string (a shared link can carry an email);

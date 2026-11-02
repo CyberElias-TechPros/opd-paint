@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, BadgeCheck, Clock, UserCheck } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
@@ -10,11 +11,18 @@ import { ColourCard } from '../components/colour/ColourCard'
 import { ButtonLink } from '../components/ui/Button'
 import { longDate } from '../lib/format'
 import { cn } from '../lib/cn'
+import { track } from '../lib/analytics'
 import NotFound from './NotFound'
 
 export default function GuideDetail() {
   const { id = '' } = useParams()
   const guide = findGuide(id)
+
+  useEffect(() => {
+    if (!guide) return
+    track('guide_view', { guideId: guide.id, category: guide.category, readMinutes: guide.readMinutes })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guide?.id])
 
   usePageMeta({
     title: guide ? guide.title : 'Guide not found',

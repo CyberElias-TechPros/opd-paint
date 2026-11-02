@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Info, MessageCircle, Plus, Ruler, Trash2, TriangleAlert, Wind } from 'lucide-react'
+import { ClipboardList, Info, MessageCircle, Plus, Ruler, Trash2, TriangleAlert, Wind } from 'lucide-react'
 import { calculate, type Opening, type Units } from '../../lib/calculator'
 import { PRODUCTS, type Product } from '../../data/products'
 import { number } from '../../lib/format'
@@ -27,7 +27,7 @@ const newOpening = (kind: Opening['kind'], units: Units): Opening => {
   }
 }
 
-export function PaintCalculator({ initialProductId }: { initialProductId?: string }) {
+export function PaintCalculator({ initialProductId }: { initialProductId?: string | undefined }) {
   const [units, setUnits] = useState<Units>('metric')
   const [mode, setMode] = useState<'dimensions' | 'area'>('dimensions')
   const [length, setLength] = useState(4.2)
@@ -39,8 +39,10 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
   const [includeCeiling, setIncludeCeiling] = useState(false)
   const [trimAllowance, setTrimAllowance] = useState(8)
   const [productId, setProductId] = useState(initialProductId ?? 'matt')
+  /** What the visitor calls the space — it is what the checklist prints. */
+  const [label, setLabel] = useState('')
   const [started, setStarted] = useState(false)
-  const { toast } = useApp()
+  const { toast, saveEstimate, board } = useApp()
 
   const product: Product = PAINT_PRODUCTS.find((p) => p.id === productId) ?? PAINT_PRODUCTS[0]
 
@@ -90,6 +92,34 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
 
   const updateOpening = (id: string, patch: Partial<Opening>) => {
     setOpenings((current) => current.map((o) => (o.id === id ? { ...o, ...patch } : o)))
+  }
+
+  const roomLabel = label.trim() || 'Room'
+  const alreadySaved = board.estimates.some(
+    (estimate) => estimate.productId === product.id && estimate.label === roomLabel,
+  )
+
+  /**
+   * Roadmap 11.01.15: an estimate is worth keeping. Saving it puts the pack
+   * combination on the project checklist and attaches the quantity to an
+   * enquiry, so the desk quotes the real job instead of asking for it again.
+   */
+  const saveToProject = () => {
+    if (!result) return
+    saveEstimate({
+      id: `${product.id}-${Date.now().toString(36)}`,
+      productId: product.id,
+      label: roomLabel,
+      packs: result.packs.map((pack) => `${pack.count} × ${pack.size} ${result.unit}`).join(' + '),
+      litres: result.amountWithAllowance,
+      unit: result.unit,
+      area: result.paintableArea,
+      coats: Math.max(1, Math.round(coats)),
+      savedAt: Date.now(),
+    })
+    toast('Estimate saved to your project', {
+      description: `${roomLabel}: ${result.packs.map((pack) => `${pack.count} × ${pack.size} ${result.unit}`).join(' + ')} of ${product.shortName}.`,
+    })
   }
 
   const markStarted = () => {
@@ -152,6 +182,28 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
               </button>
             ))}
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="room-label" className="mb-1 block text-[0.72rem] font-bold uppercase tracking-[0.14em] text-ink/72">
+            What are you sizing?
+            <span className="ml-1.5 font-medium normal-case tracking-normal text-ink/72">optional</span>
+          </label>
+          <input
+            id="room-label"
+            type="text"
+            value={label}
+            maxLength={40}
+            onChange={(event) => setLabel(event.target.value)}
+            placeholder="Lounge, master bedroom, the whole flat…"
+            className="field py-2 text-[0.9rem]"
+            // Saved with the estimate, so a three-room job reads as three rooms
+            // on the checklist instead of three identical lines.
+            aria-describedby="room-label-hint"
+          />
+          <p id="room-label-hint" className="mt-1 text-[0.72rem] text-ink/72">
+            Used when you save this estimate to your project checklist. Nothing is sent to us by typing it.
+          </p>
         </div>
 
         {mode === 'dimensions' ? (
@@ -337,7 +389,13 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
               >
                 <span
                   className="mt-0.5 size-6 shrink-0 rounded-[2px] ring-1 ring-inset ring-black/10"
-                  style={{ background: p.id === 'silk' ? '#EDE6D8' : '#F8F5EE' }}
+                  // Design tokens, not library hexes: this chip suggests the
+                  // *sheen* of the film, and a hex copied from the colour library
+                  // would read as a colour recommendation on a page that is
+                  // choosing a product, not a colour.
+                  style={{
+                    background: p.id === 'silk' ? 'var(--color-paper)' : 'var(--color-paper-2)',
+                  }}
                   aria-hidden
                 />
                 <span>
@@ -445,6 +503,17 @@ export function PaintCalculator({ initialProductId }: { initialProductId?: strin
                   ))}
                 </ol>
               </details>
+
+              <Button
+                variant="paper"
+                size="sm"
+                fullWidth
+                onClick={saveToProject}
+                aria-pressed={alreadySaved}
+              >
+                <ClipboardList className="size-4" aria-hidden />
+                {alreadySaved ? `Update “${roomLabel}” in my project` : 'Save this estimate to my project'}
+              </Button>
 
               <div className="flex flex-wrap gap-2">
                 <ButtonLink

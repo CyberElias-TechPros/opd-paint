@@ -29,6 +29,10 @@ ENV NODE_ENV=production \
 # The service uses only Node's standard library, so there is nothing to install.
 COPY --from=build /app/dist ./app/dist
 COPY server/ ./server/
+# The colour index is generated during the build from the same sources the site
+# bundles. Taking it from the build stage means the image can never ship an
+# index that is older than the library it describes.
+COPY --from=build /server/colour-index.json ./server/colour-index.json
 
 RUN mkdir -p /srv/opudas/data && chown -R node:node /srv/opudas
 USER node

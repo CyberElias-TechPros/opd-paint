@@ -17,6 +17,7 @@
  *
  *   npm run test:browser
  */
+import type { JSX } from 'react'
 import { JSDOM } from 'jsdom'
 import { spawn, type ChildProcess } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs'
@@ -349,6 +350,33 @@ function allButtonsByText(label: string): HTMLElement[] {
   ) as HTMLElement[]
 }
 
+/**
+ * Mount any route the way the app does: inside a router, inside the store
+ * provider, with the search string a real link would carry.
+ */
+async function mountPage(path: string, Page: () => JSX.Element) {
+  const { MemoryRouter } = await import('react-router-dom')
+  const { AppProvider } = await import('../src/store/AppStore')
+  const { createElement: h } = await import('react')
+  return render(h(MemoryRouter, { initialEntries: [path] }, h(AppProvider, null, h(Page))))
+}
+
+/** Pick a radio option in the finish finder by its question and value. */
+async function chooseAnswer(question: string, value: string): Promise<void> {
+  const radio = document.querySelector(`input[name="finish-${question}"][value="${value}"]`)
+  assert(radio, `no option "${value}" for question "${question}"`)
+  await click(radio)
+}
+
+function unsubsOnDisk(): Array<Record<string, unknown>> {
+  const file = join(dataDir, 'unsubscriptions.jsonl')
+  if (!existsSync(file)) return []
+  return readFileSync(file, 'utf8')
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
+}
+
 function quotesOnDisk(): Array<Record<string, unknown>> {
   const file = join(dataDir, 'quotes.jsonl')
   if (!existsSync(file)) return []
@@ -541,6 +569,158 @@ async function main(): Promise<void> {
         await unmount()
       }
     })
+    /* ------------------------------------------------------------ the tools */
+
+    const { default: FinishFinderPage } = await import('../src/routes/FinishFinder')
+    const { default: ProjectPage } = await import('../src/routes/Project')
+    const { default: ToolsPage } = await import('../src/routes/Tools')
+    const { default: SurfacePrepPage } = await import('../src/routes/SurfacePrep')
+
+    await check('the finish finder answers four questions with a specification', async () => {
+      window.localStorage.clear()
+      const { unmount } = await mountPage('/tools/finish-finder', FinishFinderPage)
+      try {
+        assert(!text().includes('Your specification'), 'a specification is shown before anything is answered')
+        await chooseAnswer('surface', 'kitchen-bath')
+        await chooseAnswer('condition', 'sound')
+        await chooseAnswer('wear', 'heavy')
+        await chooseAnswer('sheen', 'soft')
+        await waitFor(() => text().includes('Your specification'), 'the specification panel')
+        const panel = text()
+        assert(/Silk/i.test(panel), 'a washable wall in heavy wear is not answered with the silk line')
+        assert(panel.includes('m² per'), 'the coverage figure comes from the product data')
+        assert(/Claims from the label|Specification in review/.test(panel), 'the claim status is shown, not implied')
+        assert(
+          document.querySelector('a[href="/products/silk"]') !== null,
+          'the recommendation links to the product it names',
+        )
+      } finally {
+        await unmount()
+      }
+    })
+
+    await check('the finish finder refuses to sell a system for a damp wall', async () => {
+      window.localStorage.clear()
+      const { unmount } = await mountPage('/tools/finish-finder', FinishFinderPage)
+      try {
+        await chooseAnswer('surface', 'interior-wall')
+        await chooseAnswer('condition', 'damp')
+        await chooseAnswer('wear', 'moderate')
+        await chooseAnswer('sheen', 'flat')
+        await waitFor(() => text().includes('Fix the water before you buy paint'), 'the hard stop')
+        assert(!text().includes('Your specification'), 'a damp wall still gets a product recommendation')
+        assert(
+          document.querySelector('a[href="/advice/damp-and-mould"]') !== null,
+          'the visitor is sent to the guide that explains what to do instead',
+        )
+      } finally {
+        await unmount()
+      }
+    })
+
+    await check('a saved estimate becomes a checklist line, and the checklist becomes a link', async () => {
+      window.localStorage.clear()
+
+      // 1. Size a job in the calculator and save it to the project.
+      const calculator = await mountCalculator()
+      try {
+        await type(document.getElementById('room-label') as Element, 'Lounge')
+        await waitFor(() => /\d+ × \d+ L/.test(document.querySelector('.lg\\:sticky')?.textContent ?? ''), 'packs')
+        const save = allButtonsByText('Save this estimate to my project')[0]
+        assert(save, 'the calculator offers no way to keep its answer')
+        await click(save)
+        await waitFor(
+          () => (window.localStorage.getItem('opd.board.v2') ?? '').includes('Lounge'),
+          'the estimate to reach storage',
+        )
+      } finally {
+        await calculator.unmount()
+      }
+
+      // 2. The checklist prints it, and can be shared.
+      let shared = ''
+      const originalClipboard = (navigator as { clipboard?: unknown }).clipboard
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: async (value: string) => { shared = value } },
+      })
+      const project = await mountPage('/project', ProjectPage)
+      try {
+        await waitFor(() => text().includes('Lounge'), 'the room name on the checklist')
+        assert(/2 × 20 L|\d+ × \d+ L/.test(text()), 'the pack combination is on the checklist')
+        assert(text().includes('digital proof'), 'the checklist repeats what a screen cannot show')
+        await click(allButtonsByText('Share link')[0])
+        await waitFor(() => shared.includes('/project?s='), 'a shareable link')
+      } finally {
+        await project.unmount()
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: originalClipboard })
+      }
+
+      // 3. The link opens the same project on a device that has never seen it.
+      window.localStorage.clear()
+      const token = new URL(shared).searchParams.get('s') ?? ''
+      const visitor = await mountPage(`/project?s=${token}`, ProjectPage)
+      try {
+        await waitFor(() => text().includes('Shared project'), 'the shared-project notice')
+        assert(text().includes('Lounge'), 'the quantity travelled inside the link')
+      } finally {
+        await visitor.unmount()
+      }
+    })
+
+    await check('the tools hub and the preparation advisor link to real routes', async () => {
+      window.localStorage.clear()
+      const { unmount } = await mountPage('/tools', ToolsPage)
+      try {
+        assert(text().includes('Finish finder'), 'the hub lists the finish finder')
+        assert(
+          document.querySelector('a[href="/tools/finish-finder"]') !== null &&
+            document.querySelector('a[href="/tools/surface-prep"]') !== null,
+          'the hub links to the tools it describes',
+        )
+      } finally {
+        await unmount()
+      }
+
+      const prep = await mountPage('/tools/surface-prep?situation=new-render', SurfacePrepPage)
+      try {
+        await waitFor(() => text().includes('New render'), 'the situation detail')
+        assert(/14 days|cure/i.test(text()), 'the sequence states the curing wait')
+        assert(
+          document.querySelector('a[href="/products/primer"]') !== null,
+          'the sequence links to the primer it specifies',
+        )
+        assert(
+          document.querySelector('script[type="application/ld+json"]') !== null,
+          'the sequence carries HowTo structured data',
+        )
+      } finally {
+        await prep.unmount()
+      }
+    })
+
+    await check('the footer removes an address as easily as it adds one', async () => {
+      const { Footer } = await import('../src/components/layout/Footer')
+      const { unmount } = await mountPage('/', Footer)
+      try {
+        assert(text().includes('Remove an address instead'), 'the promise to leave is on the page')
+        await click(allButtonsByText('Remove an address instead')[0])
+        await waitFor(
+          () => allButtonsByText('Remove me').length > 0,
+          'the form to switch to opting out',
+        )
+        await type(document.getElementById('footer-email') as Element, 'ade@example.com')
+        await submit(document.querySelector('form'))
+        await waitFor(() => unsubsOnDisk().length > 0, 'the opt-out to reach the service')
+        const [record] = unsubsOnDisk()
+        assertEqual(record.email, 'ade@example.com', 'the address that opted out')
+        assertEqual(record.source, 'footer', 'where the opt-out came from')
+        assert(typeof record.at === 'string', 'the opt-out is timestamped')
+      } finally {
+        await unmount()
+      }
+    })
+
     // Static imports so the bundler resolves them; the routes themselves are
     // lazy in the app, which is a shipping concern, not a testing one.
     const { default: ColoursPage } = await import('../src/routes/Colours')
@@ -555,6 +735,10 @@ async function main(): Promise<void> {
       ['/quote', '/quote', QuotePage],
       ['/products', '/products', ProductsPage],
       ['/dealers', '/dealers', DealersPage],
+      ['/tools', '/tools', ToolsPage],
+      ['/tools/finish-finder', '/tools/finish-finder', FinishFinderPage],
+      ['/tools/surface-prep', '/tools/surface-prep', SurfacePrepPage],
+      ['/project', '/project', ProjectPage],
     ] as const) {
       await check(`headings descend in order: ${path}`, async () => {
         await headingAudit(path, pattern, Page)

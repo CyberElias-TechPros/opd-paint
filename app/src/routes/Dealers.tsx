@@ -22,6 +22,16 @@ import { cn } from '../lib/cn'
 export default function Dealers() {
   const [params] = useSearchParams()
   const [query, setQuery] = useState(params.get('q') ?? '')
+  /**
+   * Which card a map marker just pointed at.
+   *
+   * Clicking a marker used to overwrite the search box with that dealer's city —
+   * silently throwing away what the visitor had typed and re-filtering the list
+   * under them — and then scrolled to `#dealer-list`, an id that sits on the
+   * footnote *below* the list, so the scroll landed past the thing it meant to
+   * show. Now it scrolls to the card itself and marks it.
+   */
+  const [focusId, setFocusId] = useState<string | null>(null)
   const [state, setState] = useState('All')
   const [service, setService] = useState<string>('All')
   const [origin, setOrigin] = useState<{ lat: number; lng: number } | null>(null)
@@ -114,6 +124,7 @@ export default function Dealers() {
                   to={`https://wa.me/${WHATSAPP_NUMBER}`}
                   external
                   size="sm"
+                  onClick={() => track('dealer_contact', { dealerId: 'brand', method: 'whatsapp' })}
                 >
                   WhatsApp
                 </ButtonLink>
@@ -195,7 +206,11 @@ export default function Dealers() {
                 return (
                   <li
                     key={dealer.id}
-                    className="rounded-sm border border-ink/12 bg-paper-2/60 p-4 transition-colors hover:border-ink/25"
+                    id={`dealer-${dealer.id}`}
+                    className={cn(
+                      'scroll-mt-24 rounded-sm border bg-paper-2/60 p-4 transition-colors hover:border-ink/25',
+                      focusId === dealer.id ? 'border-green ring-2 ring-green/35' : 'border-ink/12',
+                    )}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -215,10 +230,22 @@ export default function Dealers() {
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        <ButtonLink to={`tel:${BRAND_PHONE_TEL}`} external size="sm" variant="paper">
+                        <ButtonLink
+                          to={`tel:${BRAND_PHONE_TEL}`}
+                          external
+                          size="sm"
+                          variant="paper"
+                          onClick={() => track('dealer_contact', { dealerId: dealer.id, method: 'call', verified: dealer.verified })}
+                        >
                           <Phone className="size-3.5" aria-hidden /> Call
                         </ButtonLink>
-                        <ButtonLink to={directionsUrl(dealer)} external size="sm" variant="outline">
+                        <ButtonLink
+                          to={directionsUrl(dealer)}
+                          external
+                          size="sm"
+                          variant="outline"
+                          onClick={() => track('dealer_contact', { dealerId: dealer.id, method: 'directions', verified: dealer.verified })}
+                        >
                           <Navigation className="size-3.5" aria-hidden /> Directions
                         </ButtonLink>
                       </div>
@@ -279,8 +306,12 @@ export default function Dealers() {
                           key={dealer.id}
                           type="button"
                           onClick={() => {
-                            setQuery(dealer.city)
-                            document.getElementById('dealer-list')?.scrollIntoView({ behavior: 'smooth' })
+                            setFocusId(dealer.id)
+                            document.getElementById(`dealer-${dealer.id}`)?.scrollIntoView({
+                              behavior: 'smooth',
+                              block: 'center',
+                            })
+                            track('dealer_contact', { dealerId: dealer.id, method: 'map-marker' })
                           }}
                           className="group absolute -translate-x-1/2 -translate-y-1/2"
                           style={{ left: `${x}%`, top: `${y}%` }}

@@ -6,24 +6,36 @@
  * TypeScript types natively; no test framework is needed for a pure module.
  */
 import assert from 'node:assert/strict'
-import { calculate, choosePacks, openingArea, toMetres, toSquareMetres } from '../src/lib/calculator.ts'
+import {
+  calculate,
+  choosePacks,
+  openingArea,
+  toMetres,
+  toSquareMetres,
+  type CalculationInput,
+} from '../src/lib/calculator.ts'
 
 let passed = 0
-const test = (name, fn) => {
+// Typed because `tsc -b` now covers the test scripts too (tsconfig.scripts.json):
+// an untyped runner is how a suite keeps passing after the module it exercises
+// changes shape.
+const test = (name: string, fn: () => void) => {
   try {
     fn()
     passed += 1
     console.log(`  ok   ${name}`)
   } catch (error) {
     console.error(`  FAIL ${name}`)
-    console.error(error.message)
+    console.error(error instanceof Error ? error.stack ?? error.message : String(error))
     process.exitCode = 1
   }
 }
 
 console.log('paint calculator')
 
-const base = {
+// Typed as the calculator's own input so `units: 'metric'` stays the literal
+// `'metric' | 'imperial'` instead of widening to `string` in every spread below.
+const base: Omit<CalculationInput, 'openings'> = {
   units: 'metric',
   roomLength: 4.2,
   roomWidth: 3.6,

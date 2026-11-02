@@ -33,6 +33,14 @@ they encode the promise the site makes.
    the same time as the image; the tests fail on a missing or placeholder alt.
 5. **Claims come from the label or the data sheet.** Product features,
    coverage, dry times and guarantee lengths are transcribed, not estimated.
+6. **A tool must cite real records.** The finish finder and the preparation
+   advisor reference products and guides by id; `scripts/advisor.test.ts` fails
+   if any id does not exist, if a sequence has fewer than three steps, or if a
+   step's explanation is too short to be one.
+7. **No price or stock claim in structured data.** The route render test fails
+   the build if any page emits `offers`, `price`, `lowPrice`, `highPrice`,
+   `priceCurrency` or `availability` inside JSON-LD. Search engines print those
+   figures into rich results as though the business had said them.
 
 ---
 
@@ -107,6 +115,51 @@ as completed site work. Client names stay withheld; locations are city/estate
 level only.
 
 ---
+
+## Preparation and finish advice — `app/src/data/tools.ts`
+
+The two decision-support tools are driven from this file, not from prose in a
+component, so advice can be edited without touching React.
+
+- **`PREP_SITUATIONS`** — one entry per situation a visitor can be standing in
+  front of. `id` is permanent (it is used in `/tools/surface-prep?situation=<id>`
+  and in shared project links). `signs` are how they recognise it, `surfaces`
+  where it turns up, `steps` the sequence **in the order the work happens**,
+  `products` the product ids in the order they are used, `guides` the guide ids
+  that carry the reasoning, and `warnings` the hard stops — what paint cannot
+  fix. `condition` maps the situation onto the finish finder's condition answer
+  so the two tools cannot disagree.
+- **`SURFACE_OPTIONS`, `CONDITION_OPTIONS`, `WEAR_OPTIONS`, `SHEEN_OPTIONS`** and
+  **`FINISH_QUESTIONS`** — the four questions and their answers. Each option needs
+  a `note` in plain language; each question needs a `why`, because the tools
+  explain themselves the way the calculator shows its arithmetic.
+- **`TOOL_CARDS`** — the hub at `/tools`. `roadmap` lists the task ids the tool
+  answers, which is what makes the scope claim checkable.
+- **The recommendation logic itself** lives in `app/src/lib/advisor.ts` as an
+  explicit `RULES` table: a predicate, a product, a weight and the sentence that
+  explains it. Editing advice means editing that table, and every rule that fires
+  contributes a reason the visitor sees. Do not replace it with a score nobody
+  can read — the roadmap gates a learned recommender (11.02.07) on validating its
+  utility and safeguards first.
+
+Where the honest answer is "paint cannot fix this", the tool says so and
+recommends nothing: a damp wall returns `blocked` with the guide that explains
+what to do instead. Keep that behaviour. It is the one answer that loses the
+sale, and the reason the rest of the advice can be trusted.
+
+## The colour index the service searches
+
+`server/colour-index.json` is **generated**, not edited:
+
+```bash
+cd app && npm run index:colours    # or just npm run build
+```
+
+It is what `GET /api/search/colours` reads at runtime, because the deployed
+container has no TypeScript sources to parse. Edit `colors.ts`, regenerate, and
+commit both — `scripts/data.test.ts` compares the index against the library
+entry by entry and fails on drift, and CI compares the committed file byte for
+byte.
 
 ## Adding a photograph
 

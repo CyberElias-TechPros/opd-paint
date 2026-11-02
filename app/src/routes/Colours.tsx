@@ -49,7 +49,10 @@ export default function Colours() {
   usePageMeta({
     title: 'Colour library',
     description:
-      'Browse the OPUDA’S PAINT colour library: 60 launch colours with permanent codes, estimated light reflectance values, family and undertone filters, and curated palettes for Nigerian light.',
+      // The count is read from the library, not typed: a description that says
+      // "60 colours" on a page listing 59 is exactly the kind of small untruth
+      // the content tests exist to stop.
+      `Browse the OPUDA’S PAINT colour library: ${COLORS.length} launch colours with permanent codes, estimated light reflectance values, family and undertone filters, and curated palettes for Nigerian light.`,
     path: '/colours',
     jsonLd: {
       '@context': 'https://schema.org',
