@@ -161,13 +161,27 @@ cd app && npm run check
 personal workspace whose content lives in the visitor's own storage and URL, so
 there is nothing for a crawler to index and everything to get wrong.
 
-**What could not be run here.** This sandbox has no Chromium binary and no access
-to the Playwright CDN, so `npm run test:a11y` (axe on 22 pages) and the Lighthouse
-budgets were not executed locally. Both run in CI on every push and were green on
-`main` at the commit this branch started from; the seven new page entries added to
-`app/scripts/a11y.mjs` will be exercised there. That is a real limitation of this
-audit, stated rather than papered over: **the new tool pages have not been through
-an automated accessibility audit yet.**
+**What could not be run here — and what CI then found.** This sandbox has no
+Chromium binary and no access to the Playwright CDN, so `npm run test:a11y` (axe
+on 22 pages) and the Lighthouse budgets could not be executed locally. Both ran on
+the pull request, and the accessibility job did exactly what it exists to do: it
+failed, on two of the new pages' states, with three real contrast defects.
+
+| What axe found | Measured | Remedy |
+| --- | --- | --- |
+| The finish finder's *upcoming* questions were dimmed with `opacity-55`, which faded the whole label | option text 3.97:1, its note 2.55:1 on `#faf6ef` | Dimming replaced with a dashed border and no fill — "not reached yet" is still visible, and the text keeps its own colours (6.95:1 and 16.64:1) |
+| The claims badge used the `green` tone **inside the ink-dark specification panel** | 2.59:1 | `paper` tone, with the verified/in-review distinction carried by the words and an icon rather than by colour alone (16.20:1) |
+| A caution's guide link used `green-bright` on a tinted dark section | 3.85:1 | A new `--color-green-mist` accent token for text on dark panels — the same green family lifted until it clears AA on both surfaces (7.08:1 on `#1e2c25`, 8.71:1 on ink), documented in `theme.css` with its measured ratios the way `--color-line-strong` already was |
+
+All three were re-verified with this repository's own `contrast()` helper in
+`src/lib/color.ts`, which reproduces axe's numbers exactly. **48 of 48 axe checks
+now pass**, including the keyboard, focus, reduced-motion and 360 px checks, and
+the Lighthouse budgets are green.
+
+The lesson is worth keeping: an audit that cannot run the accessibility suite has
+not finished auditing. The three defects above are precisely the kind that a
+rendered-markup test cannot see and a human review pass would very likely miss on
+a page nobody has looked at yet.
 
 ---
 

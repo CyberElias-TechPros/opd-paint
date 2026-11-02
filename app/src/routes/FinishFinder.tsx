@@ -245,7 +245,11 @@ export default function FinishFinder() {
                               checked
                                 ? 'border-ink bg-white/80 ring-1 ring-ink'
                                 : 'border-ink/12 bg-white/40 hover:border-ink/40',
-                              !isCurrent && !answeredAlready ? 'opacity-55' : undefined,
+                              // Not `opacity-55`: fading the whole label took the
+                              // option text to 3.97:1 and its note to 2.55:1, both
+                              // under AA. A dashed border and no fill say "not
+                              // reached yet" while the text keeps its contrast.
+                              !isCurrent && !answeredAlready ? 'border-dashed border-ink/15 bg-transparent' : undefined,
                             )}
                           >
                             <input
@@ -342,7 +346,16 @@ export default function FinishFinder() {
                   {advice.topcoat.coveragePerUnit} m² per {advice.topcoat.packs[0]?.unit === 'kg' ? 'kg' : 'L'} per coat
                 </p>
                 <p className="mt-2">
-                  <Badge tone={advice.topcoat.claimsStatus === 'label-verified' ? 'green' : 'paper'}>
+                  {/* The `green` tone is dark green on a light wash; inside this
+                      ink panel it measured 2.59:1. `paper` passes on both, and the
+                      distinction is carried by the words and the icon rather than
+                      by colour alone. */}
+                  <Badge tone="paper">
+                    {advice.topcoat.claimsStatus === 'label-verified' ? (
+                      <Check className="size-2.5" aria-hidden />
+                    ) : (
+                      <Info className="size-2.5" aria-hidden />
+                    )}
                     {advice.topcoat.claimsStatus === 'label-verified' ? 'Claims from the label' : 'Specification in review'}
                   </Badge>
                 </p>
@@ -441,7 +454,7 @@ export default function FinishFinder() {
                           {caution.guideId && findGuide(caution.guideId) ? (
                             <Link
                               to={`/advice/${caution.guideId}`}
-                              className="mt-1 block text-[0.72rem] font-bold uppercase tracking-[0.1em] text-green-bright hover:underline"
+                              className="mt-1 block text-[0.72rem] font-bold uppercase tracking-[0.1em] text-green-mist hover:underline"
                             >
                               {findGuide(caution.guideId)?.title}
                             </Link>

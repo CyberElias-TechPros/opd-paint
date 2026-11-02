@@ -17,6 +17,12 @@
   --color-green: #0c6b45;
   --color-green-deep: #07452d;
   --color-green-bright: #12965f;
+  /* The accent for links and small type that sit on a dark panel. `green-bright`
+     measures 4.8:1 on plain ink but only 3.9:1 on the tinted sections inside a
+     dark card (#1e2c25), which fails AA for text under 18.66px — axe caught it
+     on the finish finder's specification panel. This is the same green family
+     lifted until it clears 4.5:1 on both: 7.0:1 on #1e2c25, 8.1:1 on ink. */
+  --color-green-mist: #5cc98f;
   --color-crimson: #c1121f;
   --color-blue: #1f6fb2;
   --color-purple: #6c3fa4;
