@@ -18,8 +18,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Place
@@ -86,6 +88,7 @@ fun MoreScreen(
     onOpenProjects: () -> Unit,
     onOpenPrivacyRequest: () -> Unit,
     onOpenGuides: () -> Unit,
+    onOpenTools: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -140,6 +143,12 @@ fun MoreScreen(
                         title = "Open the website",
                         subtitle = AppCopy.WEBSITE,
                         onClick = { context.openWeb(AppCopy.WEBSITE) },
+                    )
+                    LinkRow(
+                        icon = Icons.Filled.Build,
+                        title = "Tools",
+                        subtitle = "Finish finder, surface preparation and the calculator",
+                        onClick = onOpenTools,
                     )
                     LinkRow(
                         icon = Icons.Filled.Info,

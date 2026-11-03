@@ -39,6 +39,11 @@ import com.opudas.paint.feature.products.ProductDetailScreen
 import com.opudas.paint.feature.products.ProductsScreen
 import com.opudas.paint.feature.projects.ProjectDetailScreen
 import com.opudas.paint.feature.projects.ProjectsScreen
+import com.opudas.paint.feature.tools.FinishFinderScreen
+import com.opudas.paint.feature.tools.SurfacePrepDetailScreen
+import com.opudas.paint.feature.tools.SurfacePrepScreen
+import com.opudas.paint.feature.tools.ToolTarget
+import com.opudas.paint.feature.tools.ToolsScreen
 import com.opudas.paint.feature.quote.QuoteScreen
 
 /**
@@ -222,6 +227,55 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                 )
             }
 
+            composable(Destinations.TOOLS) {
+                ToolsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenTool = { target ->
+                        when (target) {
+                            ToolTarget.FINISH_FINDER ->
+                                navController.navigate(Destinations.FINISH_FINDER)
+                            ToolTarget.SURFACE_PREP ->
+                                navController.navigate(Destinations.SURFACE_PREP)
+                            ToolTarget.CALCULATOR ->
+                                navController.navigate(Destinations.CALCULATOR)
+                            // Not a dead end: the hub says so on the card itself.
+                            ToolTarget.NOT_IN_THIS_BUILD -> Unit
+                        }
+                    },
+                )
+            }
+
+            composable(Destinations.FINISH_FINDER) {
+                FinishFinderScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenProduct = { id -> navController.navigate(Destinations.product(id)) },
+                    onOpenGuide = { id -> navController.navigate(Destinations.guide(id)) },
+                    onOpenPrep = { id -> navController.navigate(Destinations.prepSituation(id)) },
+                    onAskQuote = { id ->
+                        navController.navigate(Destinations.quote(productId = id))
+                    },
+                )
+            }
+
+            composable(Destinations.SURFACE_PREP) {
+                SurfacePrepScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenSituation = { id -> navController.navigate(Destinations.prepSituation(id)) },
+                )
+            }
+
+            composable(
+                route = Destinations.SURFACE_PREP_DETAIL,
+                arguments = listOf(navArgument("situationId") { type = NavType.StringType }),
+            ) { entry ->
+                SurfacePrepDetailScreen(
+                    situationId = entry.arguments?.getString("situationId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onOpenProduct = { id -> navController.navigate(Destinations.product(id)) },
+                    onOpenGuide = { id -> navController.navigate(Destinations.guide(id)) },
+                )
+            }
+
             composable(Destinations.GUIDES) {
                 GuidesScreen(
                     onBack = { navController.popBackStack() },
@@ -257,6 +311,7 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     onOpenProjects = { navController.navigate(Destinations.PROJECTS) },
                     onOpenPrivacyRequest = { navController.navigate(Destinations.PRIVACY_REQUEST) },
                     onOpenGuides = { navController.navigate(Destinations.GUIDES) },
+                    onOpenTools = { navController.navigate(Destinations.TOOLS) },
                 )
             }
 
