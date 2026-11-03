@@ -31,6 +31,8 @@ import com.opudas.paint.feature.dealers.DealersScreen
 import com.opudas.paint.feature.guides.GuideDetailScreen
 import com.opudas.paint.feature.guides.GuidesScreen
 import com.opudas.paint.feature.home.HomeScreen
+import com.opudas.paint.feature.legal.LegalDocScreen
+import com.opudas.paint.feature.legal.LegalScreen
 import com.opudas.paint.feature.more.MoreScreen
 import com.opudas.paint.feature.palettes.PaletteDetailScreen
 import com.opudas.paint.feature.palettes.PalettesScreen
@@ -227,6 +229,25 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                 )
             }
 
+            composable(Destinations.LEGAL) {
+                LegalScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenDoc = { slug -> navController.navigate(Destinations.legal(slug)) },
+                )
+            }
+
+            composable(
+                route = Destinations.LEGAL_DOC,
+                arguments = listOf(navArgument("slug") { type = NavType.StringType }),
+            ) { entry ->
+                LegalDocScreen(
+                    slug = entry.arguments?.getString("slug").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onOpenDoc = { slug -> navController.navigate(Destinations.legal(slug)) },
+                    onRequestData = { navController.navigate(Destinations.PRIVACY_REQUEST) },
+                )
+            }
+
             composable(Destinations.TOOLS) {
                 ToolsScreen(
                     onBack = { navController.popBackStack() },
@@ -312,6 +333,10 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     onOpenPrivacyRequest = { navController.navigate(Destinations.PRIVACY_REQUEST) },
                     onOpenGuides = { navController.navigate(Destinations.GUIDES) },
                     onOpenTools = { navController.navigate(Destinations.TOOLS) },
+                    onOpenLegal = { navController.navigate(Destinations.LEGAL) },
+                    onOpenPrivacyNotice = {
+                        navController.navigate(Destinations.legal("privacy"))
+                    },
                 )
             }
 
@@ -343,12 +368,14 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                 QuoteScreen(
                     onBack = { navController.popBackStack() },
                     /*
-                     * The notice opens on the website until the in-app legal
-                     * screens exist. That is better than a route that goes nowhere:
-                     * the consent wording refers to the notice, and a reference to
-                     * a document nobody can open is not a reference.
+                     * The notice itself, not a link to it. The consent wording
+                     * refers to the notice, so a person deciding whether to send
+                     * their phone number has to be able to read it — including with
+                     * no signal, which is what opening the website could not do.
                      */
-                    onOpenPrivacyNotice = { context.openWeb(AppCopy.WEBSITE + "/legal/privacy") },
+                    onOpenPrivacyNotice = {
+                        navController.navigate(Destinations.legal("privacy"))
+                    },
                     colourId = entry.arguments?.getString("colourId"),
                     productId = entry.arguments?.getString("productId"),
                     quantity = entry.arguments?.getString("quantity"),

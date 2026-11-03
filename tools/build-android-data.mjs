@@ -8,7 +8,7 @@
  * `app/src/data/` are the single source of truth, and that every consumer — the
  * site, the enquiry service's colour index, the Python document generators —
  * reads from them. A native app is another consumer, not another source. Porting
- * 59 colours, 6 products, 9 palettes, 19 projects, 6 guides, 14 dealers and the
+ * 59 colours, 6 products, 9 palettes, 19 projects, 6 guides, 14 dealers, three legal notices and the
  * ten preparation situations into Kotlin by hand would create a second copy that
  * drifts the first time somebody edits a colour, and the drift would be invisible
  * until a customer quotes a code that no longer exists.
@@ -55,6 +55,7 @@ import {
   WHATSAPP_NUMBER,
 } from '../app/src/data/dealers.ts'
 import { CATEGORIES, GUIDES } from '../app/src/data/guides.ts'
+import { LEGAL_DOCS } from '../app/src/data/legal.ts'
 import { PALETTES } from '../app/src/data/palettes.ts'
 import { FINISH_SHEEN_LABEL, PRODUCTS } from '../app/src/data/products.ts'
 import { PROJECTS } from '../app/src/data/projects.ts'
@@ -202,6 +203,16 @@ const bundles = async () => ({
   palettes: { palettes: PALETTES },
   projects: { projects: PROJECTS },
   guides: { guides: GUIDES, categories: CATEGORIES },
+  /*
+   * The three legal notices.
+   *
+   * Shipped rather than fetched. Somebody exercising a data right on a plane, or in
+   * a basement with one bar of signal, should be able to read what they are entitled
+   * to without a network. A notice that only exists behind a request is unavailable
+   * exactly when it is most needed, and the app now has a form that submits a
+   * statutory request — the notice that explains it has to be reachable offline too.
+   */
+  legal: { docs: LEGAL_DOCS },
   dealers: {
     dealers: DEALERS,
     states: STATES,

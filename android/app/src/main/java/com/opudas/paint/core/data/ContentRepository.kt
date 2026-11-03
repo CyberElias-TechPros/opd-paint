@@ -8,6 +8,8 @@ import com.opudas.paint.core.data.model.Dealer
 import com.opudas.paint.core.data.model.DealersBundle
 import com.opudas.paint.core.data.model.Guide
 import com.opudas.paint.core.data.model.GuidesBundle
+import com.opudas.paint.core.data.model.LegalBundle
+import com.opudas.paint.core.data.model.LegalDoc
 import com.opudas.paint.core.data.model.MediaBundle
 import com.opudas.paint.core.data.model.MediaEntry
 import com.opudas.paint.core.data.model.Palette
@@ -46,7 +48,7 @@ import kotlinx.serialization.json.Json
  * renders, so the app and the site cannot drift apart without CI failing
  * (see `tools/check-assets.py`).
  *
- * Loading is lazy and parallel. Nine files, ~150 KB, parsed once per process and
+ * Loading is lazy and parallel. Ten files, ~160 KB, parsed once per process and
  * held: the first screen that asks for colours pays for colours only, and the
  * parse happens on [Dispatchers.IO] so the main thread is never blocked by JSON.
  */
@@ -80,6 +82,7 @@ class ContentRepository(private val assets: AssetManager) {
     private val palettesDeferred: Deferred<PalettesBundle> = deferred("palettes.json")
     private val projectsDeferred: Deferred<ProjectsBundle> = deferred("projects.json")
     private val guidesDeferred: Deferred<GuidesBundle> = deferred("guides.json")
+    private val legalDeferred: Deferred<LegalBundle> = deferred("legal.json")
     private val dealersDeferred: Deferred<DealersBundle> = deferred("dealers.json")
     private val toolsDeferred: Deferred<ToolsBundle> = deferred("tools.json")
     private val mediaDeferred: Deferred<MediaBundle> = deferred("media.json")
@@ -141,6 +144,22 @@ class ContentRepository(private val assets: AssetManager) {
 
     suspend fun guides(): List<Guide> = guidesDeferred.await().guides
     suspend fun guideCategories(): List<String> = guidesDeferred.await().categories
+
+    /* -------------------------------------------------------------- legal */
+
+    /**
+     * The three notices, in the order they are read: what is collected and why, the
+     * terms of use, and whether the site can be used at all.
+     *
+     * They ship in the APK rather than being fetched. Somebody exercising a data
+     * right on a plane, or in a basement on one bar of signal, should be able to read
+     * what they are entitled to without a network — and the app has a form that
+     * submits a statutory request, so the notice explaining it has to be reachable
+     * offline too.
+     */
+    suspend fun legalDocs(): List<LegalDoc> = legalDeferred.await().docs
+
+    suspend fun legalDoc(slug: String): LegalDoc? = legalDocs().firstOrNull { it.slug == slug }
     suspend fun guide(id: String): Guide? = guides().firstOrNull { it.id == id }
 
     /* ------------------------------------------------------------- dealers */

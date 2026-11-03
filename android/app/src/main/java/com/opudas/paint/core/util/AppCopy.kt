@@ -28,11 +28,9 @@ object AppCopy {
      */
     const val PRIVACY_EMAIL = "hello@opudapaint.com"
 
-    const val PRIVACY_NOTICE_PATH = "/legal/privacy"
     const val TERMS_PATH = "/legal/terms"
     const val COOKIES_PATH = "/legal/cookies"
 
-    val privacyNoticeUrl: String get() = url(PRIVACY_NOTICE_PATH)
     val termsUrl: String get() = url(TERMS_PATH)
     val cookiesUrl: String get() = url(COOKIES_PATH)
 

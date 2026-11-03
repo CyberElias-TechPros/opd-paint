@@ -345,3 +345,36 @@ data class ThemeBundle(
     val radii: Map<String, Int>,
     val fonts: Map<String, FontToken>,
 )
+
+/* -------------------------------------------------------------------- legal */
+
+@Serializable
+data class LegalSection(
+    val heading: String,
+    val body: List<String>,
+    /** Optional: a bulleted list under the paragraphs. */
+    val list: List<String>? = null,
+    /**
+     * Optional, and set on exactly one section in the whole bundle.
+     *
+     * The website renders its data-request form at that point in the notice. The app
+     * reads the same marker and offers its own data-request screen, which queues the
+     * request locally. Sharing the marker is what keeps the two in step without
+     * either of them hard-coding a position in somebody else's prose.
+     */
+    val form: String? = null,
+)
+
+@Serializable
+data class LegalDoc(
+    /** The path segment on the website, and the id the app looks a notice up by. */
+    val slug: String,
+    val title: String,
+    /** ISO date of the last material revision, shown at the top of the notice. */
+    val updated: String,
+    val intro: String,
+    val sections: List<LegalSection>,
+)
+
+@Serializable
+data class LegalBundle(val docs: List<LegalDoc>)

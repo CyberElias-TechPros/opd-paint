@@ -10,8 +10,8 @@ submissions until it can deliver them.
 
 ## What is here today
 
-Fifty-eight Kotlin files in `android/app/src/main/java/com/opudas/paint/`, eleven
-features, and fifty-four JVM tests in four suites.
+71 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, thirteen
+features, and 73 JVM tests in 5 suites.
 
 | Journey | Screen | Notes |
 | --- | --- | --- |
@@ -25,17 +25,17 @@ features, and fifty-four JVM tests in four suites.
 | Guides | `feature/guides` | 6 guides, 19 sections, callouts, questions, dated and attributed |
 | Quote | `feature/quote` | The enquiry form, queued locally, tracked afterwards |
 | Data request | `feature/privacy` | The five rights, through the same outbox |
+| Tools | `feature/tools` | Finish finder (14 weighted rules), 10 preparation sequences, hub |
+| Legal notices | `feature/legal` | Privacy, terms and accessibility, readable offline |
 | More | `feature/more` | The hub, with honest counts from the bundles |
 
-**Not built yet.** Six journeys have no code: the tools (finish finder, surface
-preparation), the board and checklist, the document viewer, the legal notices, the
-visualiser, and settings. The admin inbox is not merely unfinished but blocked — see
+**Not built yet.** Four journeys have no code: the board and checklist, the document
+viewer, the visualiser, and settings. The admin inbox is not merely unfinished but blocked — see
 [the inbox](#the-admin-inbox-is-blocked-on-a-server-endpoint) below.
 
-Thirteen routes are declared in `navigation/Destinations.kt` and deliberately not
-wired into the graph, because a route that leads nowhere should not be reachable:
-`BOARD`, `CHECKLIST`, `DOCUMENTS`, `DOCUMENT_VIEWER`, `FINISH_FINDER`, `INBOX`,
-`INBOX_DETAIL`, `LEGAL`, `SETTINGS`, `SURFACE_PREP`, `SURFACE_PREP_DETAIL`, `TOOLS`,
+Eight routes are declared in `navigation/Destinations.kt` and deliberately not wired
+into the graph, because a route that leads nowhere should not be reachable: `BOARD`,
+`CHECKLIST`, `DOCUMENTS`, `DOCUMENT_VIEWER`, `INBOX`, `INBOX_DETAIL`, `SETTINGS`,
 `VISUALISER`. They are the reserved shape of the remaining work, not an oversight.
 Wire one in the same commit as the screen that answers it.
 
@@ -48,8 +48,8 @@ cd app && npm run data:android          # app/src/data/*.ts  ->  android/.../ass
 python3 tools/build-android-icons.py    # the brand mark      ->  launcher PNGs
 ```
 
-`tools/build-android-data.mjs` writes nine bundles — colours, products, palettes,
-projects, guides, dealers, tools, media and theme — from the same typed modules the
+`tools/build-android-data.mjs` writes ten bundles — colours, products, palettes,
+projects, guides, legal notices, dealers, tools, media and theme — from the same typed modules the
 website builds from. This is ADR 0002 applied to a second consumer: one source of
 truth, generated output, no transcription to drift.
 
@@ -57,9 +57,15 @@ The Android workflow regenerates the bundle and the icons and **fails if what is
 committed differs by a byte**. If you change a colour in `app/src/data/colors.ts`,
 run `npm run data:android` and commit the result; CI will not let you forget.
 
+The legal notices needed extracting first: they lived as a `DOCS` array inside
+`app/src/routes/Legal.tsx`, which only the website could read. They are now
+`app/src/data/legal.ts` — typed, tested by `data.test.ts`, and rendered by the website
+from the same module, so there is one notice with two readers rather than two notices.
+All 29 website routes render the same character counts before and after the move.
+
 `ContentRepository` reads those bundles once, lazily, and exposes the accessors the
 screens use (`colors`, `colorsByIds`, `product`, `palettesFor`, `guide`,
-`dealerStates`, `sheenLabel`, `media`, `themeSync` and the rest). A screen that
+`dealerStates`, `sheenLabel`, `legalDocs`, `media`, `themeSync` and the rest). A screen that
 needs one record by id calls the id-accessor; it does not filter a list itself.
 
 ## Architecture
@@ -79,8 +85,9 @@ assets/data/*.json  ->  ContentRepository  ->  ViewModel (StateFlow)  ->  Compos
   `encodeDefaults = false` and `explicitNulls = false`, and required payload fields
   carry no default, so an omitted field is a compile error rather than a 422 in
   production.
-- **`core/engine`** — the maths, ported from TypeScript and tested: `QuantityEngine`
-  (areas, coverage, pack selection) and `ColorMath` (contrast, blending).
+- **`core/engine`** — the logic, ported from TypeScript and tested: `QuantityEngine`
+  (areas, coverage, pack selection), `AdvisorEngine` (the finish finder's weighted
+  rule table) and `ColorMath` (contrast, blending).
 - **`core/sync`** — the WorkManager worker that drains the queue.
 - **`core/designsystem`** — theme tokens read from the bundle at runtime, plus the
   shared components: `ColourSwatch`, `HeroSwatch`, `SectionHeader`, `FactRow`,
@@ -129,9 +136,10 @@ cd android
 ```
 
 The JVM tests cover the portable parts: the quantity engine against the website's
-worked example, the enquiry form's six validation rules and its routing contract,
-the data-request form's rules and the five rights the service accepts, and the date
-formatting including its silent failure modes. Compose screens, Room and
+worked example, the finish finder's fourteen rules including its tie-break and the
+one answer that recommends nothing, the enquiry form's six validation rules and its
+routing contract, the data-request form's rules and the five rights the service
+accepts, and the date formatting including its silent failure modes. Compose screens, Room and
 WorkManager need an instrumented device or emulator, which this repository does not
 yet run.
 

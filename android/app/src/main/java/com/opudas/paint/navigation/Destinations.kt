@@ -81,8 +81,18 @@ object Destinations {
     }
 
     const val PRIVACY_REQUEST = "legal/privacy-request"
-    const val LEGAL = "legal/{slug}"
-    fun legal(slug: String) = "legal/$slug"
+
+    /**
+     * The three notices, under a segment of their own.
+     *
+     * Not `legal/{slug}`, which is what this said before anything was wired to it:
+     * that pattern also matches `legal/privacy-request`, leaving two routes for one
+     * path and a specificity rule to decide between them. Distinct prefixes remove
+     * the question instead of answering it.
+     */
+    const val LEGAL = "legal/notices"
+    const val LEGAL_DOC = "legal/notices/{slug}"
+    fun legal(slug: String) = "legal/notices/$slug"
 
     const val DOCUMENTS = "documents"
     const val DOCUMENT_VIEWER = "documents/{path}"

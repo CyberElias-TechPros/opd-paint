@@ -89,6 +89,8 @@ fun MoreScreen(
     onOpenPrivacyRequest: () -> Unit,
     onOpenGuides: () -> Unit,
     onOpenTools: () -> Unit,
+    onOpenLegal: () -> Unit,
+    onOpenPrivacyNotice: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -227,8 +229,14 @@ fun MoreScreen(
                 LinkRow(
                     icon = Icons.AutoMirrored.Filled.ArrowForward,
                     title = "Read the privacy notice",
-                    subtitle = "The same notice the website publishes, including the 30-day answer to a request",
-                    onClick = { context.openWeb(AppCopy.privacyNoticeUrl) },
+                    subtitle = "The same notice the website publishes, readable here with no signal",
+                    onClick = onOpenPrivacyNotice,
+                )
+                LinkRow(
+                    icon = Icons.AutoMirrored.Filled.ArrowForward,
+                    title = "Terms and accessibility",
+                    subtitle = "All three notices, each with the date it was last revised",
+                    onClick = onOpenLegal,
                 )
                 LinkRow(
                     icon = Icons.Filled.Email,
