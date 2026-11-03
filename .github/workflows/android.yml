@@ -16,7 +16,10 @@ name: Android
 
 on:
   push:
-    branches: [main]
+    # Every branch, like `ci.yml`. An Android build that only runs on main is a
+    # build that reports its failures after they have landed, and this tree needs
+    # compiling on the branch it is written on.
+    branches: ['**']
     paths:
       - 'android/**'
       - 'app/src/data/**'
