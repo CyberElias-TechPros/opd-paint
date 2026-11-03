@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The handful of brand colours that have to exist as resources: the window
+  background shown before Compose draws its first frame, the launcher icon
+  background, and the Android 12+ splash.
+
+  Everything else in the app is read at runtime from assets/data/theme.json,
+  which is generated from app/src/styles/theme.css. These four values are the
+  ones a resource file cannot reach, so they are duplicated — and
+  ThemeTokensTest fails the build if they stop matching the tokens.
+-->
+<resources>
+    <color name="paper">#F7F2E9</color>
+    <color name="ink">#0B1A13</color>
+    <color name="green">#0C6B45</color>
+    <color name="crimson">#C1121F</color>
+</resources>

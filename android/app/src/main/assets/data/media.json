@@ -1,0 +1,445 @@
+{
+  "images": {
+    "brand-banner-matt": {
+      "src": "media/brand-banner-matt.webp",
+      "thumb": "media/brand-banner-matt-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#908273",
+      "alt": "OPUDA'S PAINT advertising banner: the wordmark above a red brush stroke and a finished two-storey house, with the Matt product name and the 5-year guarantee seal."
+    },
+    "brand-banner-red": {
+      "src": "media/brand-banner-red.webp",
+      "thumb": "media/brand-banner-red-640.webp",
+      "width": 576,
+      "height": 1240,
+      "aspect": 0.4645,
+      "tint": "#927975",
+      "alt": "OPUDA'S PAINT advertising artwork showing a brush lifting red paint from an open tin beside the OPUDA'S wordmark and the 5-year guarantee seal."
+    },
+    "product-matt-bucket": {
+      "src": "media/product-matt-bucket.webp",
+      "thumb": "media/product-matt-bucket-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#aa9b90",
+      "alt": "A white 20-litre pail of OPUDA'S MATT paint resting on a second pail against a cream panelled wall. The label reads 'High quality, for walls and ceilings, smooth finish, better flow, extra coverage, anti-fungi additive, eco-friendly, weather resistance' and carries the phone number 0902 642 4350."
+    },
+    "product-matt-pail": {
+      "src": "media/product-matt-pail.webp",
+      "thumb": "media/product-matt-pail-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#9b8c85",
+      "alt": "A pail of OPUDA'S MATT paint with the full label visible, showing the house-and-brush logo, the red brush stroke and the 5-year guarantee seal."
+    },
+    "product-silk-bucket": {
+      "src": "media/product-silk-bucket.webp",
+      "thumb": "media/product-silk-bucket-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#8e8c88",
+      "alt": "A pail of OPUDA'S SILK paint on a wooden platform, with a paint-covered roller behind it on an interior site."
+    },
+    "product-silk-pail": {
+      "src": "media/product-silk-pail.webp",
+      "thumb": "media/product-silk-pail-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#979a9a",
+      "alt": "A close view of the OPUDA'S SILK pail, showing the white label, four-colour paint dots and the red brush stroke."
+    },
+    "project-finished-villa": {
+      "src": "media/project-finished-villa.webp",
+      "thumb": "media/project-finished-villa-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#848c91",
+      "alt": "A completed two-storey house finished in warm off-white with grey pilasters, dark roof tiles, an arched entrance revealing a chandelier, and brick-edged boundary pillars in front."
+    },
+    "project-arched-facade": {
+      "src": "media/project-arched-facade.webp",
+      "thumb": "media/project-arched-facade-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#827364",
+      "alt": "The front elevation of a two-storey house finished in pale cream, with stone-clad piers, an arched balcony and scaffolding still in place."
+    },
+    "project-porch-blue": {
+      "src": "media/project-porch-blue.webp",
+      "thumb": "media/project-porch-blue-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#797869",
+      "alt": "A finished blue-grey house under a tall white porch column, with a painter working on a mobile scaffold in the foreground."
+    },
+    "project-cream-scaffold": {
+      "src": "media/project-cream-scaffold.webp",
+      "thumb": "media/project-cream-scaffold-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#baa996",
+      "alt": "A cream-finished house elevation seen through bamboo scaffolding, with a painter applying the final coat around a window."
+    },
+    "project-corner-scaffold": {
+      "src": "media/project-corner-scaffold.webp",
+      "thumb": "media/project-corner-scaffold-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#928b88",
+      "alt": "A corner view of a house under construction, its cream topcoat applied above grey render, with scaffolding wrapping the facade."
+    },
+    "project-dark-roof": {
+      "src": "media/project-dark-roof.webp",
+      "thumb": "media/project-dark-roof-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#736c67",
+      "alt": "A large house with a steep charcoal roof, stone-clad columns and freshly painted cream walls, photographed before the scaffolding was struck."
+    },
+    "project-stone-brick": {
+      "src": "media/project-stone-brick.webp",
+      "thumb": "media/project-stone-brick-640.webp",
+      "width": 576,
+      "height": 1280,
+      "aspect": 0.45,
+      "tint": "#866f60",
+      "alt": "A boundary wall in progress: rusticated terracotta block piers, grey render panels, white capping and a white string course."
+    },
+    "project-blue-fence": {
+      "src": "media/project-blue-fence.webp",
+      "thumb": "media/project-blue-fence-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#b4a088",
+      "alt": "A finished white and grey facade behind a turquoise spike fence and rendered boundary wall with brick piers."
+    },
+    "project-render-stage": {
+      "src": "media/project-render-stage.webp",
+      "thumb": "media/project-render-stage-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#786f64",
+      "alt": "A house at render stage: bare grey screeded walls, white fascia bands, a dark roof and scaffolding across two elevations."
+    },
+    "project-painter": {
+      "src": "media/project-painter.webp",
+      "thumb": "media/project-painter-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#a49888",
+      "alt": "A painter on scaffolding applying paint to a cream wall beside a window with patterned stone cladding."
+    },
+    "project-stone-wall": {
+      "src": "media/project-stone-wall.webp",
+      "thumb": "media/project-stone-wall-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#716e67",
+      "alt": "A stone-clad boundary wall with white capping and a row of palms, painted in white and rusticated brick."
+    },
+    "project-gate": {
+      "src": "media/project-gate.webp",
+      "thumb": "media/project-gate-640.webp",
+      "width": 960,
+      "height": 1280,
+      "aspect": 0.75,
+      "tint": "#4a4645",
+      "alt": "A pair of black steel gates with gold detailing, set between rusticated brick piers capped in white."
+    },
+    "interior-lilac-lounge": {
+      "src": "media/interior-lilac-lounge.webp",
+      "thumb": "media/interior-lilac-lounge-640.webp",
+      "width": 780,
+      "height": 1040,
+      "aspect": 0.75,
+      "tint": "#7e6466",
+      "alt": "An interior lounge painted in lilac above and below the picture rail, with a deeper plum feature wall, a peach corridor beyond and terrazzo-look tiled floor."
+    },
+    "interior-mauve-peach": {
+      "src": "media/interior-mauve-peach.webp",
+      "thumb": "media/interior-mauve-peach-640.webp",
+      "width": 780,
+      "height": 1040,
+      "aspect": 0.75,
+      "tint": "#775f57",
+      "alt": "An empty interior room with a mauve wall, a peach recessed alcove and warm pepper tones on the adjoining wall, before furnishing."
+    },
+    "render-modern-white": {
+      "src": "media/render-modern-white.webp",
+      "thumb": "media/render-modern-white-640.webp",
+      "width": 715,
+      "height": 715,
+      "aspect": 1,
+      "tint": "#63666a",
+      "alt": "An architectural render of a modern white house with dark vertical fins, timber cladding and a glass balcony."
+    },
+    "render-modern-grey": {
+      "src": "media/render-modern-grey.webp",
+      "thumb": "media/render-modern-grey-640.webp",
+      "width": 715,
+      "height": 719,
+      "aspect": 0.9944,
+      "tint": "#767a82",
+      "alt": "An architectural render of a contemporary house in white and charcoal with timber screens and a paved forecourt."
+    },
+    "project-brick-gate": {
+      "src": "media/project-brick-gate.webp",
+      "thumb": "media/project-brick-gate-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#554a45",
+      "alt": "A boundary gate with red stone-effect brick piers capped in white, a black wrought-iron double gate with scrollwork, and a car parked in the driveway beyond."
+    },
+    "project-stone-pier": {
+      "src": "media/project-stone-pier.webp",
+      "thumb": "media/project-stone-pier-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#716e67",
+      "alt": "A close view of a red stone-effect brick pier beside a plain grey rendered panel, both capped in white, with a palm tree in front."
+    },
+    "project-mauve-finished": {
+      "src": "media/project-mauve-finished.webp",
+      "thumb": "media/project-mauve-finished-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#757470",
+      "alt": "A finished two-storey house in white above a dusty mauve ground floor, with a brick-effect pier, charcoal roof tiles and a car in the driveway."
+    },
+    "project-mauve-scaffold": {
+      "src": "media/project-mauve-scaffold.webp",
+      "thumb": "media/project-mauve-scaffold-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#736f68",
+      "alt": "A house elevation still on scaffolding, white above a mauve ground-floor band, with a painter working the upper storey by hand."
+    },
+    "project-mauve-balcony": {
+      "src": "media/project-mauve-balcony.webp",
+      "thumb": "media/project-mauve-balcony-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#8d8d87",
+      "alt": "A close view of a house entrance bay with a curved balcony soffit over a mauve wall, a worker reaching up beside a stepladder."
+    },
+    "interior-gallery-stair": {
+      "src": "media/interior-gallery-stair.webp",
+      "thumb": "media/interior-gallery-stair-640.webp",
+      "width": 540,
+      "height": 960,
+      "aspect": 0.5625,
+      "tint": "#908c85",
+      "alt": "A stairwell with plain white walls hung with framed paintings, a glass balustrade and dark tiled steps, the handrail wrapped for protection."
+    },
+    "interior-gallery-hall": {
+      "src": "media/interior-gallery-hall.webp",
+      "thumb": "media/interior-gallery-hall-640.webp",
+      "width": 540,
+      "height": 960,
+      "aspect": 0.5625,
+      "tint": "#767476",
+      "alt": "A narrow hallway in white with a dark floor strip, lined on both sides with framed artwork leading to a window at the far end."
+    },
+    "project-commercial-cladding": {
+      "src": "media/project-commercial-cladding.webp",
+      "thumb": "media/project-commercial-cladding-640.webp",
+      "width": 540,
+      "height": 960,
+      "aspect": 0.5625,
+      "tint": "#8d8a89",
+      "alt": "A multi-storey commercial building under construction, faced in grey and white composite cladding panels with bamboo scaffold still up."
+    },
+    "project-grey-stone-gate": {
+      "src": "media/project-grey-stone-gate.webp",
+      "thumb": "media/project-grey-stone-gate-640.webp",
+      "width": 1280,
+      "height": 960,
+      "aspect": 1.3333,
+      "tint": "#6d6a67",
+      "alt": "A bungalow with a tiled gable and portico columns, seen behind a boundary wall cast in a grey stone-block pattern with dark bronze-effect piers and an arched iron gate."
+    },
+    "project-cream-render-scaffold": {
+      "src": "media/project-cream-render-scaffold.webp",
+      "thumb": "media/project-cream-render-scaffold-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#baa996",
+      "alt": "A cream-rendered house elevation on bamboo scaffold, with a stone-tile accent panel being fitted beneath the windows under a finished charcoal roof."
+    },
+    "project-grey-duplex": {
+      "src": "media/project-grey-duplex.webp",
+      "thumb": "media/project-grey-duplex-640.webp",
+      "width": 1040,
+      "height": 468,
+      "aspect": 2.2222,
+      "tint": "#737377",
+      "alt": "A contemporary grey duplex with white string-course banding, a dark feature panel at first floor and electric-fence wire along the parapet."
+    },
+    "project-grey-duplex-wall": {
+      "src": "media/project-grey-duplex-wall.webp",
+      "thumb": "media/project-grey-duplex-wall-640.webp",
+      "width": 1040,
+      "height": 468,
+      "aspect": 2.2222,
+      "tint": "#707275",
+      "alt": "A grey and white banded boundary wall matching a duplex behind it, with a run of young planting set into the base of the wall."
+    },
+    "project-grey-stone-pier": {
+      "src": "media/project-grey-stone-pier.webp",
+      "thumb": "media/project-grey-stone-pier-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#6a6969",
+      "alt": "A stretch of boundary wall in the same grey stone-block pattern and dark pier finish as the gate, with aggregate still stacked beside it."
+    },
+    "interior-pastel-door": {
+      "src": "media/interior-pastel-door.webp",
+      "thumb": "media/interior-pastel-door-640.webp",
+      "width": 768,
+      "height": 1024,
+      "aspect": 0.75,
+      "tint": "#908f87",
+      "alt": "A pale-yellow room with raised panel moulding and a marble floor, a black-framed glazed door hung on a barn-door track and a ceiling-mounted camera."
+    },
+    "interior-pastel-marble": {
+      "src": "media/interior-pastel-marble.webp",
+      "thumb": "media/interior-pastel-marble-640.webp",
+      "width": 720,
+      "height": 1280,
+      "aspect": 0.5625,
+      "tint": "#9a958e",
+      "alt": "A pale-yellow open-plan room with a marble floor still under plastic sheeting and flooring off-cuts stacked against the wall."
+    },
+    "project-arched-bungalow": {
+      "src": "media/project-arched-bungalow.webp",
+      "thumb": "media/project-arched-bungalow-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#a09d99",
+      "alt": "A cream bungalow with a taupe plinth band, a hipped roof and a triple-arched white portico on fluted columns, with two unglazed window frames resting on the ground beside it."
+    },
+    "project-teal-duplex-courtyard": {
+      "src": "media/project-teal-duplex-courtyard.webp",
+      "thumb": "media/project-teal-duplex-courtyard-640.webp",
+      "width": 540,
+      "height": 960,
+      "aspect": 0.5625,
+      "tint": "#747a7b",
+      "alt": "A paved rear courtyard with white stone urns on a terrace, a ladder against an outbuilding roof and a row of garage doors across a white boundary wall."
+    },
+    "project-teal-duplex-urn": {
+      "src": "media/project-teal-duplex-urn.webp",
+      "thumb": "media/project-teal-duplex-urn-640.webp",
+      "width": 960,
+      "height": 540,
+      "aspect": 1.7778,
+      "tint": "#697276",
+      "alt": "A close view of a white stone-effect urn planter on a grey pedestal, set into a stone-clad wall base beside dark-tinted windows."
+    },
+    "project-teal-duplex-entrance": {
+      "src": "media/project-teal-duplex-entrance.webp",
+      "thumb": "media/project-teal-duplex-entrance-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#818787",
+      "alt": "The entrance of a contemporary duplex in white and charcoal with a teal band at first floor, a glazed balcony balustrade and white urns flanking the steps."
+    },
+    "project-mauve-wall-dog": {
+      "src": "media/project-mauve-wall-dog.webp",
+      "thumb": "media/project-mauve-wall-dog-640.webp",
+      "width": 1280,
+      "height": 960,
+      "aspect": 1.3333,
+      "tint": "#6d6c66",
+      "alt": "A wide view of a pink-walled boundary with white piers and a scrollwork gate, a dog visible through the railing and a painter working on scaffold above."
+    },
+    "interior-pastel-early": {
+      "src": "media/interior-pastel-early.webp",
+      "thumb": "media/interior-pastel-early-640.webp",
+      "width": 960,
+      "height": 1280,
+      "aspect": 0.75,
+      "tint": "#828077",
+      "alt": "A pale-yellow room with a white ceiling cove and a bare marble floor, a trestle standing in the middle of the room before the skirting was fitted."
+    },
+    "project-commercial-aircon": {
+      "src": "media/project-commercial-aircon.webp",
+      "thumb": "media/project-commercial-aircon-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#898a8c",
+      "alt": "A multi-storey commercial building finished in grey render with white window surrounds, blue-tinted glazing, external air-conditioning units and bamboo scaffold on one corner."
+    },
+    "project-portico-event": {
+      "src": "media/project-portico-event.webp",
+      "thumb": "media/project-portico-event-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#797869",
+      "alt": "A grand white portico on round columns over a powder-blue ground floor, with balloon bunting along the balcony and a painter finishing the porch ceiling from a scaffold tower."
+    },
+    "project-dormer-elevation": {
+      "src": "media/project-dormer-elevation.webp",
+      "thumb": "media/project-dormer-elevation-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#928b88",
+      "alt": "A pale cream house with a multi-gabled dark roof, a dormer window and a vertical stone-tile accent pier beside an arched, stone-surrounded doorway."
+    },
+    "project-mauve-gate-dusk": {
+      "src": "media/project-mauve-gate-dusk.webp",
+      "thumb": "media/project-mauve-gate-dusk-640.webp",
+      "width": 960,
+      "height": 1280,
+      "aspect": 0.75,
+      "tint": "#5b5f62",
+      "alt": "A pink and white two-storey house photographed at dusk, scaffold still up on the first floor with the ground floor and gate already finished."
+    },
+    "project-dormer-elevation-side": {
+      "src": "media/project-dormer-elevation-side.webp",
+      "thumb": "media/project-dormer-elevation-side-640.webp",
+      "width": 1024,
+      "height": 768,
+      "aspect": 1.3333,
+      "tint": "#9a968c",
+      "alt": "A side elevation of a pale cream house with the same multi-gabled dark roof and stone-tile pier, building sand still on the ground and a matching tower under construction next door."
+    },
+    "project-teal-duplex-render": {
+      "src": "media/project-teal-duplex-render.webp",
+      "thumb": "media/project-teal-duplex-render-640.webp",
+      "width": 960,
+      "height": 1280,
+      "aspect": 0.75,
+      "tint": "#998b7b",
+      "alt": "Two workers rendering the white entrance bay of a duplex beside a charcoal pier, with bagged building sand on the ground and stone urns already in place."
+    }
+  }
+}

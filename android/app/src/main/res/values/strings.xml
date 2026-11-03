@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The apostrophe is escaped because an unescaped one ends the string. -->
+    <string name="app_name">OPUDA\'S PAINT</string>
+
+    <!-- Notification channels are user-visible and permanent: once created, a
+         channel's name cannot be changed by an update, only replaced. -->
+    <string name="channel_sync_name">Enquiry delivery</string>
+    <string name="channel_sync_description">Sent when an enquiry or request you wrote offline reaches the desk, or needs your attention.</string>
+</resources>

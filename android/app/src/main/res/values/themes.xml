@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A platform Material theme, not AppCompat or Material Components: the app has
+  no XML views to theme, so pulling in a second widget library to colour a
+  window background would be paying for something Compose already does.
+-->
+<resources>
+    <style name="Theme.OpudasPaint" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/paper</item>
+        <item name="android:statusBarColor">@color/paper</item>
+        <item name="android:navigationBarColor">@color/paper</item>
+        <!-- Dark icons on a light bar. API 23+, and minSdk is 24. -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

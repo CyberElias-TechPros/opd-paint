@@ -1,0 +1,147 @@
+name: Android
+
+# Why this workflow exists, and why it is not part of `ci.yml`:
+#
+# The Android build needs Gradle, the Android SDK and every AndroidX artefact,
+# which come from services.gradle.org, dl.google.com and repo.maven.apache.org.
+# A development sandbox that cannot reach those hosts cannot compile the app at
+# all, so this job is the compiler for the Android tree: it builds, lints, runs
+# the unit tests, and uploads an installable APK as an artifact.
+#
+# It also regenerates the app's content bundle and launcher icons from their
+# sources and fails if the committed files differ — the same discipline
+# `ci.yml` applies to the website's PDFs, icons and sitemap. The app's data is
+# generated from `app/src/data/*.ts`, so a colour edited on the website and not
+# regenerated here is a drift this job catches rather than a customer complaint.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'app/src/data/**'
+      - 'app/src/lib/media.ts'
+      - 'app/src/styles/theme.css'
+      - 'app/public/media/manifest.json'
+      - 'app/public/brand/mark.svg'
+      - 'tools/build-android-data.mjs'
+      - 'tools/build-android-icons.py'
+      - '.github/workflows/android.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'app/src/data/**'
+      - 'app/src/lib/media.ts'
+      - 'app/src/styles/theme.css'
+      - 'app/public/media/manifest.json'
+      - 'app/public/brand/mark.svg'
+      - 'tools/build-android-data.mjs'
+      - 'tools/build-android-icons.py'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Lint, test, package
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The content bundle is generated from TypeScript sources, so Node runs
+      # before Gradle does. No `npm ci`: the loader in `app/scripts/register.mjs`
+      # uses only Node builtins, and installing 300 packages to read nine JSON
+      # files would be the slowest step in the job for nothing.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Pinned to the same version `ci.yml` pins, so the launcher icons this job
+      # regenerates are byte-identical to the ones committed. A floating Pillow
+      # would make the drift check below fail at random, and a check that fails
+      # at random gets switched off.
+      - name: Install the pinned image library
+        run: pip install 'Pillow==13.0.0'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Caches ~/.gradle (wrapper distributions and dependencies) between runs.
+      # An uncached Android build downloads Gradle plus several hundred
+      # megabytes of AndroidX; a cached one takes a few minutes.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Regenerate the content bundle and the launcher icons
+        run: |
+          set -euo pipefail
+          cd app && npm run data:android
+          cd .. && python3 tools/build-android-icons.py
+
+      - name: Fail if the generated files drifted
+        run: |
+          set -euo pipefail
+          dirty="$(git status --porcelain -- android/app/src/main/assets/data android/app/src/main/res)"
+          if [ -n "$dirty" ]; then
+            echo "The committed Android assets do not match what their generators produce." >&2
+            echo "Run 'cd app && npm run data:android' and 'python3 tools/build-android-icons.py', then commit." >&2
+            echo "$dirty" >&2
+            git --no-pager diff --stat -- android/ >&2 || true
+            exit 1
+          fi
+
+      - name: Lint, unit tests, assemble
+        run: |
+          set -euo pipefail
+          cd android
+          ./gradlew --no-daemon --stacktrace \
+            :app:lintDebug \
+            :app:testDebugUnitTest \
+            :app:assembleDebug
+
+      - name: Report what the build produced
+        run: |
+          set -euo pipefail
+          apk="android/app/build/outputs/apk/debug/app-debug.apk"
+          ls -la android/app/build/outputs/apk/debug/
+          # The APK carries 7 MB of the website's photography and 1.4 MB of PDFs.
+          # That is a deliberate trade for an app that works with no signal, and
+          # this line is where the cost of it stays visible.
+          du -h "$apk"
+
+      - name: Upload the installable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: opudas-paint-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      # A red build with no report attached is a red build nobody can diagnose:
+      # Actions logs are awkward to read and they expire. These do not.
+      - name: Upload reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reports
+          path: |
+            android/app/build/reports/lint-results-debug.html
+            android/app/build/reports/lint-results-debug.xml
+            android/app/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 14

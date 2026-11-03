@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The monochrome layer Android 13+ uses for themed icons.
+
+  It is the same geometry in one colour, because a themed icon is a silhouette:
+  the system tints it and puts it on a generated background. Keeping the roof,
+  pail, label and stroke as separate paths (rather than one merged shape) means
+  the label still reads as a lighter rectangle through the tint, which is what
+  makes the mark recognisable at 48dp.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="#0B1A13">
+    <group
+        android:scaleX="1.375"
+        android:scaleY="1.375"
+        android:translateX="21"
+        android:translateY="26.5">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M24,3.4L46.5,20.2L46.5,21.6L1.5,21.6L1.5,20.2Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M10,19.6L38,19.6L38,36.2C38,36.8 37.5,37.3 36.9,37.3L11.1,37.3C10.5,37.3 10,36.8 10,36.2Z" />
+        <path
+            android:fillColor="#000000"
+            android:fillAlpha="0.35"
+            android:pathData="M20.5,25.5L27.5,25.5L27.5,37.3L20.5,37.3Z" />
+        <path
+            android:fillColor="#000000"
+            android:fillAlpha="0.6"
+            android:pathData="M21.6,26.6L26.4,26.6L26.4,37.3L21.6,37.3Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M41.4,6.1a2.3,2.3 0 1,0 0,4.6a2.3,2.3 0 1,0 0,-4.6Z" />
+    </group>
+</vector>

@@ -1,0 +1,40 @@
+{
+  "colors": {
+    "paper": "#f7f2e9",
+    "paper-2": "#fcf9f3",
+    "plaster": "#ece3d5",
+    "sand": "#e2d6c3",
+    "ink": "#0b1a13",
+    "ink-soft": "#26362e",
+    "moss": "#4d6157",
+    "green": "#0c6b45",
+    "green-deep": "#07452d",
+    "green-bright": "#12965f",
+    "green-mist": "#5cc98f",
+    "crimson": "#c1121f",
+    "blue": "#1f6fb2",
+    "purple": "#6c3fa4",
+    "orange": "#ee6c22",
+    "gold": "#dfae52",
+    "clay": "#a9553c",
+    "line": "#d8cdbb",
+    "line-strong": "#8a8478"
+  },
+  "radii": {
+    "xs": 3,
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "xl": 32
+  },
+  "fonts": {
+    "display": {
+      "web": "Instrument Serif",
+      "android": "serif"
+    },
+    "sans": {
+      "web": "Archivo Variable",
+      "android": "sans-serif"
+    }
+  }
+}
