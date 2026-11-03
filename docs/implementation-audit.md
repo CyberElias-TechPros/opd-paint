@@ -316,3 +316,60 @@ The habits that stop these specific defects returning:
 - **Add a claim to the interface** → if it is not in the typed data or on a pail,
   it does not go in. `docs/content-editing.md` is the rulebook and
   `scripts/data.test.ts` is the enforcement.
+
+---
+
+## 8. Second round — 3 November 2026: operations, privacy and the inbox
+
+Same method as §1: read the roadmap's task groups for what was claimed, read the
+code for what was true, and treat the difference as a defect. The scope this round
+was the half of the plan that is not screens — 14.01 (lead communication), 16.03
+(privacy operations), 17.01–17.03 (hardening, reliability, monitoring), 18.05
+(load), 19.03 and 20.01 (launch and stabilization), 22.03 (decision records).
+
+### What was untrue, and what replaced it
+
+| # | Found | Why it mattered | Remedy |
+| --- | --- | --- | --- |
+| 1 | The honeypot answered **200** while a real enquiry answered **201**, with a smaller body | A trap that behaves differently from the thing it imitates teaches the next generation of bots exactly where the trap is — and it did so through the proxy too, where a test asserted the wrong status | One shared `routingFor()`; the trap now returns 201 with the same four fields and the same desk for the same project type. `server/index.test.mjs` diffs the trap against a genuine submission; `server/proxy.test.mjs` asserts it through the edge |
+| 2 | `POST /api/subscribe` returned 422 **without `fields.email`**, unlike `/api/quotes` | The footer's opt-in form had no way to put the error on the input, so a typo read as a broken site | Same field-shaped 422 as every other form, tested |
+| 3 | Rate limits were **in-process**, and `deploying.md` described that as the intended design | Every deploy reset every limit; two instances each got their own allowance. A limitation was documented as a decision, which is how limitations stop being fixed | `server/limits.mjs`: append-only JSONL, refreshed on `mtime:size`, ties broken by file order, write failure ⇒ per-process fallback that logs `limits.write_failed` and reports itself in `/api/health` as `limits.store`. 14 checks |
+| 4 | The privacy notice published **30 days / 24 months** retention and nothing enforced it | A published promise with no mechanism is a compliance defect, not a tidy-up task | Pruning at startup and daily, atomic rewrite, keyed on `at ?? receivedAt ?? timestamp` (one field is a silent no-op), undated lines kept, subscriptions and suppression records never pruned, `retention.pruned` / `retention.prune_failed`. 12 checks in `server/ops.test.mjs` |
+| 5 | The inbox was **one shared password**, no roles, no second factor, no record of who looked | Customer names, phone numbers and addresses behind a single credential, with no way to give a colleague read-only access and no way to answer "who exported this?" | `server/auth.mjs` + rewritten gate: `viewer`/`exporter`, TOTP per account (RFC 4226 vectors, ±1 step, timing-safe), signed session cookies with a TTL, optional CIDR allowlist answering 404, ten distinguishable decisions in `admin-access.jsonl` and `admin.access`. 23 checks |
+| 6 | A data subject could exercise a right **only by email**, with no reference, no clock and no record | The notice promised an answer within 30 days; nothing measured the 30 days | `POST /api/privacy`: right, address, optional reference and note, honeypot answering identically, 3/10 min limit whose refusal names the human route, `DSAR-` reference and `dueBy`, announcement carrying the statutory deadline. Plus `tools/erase-record.mjs` for fulfilment. 13 checks |
+| 7 | A dead notification channel was **indistinguishable from a quiet week** | The single failure mode that loses money silently had no signal | Per-channel consecutive-failure counting, `notify.channel_down` at three (configurable), health exposing `ok`/`consecutiveFailures`/`lastOkAt` per channel |
+| 8 | The customer got a reference on screen and **nothing else** | The site promises a response time; never confirming the request invites a second submission and a phone call | Acknowledgement email after the response, in the background: reference, desk, commitment, phone number, what they asked for, "estimate, not a quotation", the data-subject route and its deadline, and a plain statement that nothing else will be sent. `OPD_ACK_CUSTOMER` |
+| 9 | Two identical submissions made **two leads and two alerts** | A double-click or an impatient refresh duplicates work and corrupts any count of demand | Fingerprint over every visitor-supplied field, ten-minute window, the first reference returned with `duplicate: true`, `enquiry.duplicate_suppressed` logged |
+| 10 | "Monitoring" was a `curl` in a document | A status code is not an assertion: a blank shell with a missing bundle returns 200 | `tools/uptime-check.mjs` — six probes, each asserting something (mount point and title present, every `/assets/*` resolves and is not truncated against `content-length`, health says storage ready and a channel configured, colour book over 100 kB, sitemap present), optional dead-man's-switch heartbeat pinged **only on success**, and `.github/workflows/uptime.yml` running it every fifteen minutes, opening one issue on failure and closing it on recovery |
+| 11 | Nothing detected a **deploy that did not take** | The most common production fault is a healthy-looking service running last week's code | `tools/smoke-production.mjs` — 21 checks in six groups, `--release` compares the stamp in `/api/health` against what was shipped, samples URLs from the *live* sitemap, asserts `/admin` and the CSV are closed, `--write` posts one real enquiry |
+| 12 | Roadmap 18.05 (load test) was unmet | Nobody knew the enquiry path's latency budget or what gives way first | `tools/load-test.mjs` — concurrency with p95 and error-rate budgets, 429s counted separately from failures, honeypot body so nothing is stored, `--vary-ip` that reports whether the deployment actually trusts `X-Forwarded-For`. Locally: health 980 req/s at p95 17 ms; the quote path throttled at twelve per address exactly as configured |
+| 13 | "Roll back" meant **redeploy the previous commit**, and nothing kept the previous image | You cannot roll back to something you did not keep | `tools/rollback.sh` — `--snapshot` (timestamped image tags, or an archive excluding `data/` so enquiries survive), `--check` (the monthly drill, changes nothing), rollback with Docker/systemd auto-detection and a health poll requiring `storage: ready`, eight snapshots kept |
+| 14 | Erasure meant **hand-editing `quotes.jsonl`** | The person doing it sees the record they are deleting, can delete the wrong line, and leaves no evidence either way | `tools/erase-record.mjs` — dry run unless `--yes`, atomic rewrites, suppression entry so the address cannot be resurrected, request record kept as evidence, audit line with references only, damaged lines preserved, no echo of the data |
+| 15 | Roadmap 22.03's three decision records did not exist, there was no launch runbook, and `.env.example` documented 81 lines while the service read far more | The next person re-litigates a settled question or "fixes" a deliberate constraint | `docs/adr/0001–0003` (+ index), `docs/launch-runbook.md`, `.env.example` at 173 lines covering every variable the service reads |
+
+### Verification
+
+| Check | Before this round | After |
+| --- | --- | --- |
+| `npm run test:server` | 61 (4 files) | **112** (7 files: +`limits` 14, +`admin` 23, +`privacy` 13, +12 retention cases in `ops`) |
+| `npm run test:browser` | 25 | **28** (the privacy notice's request form: reaches the service, refuses an unanswerable request in the browser, keeps the human route visible) |
+| `npm run test:unit` / `test:routes` / `lint` / `tsc -b` | 92 / 29 / 12 warnings 0 errors / clean | unchanged: 92 / 29 / 12 warnings 0 errors / clean |
+| Operational tools | none | `uptime-check` 6/6 against a live local service, 0/6 against a dead origin (exit 1), webhook alert and success-only heartbeat both observed; `smoke-production` 21/21; `load-test` green against its budgets; `rollback.sh --check`/`--snapshot` exercised on a fake host and re-checked; `erase-record` dry run then `--yes`, with the suppression row and audit line verified |
+| Workflows | `ci.yml`, `dependabot.yml` | + `uptime.yml` — YAML parsed, every `run:` block through `bash -n`, `continue-on-error` on the probe with the failure re-raised after the summary so a red site cannot report green |
+| Documents | 9 | **11 + 3 ADRs**; `operations.md` 302 → 574 lines (inbox access model, the four checks, retention, DSAR intake, five new incident playbooks, fourteen new log events — each event name verified to exist in the code) |
+
+Every log event named in the documentation was grepped for in `server/*.mjs`
+before the sentence was kept, and every tool was run against a live service rather
+than reviewed on paper. Two claims in the previous round's documentation were
+corrected because this round made them false: rate limiting is no longer
+in-process, and the entry bundle is 139 kB gzipped rather than 118 kB.
+
+### Still gated, and why
+
+Provisioning (production and staging hosts, TLS, DNS), vendor accounts (a
+notification channel, Resend, Sentry, a dead-man's-switch service, an analytics
+vendor), counsel (16.03.05), a penetration test (17.02.13), the named owners and
+the rota (17.02.12, 20.01.01), and every check that needs a human body: real
+devices, screen readers, colour QA against physical chips, usability sessions.
+These are listed with their blockers in `docs/remaining-work.md` §2–§4 and left
+blank rather than filled with a plausible guess in `docs/launch-runbook.md` §0.

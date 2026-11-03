@@ -39,6 +39,13 @@ export type AnalyticsEvent =
   | 'quote_success'
   | 'quote_failure'
   | 'newsletter_submit'
+  // Data-subject requests (roadmap 16.03.07). The only property these carry is
+  // which right was asked for: an email address, a reference or a note would put
+  // personal data into a measurement stack, which is the opposite of what the
+  // request is about.
+  | 'privacy_request_submit'
+  | 'privacy_request_success'
+  | 'privacy_request_failure'
   | 'cta_click'
 
 export type ConsentState = 'granted' | 'denied' | 'unknown'

@@ -1,0 +1,138 @@
+name: Uptime
+
+# Roadmap 17.03.01–17.03.06: check the live site, and know when the checking
+# stops.
+#
+# Two honest limits, stated here because a workflow that pretends otherwise is
+# how an outage goes unnoticed:
+#
+#   • **GitHub's scheduler is not an alerting service.** Runs can be delayed by
+#     minutes during busy periods and are skipped entirely on a private repo
+#     without paid minutes. This workflow is a second opinion and a durable
+#     record, not the primary monitor. The primary is `tools/uptime-check.mjs`
+#     from cron on a host, or any monitor that supports a dead-man's switch.
+#   • **A workflow that stops running looks like a site that is up.** Set
+#     `OPD_UPTIME_HEARTBEAT` to a dead-man's-switch URL (Healthchecks.io,
+#     Cronitor, Uptime Kuma). The check pings it only on success, so silence is
+#     itself an alert — and that service, not GitHub, is what reaches a phone.
+#
+# Configure `OPD_SITE_ORIGIN` as a repository *variable* (it is not a secret).
+# Without it the job skips rather than guessing which deployment to probe: a
+# monitor pointed at the wrong host reports green through an outage.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      origin:
+        description: 'Origin to check (defaults to the OPD_SITE_ORIGIN variable)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Probe the live site
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.OPD_SITE_ORIGIN != '' }}
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run the checks
+        id: probe
+        continue-on-error: true
+        env:
+          OPD_UPTIME_HEARTBEAT: ${{ secrets.OPD_UPTIME_HEARTBEAT }}
+          OPD_NOTIFY_WEBHOOK: ${{ secrets.OPD_NOTIFY_WEBHOOK }}
+        run: |
+          ORIGIN="${{ github.event.inputs.origin || vars.OPD_SITE_ORIGIN }}"
+          if [ -z "$ORIGIN" ]; then
+            echo "No origin was given and no OPD_SITE_ORIGIN variable is set." >&2
+            echo "Set it in Settings → Secrets and variables → Actions → Variables, for example" >&2
+            echo "https://opudapaint.com — a monitor that guesses its target reports green through an outage." >&2
+            exit 2
+          fi
+          # Both reports are written whether or not the checks pass, and the step's
+          # exit status is the check's: `| tee` on its own would report success for
+          # a failing site, which is the one thing this workflow must not do.
+          status=0
+          node tools/uptime-check.mjs --origin "$ORIGIN" --json > report.json || status=$?
+          node tools/uptime-check.mjs --origin "$ORIGIN" | tee report.txt || status=$?
+          exit "$status"
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo '### Uptime check'
+            echo
+            echo '```'
+            cat report.txt 2>/dev/null || echo 'no report was produced'
+            echo '```'
+            if [ -n "${{ secrets.OPD_UPTIME_HEARTBEAT }}" ]; then
+              echo 'A dead-man'"'"'s-switch heartbeat is configured, so a run that stops happening is itself an alert.'
+            else
+              echo '> **No `OPD_UPTIME_HEARTBEAT` is configured.** If this workflow stops running — a billing'
+              echo '> change, a disabled action, a repository transfer — nothing will notice. Set one.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep one issue open while it is failing
+        if: steps.probe.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE='Uptime check is failing'
+          BODY="$(cat <<EOF
+          The scheduled uptime check failed at $(date -u +%Y-%m-%dT%H:%M:%SZ).
+
+          \`\`\`
+          $(cat report.txt 2>/dev/null | tail -40)
+          \`\`\`
+
+          Each failed line above carries the reason it matters. Run the same check
+          by hand with:
+
+              node tools/uptime-check.mjs --origin <origin>
+
+          This issue is updated by the workflow rather than duplicated, so one open
+          issue means one ongoing failure.
+          EOF
+          )"
+          EXISTING="$(gh issue list --state open --search "in:title ${TITLE}" --json number --jq '.[0].number' || true)"
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY" --label uptime || \
+              gh issue create --title "$TITLE" --body "$BODY"
+          fi
+
+      - name: Close it when the site is back
+        if: steps.probe.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          EXISTING="$(gh issue list --state open --search 'in:title Uptime check is failing' --json number --jq '.[0].number' || true)"
+          if [ -n "$EXISTING" ]; then
+            gh issue close "$EXISTING" --comment "The uptime check passed again at $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+          fi
+
+      - name: Fail the run
+        if: steps.probe.outcome == 'failure'
+        run: |
+          echo "The site is not healthy. See the summary above."
+          exit 1

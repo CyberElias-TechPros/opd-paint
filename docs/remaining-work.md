@@ -26,13 +26,14 @@ That is the README's own standard, and it is the right one.
 | **G3** Design | Journeys, wireframes, system, a11y | ✅ Nearly met | Design system, journeys and accessibility rules are built and documented (`/style-guide`). Missing only formal review and approval. |
 | **G4** Data & architecture | Data model, integrations, cost | ❌ Blocked | The *model* is good. The *data* is provisional: unverified dealers, unmeasured colours, unsigned product specs. Pricing is deliberately not part of the data model at all — see §2. No operating-cost assessment. |
 | **G5** Feature completeness | Core pages and journeys | ✅ Met | 22 route modules + 404, all five core journeys work, and the phase 11.02 decision-support tools are built (finish finder, surface preparation, project checklist, durable share link, saved estimates). A 29-case render test asserts an `<h1>`, clean markup and honest structured data on every one. Needs a human review pass. |
-| **G6** System readiness | Integrations, security, monitoring | ⚠️ Technical half done | Notifications, error intake, structured logs, a restore drill, dependency/secret scanning, axe and Lighthouse gates now exist and run in CI, and the deployment edges are covered — CORS for a cross-origin front end, proxy-aware rate limiting, a generated colour index, a traversal-safe static root, CSV formula-injection escaping, and a newsletter opt-out endpoint. What is still missing is not code: the credentials for a real notification channel and a Sentry DSN are not issued, the production host is not provisioned, and nobody yet owns the alert. |
+| **G6** System readiness | Integrations, security, monitoring | ⚠️ Technical side essentially done | Notifications with retries, per-channel health and a `channel_down` alert; customer acknowledgement; error intake; structured logs with request IDs; **automated retention matching the published notice**; a **DSAR intake with a statutory clock** and an erasure tool; **roles, TOTP, signed sessions, an IP allowlist and an access log on the inbox**; **durable rate limiting and duplicate suppression**; a restore drill, a load test, an uptime check that asserts rather than pings (scheduled in CI, opening and closing its own issue), dependency and secret scanning, axe and Lighthouse gates; and the deployment edges — CORS, proxy trust, a generated colour index, a traversal-safe static root, CSV formula-injection escaping, a newsletter opt-out. What is still missing is not code: the credentials for a real notification channel and a Sentry DSN are not issued, the production host is not provisioned, the dead-man's-switch account does not exist, and nobody yet owns the alert. |
 | **G7** Acceptance | Functional, a11y, device, colour, UAT | ❌ Not met | Automated tests pass. No real-device testing, no assistive-technology audit, no colour QA against physical chips, no user acceptance testing. |
-| **G8** Launch | Go/no-go, rollback, smoke, support | ❌ Not started | No production environment, no DNS/TLS, no rollback exercise, no support rota. |
-| **G9** Handover | Ownership, docs, training | ⚠️ Partial | Four good documents exist (`running`, `content-editing`, `deploying`, `qa-checklist`). No training, no support ownership, no maintenance calendar. |
+| **G8** Launch | Go/no-go, rollback, smoke, support | ⚠️ Written, not executed | The plan exists and is executable: [`launch-runbook.md`](launch-runbook.md) (owners, SLO/RTO, pre-launch checklist, launch-day order with a verification per step, go/no-go, the first 72 hours, the ongoing cadence), `tools/smoke-production.mjs` (21 checks, release-stamp aware), `tools/rollback.sh` (`--snapshot`, `--check`, rollback with a health poll). What is missing is the environment to run it against: no production host, no DNS/TLS, no snapshot taken on a real deploy, no support rota. |
+| **G9** Handover | Ownership, docs, training | ⚠️ Partial | Eleven documents now exist (`running`, `content-editing`, `deploying`, `operations`, `launch-runbook`, `qa-checklist`, `brochure`, `catalogue`, `campaign-the-approval-call`, `remaining-work`, `implementation-audit`) plus three ADRs and a fully documented `.env.example`. The maintenance calendar is written (`launch-runbook.md` §5). What is missing is human: no training sessions, and no named owner for the inbox or the alerts. |
 
-**Read that as: G3 and G5 are done; G0–G2 and G9 are nearly done; G4, G6, G7, G8
-are the real work.**
+**Read that as: G3 and G5 are done; G0–G2, G6 and G9 are nearly done and blocked on
+people rather than code; G4, G7 and G8 are the real work — authoritative data,
+verification with humans, and a production environment.**
 
 ---
 
@@ -120,12 +121,21 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 
 ### Phase 14 — Lead routing and communication
 
-- CRM integration or webhook routing per desk, with retry and failure alerting.
-- Transactional email: enquiry acknowledgement to the customer, notification to
-  the desk, CSV/label attachments where useful.
+- CRM integration or webhook routing **per desk**, with a retry queue. Routing and
+  the SLA per desk are built (`routingFor()` in `server/index.mjs`: trade, sample,
+  dealer, exterior, default); failure alerting is built (`notify.channel_down` at
+  three consecutive failures, per-channel health in `/api/health`). What is not
+  built is a separate webhook URL per desk and a queue that retries hours later —
+  both need a decision about who owns which channel.
+- ~~Transactional email: enquiry acknowledgement to the customer, notification to
+  the desk.~~ **Done.** The desk gets the lead; the customer gets their reference,
+  the desk it went to, the response commitment, the phone number, the words
+  "estimate, not a quotation" and the data-subject route (`OPD_ACK_CUSTOMER`).
+  CSV/label attachments are still open and still need a reason.
 - Newsletter: double opt-in and list integration. (Unsubscribe is built —
   `POST /api/unsubscribe` writes a suppression record and the footer offers it —
-  because the footer already promised it.)
+  because the footer already promised it. Double opt-in needs an email vendor
+  decision and a confirmation-token store.)
 - Dealer finder: a real map (privacy-respecting tile provider) or a deliberate
   decision to stay with the current schematic plus list.
 - **Effort: 4–6 days.**
@@ -168,8 +178,17 @@ Evidence: `app/src/routes/{Tools,FinishFinder,SurfacePrep,Project}.tsx`,
 - Wire the existing consent-gated event layer to a chosen analytics vendor, with
   consent mode, and build four dashboards: journeys, quote funnel, colour
   engagement, content. *(2 days)*
-- Cookie policy alignment and a documented data-subject-request procedure.
-  *(1 day + counsel)*
+- ~~A documented data-subject-request procedure.~~ **Built, end to end.**
+  `POST /api/privacy` takes the right being exercised, gives it a `DSAR-`
+  reference and a 30-day `dueBy`, rate limits it while still naming the human
+  route, announces it to the desk with the statutory deadline in the body, stores
+  it, and logs `privacy.request_received`. Fulfilment is a tool rather than an
+  editor session (`tools/erase-record.mjs`: dry run by default, suppression entry,
+  audit line with references only). The procedure is written down in
+  [`operations.md` §5d](operations.md). The cookie policy is aligned with what the
+  build actually does — no tracker, no cookie set by us — and the retention periods
+  published in the privacy notice are the ones the service enforces.
+  **Still needs counsel** (16.03.05), and still needs a person to answer requests.
 
 ### Phase 17 — Security and reliability hardening
 
@@ -179,21 +198,44 @@ Evidence: `app/src/routes/{Tools,FinishFinder,SurfacePrep,Project}.tsx`,
   `OPD_ALLOWED_ORIGIN` and `OPD_TRUST_PROXY`, both tested in
   `server/edge.test.mjs`. Neither is on by default, and the trust flag is only
   safe behind a proxy that overwrites `X-Forwarded-For`.
-- MFA on the enquiry inbox, IP allowlist option, and an access log. *(1 day)*
-- Structured logs (JSON), request IDs, log retention. *(1 day)*
-- Uptime monitoring on `/api/health` with an alert that reaches a phone.
-  *(0.5 day)*
-- Staging environment separate from production, with its own credentials.
-  *(1 day)*
-- Rate limiting to a shared store if more than one instance ever runs. *(1 day)*
-- **Effort: 5–6 days**, plus a penetration test if commerce is approved.
+- ~~MFA on the enquiry inbox, IP allowlist option, and an access log.~~ **Done.**
+  TOTP per account (`server/auth.mjs`: RFC 4226 vectors, ±1 step tolerance,
+  timing-safe comparison), two roles (`viewer` reads, `exporter` downloads the
+  CSV), signed session cookies, an optional CIDR allowlist that answers 404 rather
+  than 403, and ten distinguishable decisions written to `admin-access.jsonl` and
+  logged as `admin.access`. 23 checks in `server/admin.test.mjs`.
+- ~~Structured logs (JSON), request IDs, log retention.~~ **Done.** One JSON object
+  per line in production, `X-Request-Id` on every response and in every log line,
+  and retention that runs at startup and daily: 30 days for operational logs, 24
+  months for enquiries and data-subject requests, subscriptions never pruned,
+  suppression records never pruned, undated lines kept rather than guessed at.
+- ~~Uptime monitoring on `/api/health` with an alert that reaches a phone.~~
+  **Built; the phone is the gated half.** `tools/uptime-check.mjs` runs six probes
+  that each assert something about the response, and `.github/workflows/uptime.yml`
+  runs it every fifteen minutes, opening one issue on failure and closing it on
+  recovery. Reaching a phone needs two things only a human can supply: a
+  dead-man's-switch URL (`OPD_UPTIME_HEARTBEAT`) and a notification channel on that
+  service.
+- ~~Staging environment separate from production, with its own credentials.~~
+  **Documented and reproducible** (`deploying.md` §Staging: same image, own data
+  volume, own credentials, throwaway webhook, the checks pointed at it). *Provisioning
+  the host* is the remaining half and needs an account and a domain.
+- ~~Rate limiting to a shared store if more than one instance ever runs.~~ **Done**
+  for one instance and for instances sharing a volume: `server/limits.mjs` is an
+  append-only JSONL store refreshed on change, with a documented per-process
+  fallback that reports itself in `/api/health` as `limits.store: "memory"` and
+  logs `limits.write_failed`. Two instances on *separate* volumes still each get
+  their own allowance, which is the honest limit of a file-backed store — Redis is
+  the answer if that ever happens (17.02.06).
+- **Remaining effort: 1–2 days** (a penetration test, plus the host and vendor
+  accounts above).
 
 ### Phase 18 — The testing that is still missing
 
 | Test | Status | Effort |
 | --- | --- | --- |
-| Unit, content-integrity, server, route render | ✅ Done (92 + 61 + 29) | — |
-| Browser end-to-end in jsdom (quote, calculator, tools, project, footer, room preview) | ✅ Done (25) | — |
+| Unit, content-integrity, server, route render | ✅ Done (server suite is now 112 checks across 7 files) | — |
+| Browser end-to-end in jsdom (quote, calculator, tools, project, footer, room preview, privacy form) | ✅ Done (28) | — |
 | Browser end-to-end on real Chromium (Playwright: dealer geolocation, visual regression, pixels) | ❌ jsdom has no canvas implementation, so the room preview's *pixels* are only checked by axe and Lighthouse in CI | 4 days |
 | Automated accessibility (axe on 22 pages, in CI) | ✅ Runs on every pull request — and caught three contrast defects on a new page that no local check could see | — |
 | Visual regression on key pages | ❌ | 2 days |
@@ -202,27 +244,45 @@ Evidence: `app/src/routes/{Tools,FinishFinder,SurfacePrep,Project}.tsx`,
 | Real-device testing on a low-end Android over throttled 4G | ❌ | 2 days |
 | Usability testing with 5–8 real customers | ❌ | Human time, 1–2 weeks elapsed |
 | Colour QA: screen vs printed chip vs drawdown | ❌ | Needs the physical deck |
-| Load test on the enquiry endpoint | ❌ | 1 day |
+| Load test on the enquiry endpoint | ✅ `tools/load-test.mjs` — concurrency with a p95 and error-rate budget, 429s counted separately from failures, a honeypot body so nothing is stored, and `--vary-ip` that reports whether the deployment actually trusts `X-Forwarded-For`. Run it against staging. | — |
 
 ### Phase 19–20 — Launch and operations
 
-- Provision production (container host or platform), with TLS and DNS. *(1–2 days)*
-- Rollback plan and a rehearsed rollback. *(0.5 day)*
-- Go/no-go checklist, launch-day runbook, production smoke test. *(1 day)*
+- Provision production (container host or platform), with TLS and DNS. *(1–2 days,
+  and needs an account)*
+- ~~Rollback plan and a rehearsed rollback.~~ **Done.** `tools/rollback.sh`:
+  `--snapshot` before a deploy (timestamped image tags, or an archive of the
+  release that excludes `data/` so enquiries survive), rollback with automatic mode
+  detection for Docker or systemd, then a health poll that requires
+  `storage: ready`. `--check` answers "is there something to go back to?" without
+  changing anything, and is the monthly drill.
+- ~~Go/no-go checklist, launch-day runbook, production smoke test.~~ **Done.**
+  [`launch-runbook.md`](launch-runbook.md) (owners, service levels and recovery
+  objectives, the pre-launch checklist with a check on every line, launch-day
+  order with a verification per step, go/no-go, the first 72 hours, the ongoing
+  cadence) and `tools/smoke-production.mjs` (21 checks; fails when the release
+  answering is not the release shipped).
 - Support ownership: hours, escalation path, response times, and who reads the
-  inbox. *(Business decision, then 0.5 day to document)*
-- 30-day stabilisation review with defined metrics. *(Scheduled)*
-- Maintenance calendar: dependency updates, content review, annual document
-  revision, backup verification. *(0.5 day)*
+  inbox. *(Business decision — the runbook has the table with the blanks in it)*
+- ~~30-day stabilisation review with defined metrics.~~ **Defined**, in
+  `launch-runbook.md` §4: eight commands to read twice a day, severities with
+  responses, "roll back first, diagnose second", and what closing the review
+  produces. Running it needs a launch and a calendar entry.
+- ~~Maintenance calendar.~~ **Documented** in `launch-runbook.md` §5 (daily to
+  quarterly, each with its command). Turning it into reminders is a human habit.
 
 ### Phase 22 — Handover
 
-- Training for whoever edits content (2 sessions, recorded).
-- Operational runbook: what to do when a form breaks, when the disk fills, when
-  an enquiry is disputed.
-- Architecture decision records for the three choices that will be questioned
-  later: static site + tiny Node service, typed data over a CMS, no e-commerce.
-- **Effort: 2–3 days.**
+- Training for whoever edits content (2 sessions, recorded). *(Needs the person)*
+- ~~Operational runbook.~~ **Done and extended.** [`operations.md`](operations.md)
+  covers a form that breaks, a disk that fills, a channel that stops delivering, a
+  locked-out inbox user, a leaked credential, a duplicate enquiry, a retention
+  failure and a deletion request.
+- ~~Architecture decision records.~~ **Done.** [`docs/adr/`](adr/README.md): 0001
+  static site plus one small service, 0002 typed data over a CMS, 0003 no
+  e-commerce at launch — each with the options rejected and the trigger for
+  revisiting it.
+- **Remaining effort: 1 day** (the training sessions).
 
 ---
 
@@ -231,10 +291,10 @@ Evidence: `app/src/routes/{Tools,FinishFinder,SurfacePrep,Project}.tsx`,
 | | Status | Remaining |
 | --- | --- | --- |
 | **A. Trust and accuracy** | ✅ Strong | Systemic: this is the strongest part of the build. Remaining risk is only the provisional data in §2. |
-| **B. Accessibility** | ⚠️ Designed in, unverified | Everything is keyboard-operable, focus-visible, reduced-motion aware, never colour-only. **Not yet verified with a real screen reader or an automated audit.** |
-| **C. Performance** | ⚠️ Budgeted, unmeasured | 118 kB gzip entry, lazy routes, WebP, preloaded hero, lazy fonts. **No measurement on a real Nigerian mobile connection.** Lighthouse CI closes this. |
-| **D. Security and privacy** | ⚠️ Good baseline | Headers, CSP, constant-time auth, rate limits, honeypot, consent-gated analytics, single-origin CORS, proxy-aware limiting, a traversal-safe static root, CSV formula-injection escaping, and a working newsletter opt-out. **Missing: monitoring, MFA, a DSAR process, legal review.** |
-| **E. Maintainability** | ⚠️ Good, one hole | Typed data, 207 automated checks, generated documents, reproducibility checks, strict TypeScript across `src/`, the config and the test scripts, and seven docs. **The hole is content editing without a CMS.** |
+| **B. Accessibility** | ⚠️ Audited by machine, unverified by people | Everything is keyboard-operable, focus-visible, reduced-motion aware, never colour-only. axe runs on 22 pages in CI on every pull request (and caught three contrast defects no local check could see), with keyboard operability, reduced motion and a 360 px layout checked alongside. **No screen reader has been used by a person who relies on one.** |
+| **C. Performance** | ⚠️ Budgeted, unmeasured on a real network | 139 kB gzipped entry (432 kB raw), route-level code splitting, lazy routes, WebP, preloaded hero, lazy fonts, a network-first service worker. Lighthouse budgets run in CI and are green, and `tools/load-test.mjs` puts the enquiry path at a p95 of 17 ms locally. **No measurement on a real Nigerian mobile connection on a real device.** |
+| **D. Security and privacy** | ✅ Strong baseline, unreviewed by counsel | Headers, CSP (`form-action 'self'`, `frame-ancestors 'none'`), constant-time auth, roles and TOTP on the inbox, an access log, an optional IP allowlist, signed session cookies, durable rate limits, duplicate suppression, a honeypot that answers *identically* to the real endpoint, consent-gated analytics with no bundled tracker, single-origin CORS, proxy-aware limiting, a traversal-safe static root, CSV formula-injection escaping, automated retention that matches the published notice, a DSAR intake with a statutory clock and an erasure tool, a working newsletter opt-out, and uptime monitoring that asserts rather than pings. **Missing: legal review of the notices (16.03.05), a penetration test if commerce is approved, and the human half of paging.** |
+| **E. Maintainability** | ⚠️ Good, one hole — now a written decision | Typed data, ~250 automated checks (112 server, 28 browser, 29 route render, plus unit, content-integrity, axe and Lighthouse), generated documents, reproducibility checks, strict TypeScript across `src/`, the config and the test scripts, ten docs including three ADRs and a launch runbook, and `.env.example` documenting every variable the service reads. **The hole is content editing without a CMS — and [ADR 0002](adr/0002-typed-data-over-a-cms.md) is now the reason it is a hole rather than an omission.** |
 | **F. Commercial integrity** | ✅ Strong | No price is ever shown — every inquiry routes to a person — and that is now enforced rather than merely intended: the route render test fails the build if any page emits a price, an offer or an availability claim in its structured data. `pending-verification` flags, no invented testimonials, no stock claims, concept work labelled as concept. |
 
 ---
@@ -356,11 +416,16 @@ README's Definition of Done applied to the whole thing:
 - [ ] Performance has been measured on a real device and network.
 - [ ] Production is deployed, monitored, backed up, and a restore has been proven.
 - [ ] An enquiry reaches a human within the published SLA, and someone owns that.
-- [ ] Content can be changed by a non-engineer, or the reason it cannot is a
-      written decision rather than an omission.
-- [ ] Support ownership, escalation and a maintenance calendar exist.
-- [ ] The two conditional scope decisions (commerce, AR) are recorded as
-      in or out, with reasons.
+- [x] Content can be changed by a non-engineer, or the reason it cannot is a
+      written decision rather than an omission. — [ADR 0002](adr/0002-typed-data-over-a-cms.md)
+      records the decision, its cost, and what would change it.
+- [ ] Support ownership, escalation and a maintenance calendar exist. — the
+      calendar and the escalation path are written
+      ([`launch-runbook.md`](launch-runbook.md)); the *names* are not, and cannot
+      come from a repository.
+- [ ] The conditional scope decisions are recorded as in or out, with reasons. —
+      commerce is recorded ([ADR 0003](adr/0003-no-e-commerce-at-launch.md), out at
+      launch); AR (12.03) and trade accounts (14.03/15.03) remain open in §3.
 
 ---
 
@@ -373,10 +438,12 @@ README's Definition of Done applied to the whole thing:
 | Truthful content model and guardrails | **~93%** |
 | Authoritative product and colour data | **~15%** |
 | Verification with real users and assistive tech | **~0%** |
-| Production operations (deploy, monitor, back up, support) | **~45%** — the machinery exists and is drilled; nothing is provisioned and nobody is on call |
+| Production operations (deploy, monitor, back up, support) | **~65%** — the machinery exists, is drilled and is now documented to the level of a launch day and a 30-day review; nothing is provisioned, no channel is configured, and nobody is on call |
 | Content management for non-engineers | **~0%** |
-| Whole project against all 75 roadmap task groups | **~60%** |
+| Whole project against all 75 roadmap task groups | **~66%** |
 
-The remaining half is not more design or more features. It is **data, evidence,
-operations and decisions** — which is exactly what the roadmap says the second
-half of a project like this always is.
+The remaining third is not more design or more features. It is **data, evidence,
+accounts and decisions** — which is exactly what the roadmap says the second half
+of a project like this always is. Everything that could be built without a vendor
+account, a credential, a physical product, a lawyer or a person with a phone has
+now been built, tested and written down.

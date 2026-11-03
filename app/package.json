@@ -16,7 +16,7 @@
     "test:routes": "vite build --ssr scripts/smoke.tsx --outDir .smoke --emptyOutDir --logLevel error && node .smoke/smoke.js",
     "test:unit": "npm run test:unit:file -- scripts/calculator.test.ts && npm run test:unit:file -- scripts/mask.test.ts && npm run test:unit:file -- scripts/data.test.ts && npm run test:unit:file -- scripts/advisor.test.ts",
     "test:unit:file": "node --experimental-strip-types --no-warnings --import ./scripts/register.mjs",
-    "test:server": "node --test ../server/index.test.mjs ../server/proxy.test.mjs ../server/ops.test.mjs ../server/edge.test.mjs",
+    "test:server": "node --test ../server/index.test.mjs ../server/proxy.test.mjs ../server/ops.test.mjs ../server/edge.test.mjs ../server/limits.test.mjs ../server/admin.test.mjs ../server/privacy.test.mjs",
     "prerender": "vite build --ssr scripts/prerender.tsx --outDir .prerender --emptyOutDir --logLevel error && node .prerender/prerender.js",
     "test:browser": "vite build --ssr scripts/browser.test.tsx --outDir .browser --emptyOutDir --logLevel error && node .browser/browser.test.js",
     "test:a11y": "node scripts/a11y.mjs"

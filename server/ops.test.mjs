@@ -15,7 +15,7 @@
 import { test, before, after, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
-import { appendFileSync, mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs'
+import { appendFileSync, mkdtempSync, readFileSync, rmSync, existsSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -28,7 +28,7 @@ process.env.OPD_DATA_DIR = dataDir
 process.env.OPD_LOG_LEVEL = 'error' // keep the test output readable
 process.env.OPD_NOTIFY_RETRY_MS = '0' // do not sleep through retries
 
-const { createEnquiryServer } = await import('./index.mjs')
+const { createEnquiryServer, pruneRetention } = await import('./index.mjs')
 const { sanitise } = await import('./errors.mjs')
 const { summarise } = await import('./notify.mjs')
 
@@ -80,11 +80,29 @@ const enquiry = (overrides = {}) => ({
   ...overrides,
 })
 
+/**
+ * Make every posted enquiry a *different* enquiry.
+ *
+ * The service now suppresses duplicate submissions (roadmap 14.01.05): two
+ * identical enquiries inside ten minutes come back with the first one's
+ * reference and no second record, which is exactly what a double click should
+ * do. This suite posts one shared fixture from many tests, so without a nonce
+ * the second test would be asserting against the first test's receipt. The nonce
+ * goes in the message — part of the fingerprint, and asserted on elsewhere only
+ * for its escaping, never for its exact contents. Duplicate suppression itself
+ * has its own tests, in `limits.test.mjs`.
+ */
+let nonce = 0
+const unique = (body) =>
+  body && typeof body === 'object' && !body.company
+    ? { ...body, message: `${body.message ?? ''} (#${(nonce += 1)})` }
+    : body
+
 const submit = (body) =>
   fetch(`${base}/api/quotes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify(unique(body)),
   })
 
 /**
@@ -241,6 +259,54 @@ test('an oversized or malformed error report is rejected without echoing it back
   assert.equal(garbage.status, 400)
 })
 
+/* --------------------------------------------------------------- retention */
+
+test('the retention schedule does what the privacy notice says it does', async () => {
+  // The notice publishes two periods: enquiries 24 months, server logs 30 days.
+  // The defaults in the service are those numbers, so this writes records either
+  // side of each and checks which survive.
+  const months = (n) => new Date(Date.now() - n * 30 * 24 * 60 * 60 * 1000).toISOString()
+  const write = (file, rows) =>
+    writeFileSync(join(dataDir, file), `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`, 'utf8')
+  const read = (file) =>
+    readFileSync(join(dataDir, file), 'utf8')
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => JSON.parse(line))
+
+  write('quotes.jsonl', [
+    { reference: 'OPD-OLD', receivedAt: months(25), name: 'Long Gone', email: 'old@example.com' },
+    { reference: 'OPD-RECENT', receivedAt: months(6), name: 'Still Here', email: 'recent@example.com' },
+    { reference: 'OPD-UNDATED', name: 'No Timestamp', email: 'undated@example.com' },
+  ])
+  write('notifications.jsonl', [
+    { at: months(2), reference: 'OPD-OLD', kind: 'enquiry' },
+    { at: months(0.5), reference: 'OPD-RECENT', kind: 'enquiry' },
+  ])
+  write('privacy-requests.jsonl', [
+    { reference: 'DSAR-OLD', receivedAt: months(25), type: 'erasure', email: 'old@example.com' },
+    { reference: 'DSAR-NEW', receivedAt: months(1), type: 'access', email: 'new@example.com' },
+  ])
+  write('subscriptions.jsonl', [{ at: months(40), email: 'ancient@example.com' }])
+  write('unsubscriptions.jsonl', [{ at: months(40), email: 'leave-me-alone@example.com' }])
+
+  const { dropped } = await pruneRetention()
+  assert.ok(dropped >= 3, `the old lines went (${dropped} dropped)`)
+
+  assert.deepEqual(
+    read('quotes.jsonl').map((row) => row.reference),
+    ['OPD-RECENT', 'OPD-UNDATED'],
+    'a 25-month-old enquiry is deleted, a 6-month one is not, and an undated one is never guessed at',
+  )
+  assert.deepEqual(read('notifications.jsonl').map((row) => row.reference), ['OPD-RECENT'], 'delivery receipts live 30 days')
+  assert.deepEqual(
+    read('privacy-requests.jsonl').map((row) => row.reference),
+    ['DSAR-NEW'],
+    'a data-subject request follows the enquiry period',
+  )
+  assert.equal(read('subscriptions.jsonl').length, 1, 'a consent record is kept until the consent is withdrawn')
+  assert.equal(read('unsubscriptions.jsonl').length, 1, 'and a suppression record is kept forever, or an opt-out is silently undone')
+})
 /* -------------------------------------------------------------------- health */
 
 test('health reports capability without leaking configuration', async () => {
@@ -255,10 +321,18 @@ test('health reports capability without leaking configuration', async () => {
   assert.equal(typeof body.data.uptime, 'number')
 
   // No URLs, no credentials, no paths.
+  //
+  // The channel *name* is allowed, because `notifications: ["webhook"]` has
+  // always published it: which channels exist is capability, which is what a
+  // monitor needs. What must never appear is where they point.
   const serialised = JSON.stringify(body)
-  assert.doesNotMatch(serialised, /http:\/\//)
-  assert.doesNotMatch(serialised, /hook/)
+  assert.doesNotMatch(serialised, /https?:\/\//)
+  assert.doesNotMatch(serialised, /webhook["']?\s*:\s*["']https?/)
   assert.doesNotMatch(serialised, /port/i)
+  assert.doesNotMatch(serialised, /\/(tmp|var|etc)\//)
+  assert.ok(body.data.admin && typeof body.data.admin.mfa === 'boolean', 'health says whether the inbox has a second factor')
+  assert.ok(body.data.limits && ['file', 'memory'].includes(body.data.limits.store), 'health says whether limits are durable')
+  assert.ok(!('webhook' in body.data.notificationHealth) || typeof body.data.notificationHealth.webhook.delivered === 'number')
 })
 
 test('the health check names the channels that are actually live', async () => {

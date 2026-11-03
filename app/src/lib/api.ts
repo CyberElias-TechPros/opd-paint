@@ -135,6 +135,77 @@ export async function searchColours(query: string): Promise<ColourHit[]> {
   return Array.isArray(json.results) ? json.results : []
 }
 
+/* ------------------------------------------------- data-subject requests */
+
+/**
+ * The rights a visitor can exercise, in the words the form uses.
+ *
+ * NDPA sections 30–36, roadmap 16.03.07. The `value`s are what the service
+ * stores, so this list and `RIGHTS` in `server/index.mjs` are one contract
+ * written in two places — and the server refuses anything outside it, which is
+ * why the type below is a boundary rather than a suggestion.
+ */
+export type DataRight = 'access' | 'correction' | 'erasure' | 'objection' | 'portability'
+
+export const DATA_RIGHTS: ReadonlyArray<{ value: DataRight; label: string; detail: string }> = [
+  {
+    value: 'access',
+    label: 'See what you hold',
+    detail: 'A copy of the personal data we hold about you, and why we hold it.',
+  },
+  {
+    value: 'correction',
+    label: 'Correct something',
+    detail: 'A wrong name, number, address or measurement, put right.',
+  },
+  {
+    value: 'erasure',
+    label: 'Delete my data',
+    detail: 'Delete what we hold, except anything the law requires us to keep.',
+  },
+  {
+    value: 'objection',
+    label: 'Object to a use',
+    detail: 'Stop a use of your data that you did not agree to.',
+  },
+  {
+    value: 'portability',
+    label: 'Take it elsewhere',
+    detail: 'Your data in a machine-readable form you can hand to another company.',
+  },
+]
+
+export type PrivacyRequestPayload = {
+  type: DataRight
+  email: string
+  /** The enquiry this is about, if there is one. Optional: most requests are not. */
+  enquiryReference?: string | undefined
+  note?: string | undefined
+  /** honeypot field — must stay empty */
+  company?: string
+  source?: string
+}
+
+export type PrivacyRequestResponse = {
+  reference: string
+  receivedAt: string
+  /** The statutory deadline, stated rather than implied. */
+  dueBy: string
+}
+
+/**
+ * Exercise a right over your own data.
+ *
+ * The privacy notice has always promised this by email. An intake that gives the
+ * request a reference and a deadline is the difference between a promise and a
+ * process: an email can be read and forgotten, a `DSAR-` reference is on a clock
+ * somebody can be asked about.
+ */
+export async function submitPrivacyRequest(payload: PrivacyRequestPayload): Promise<PrivacyRequestResponse> {
+  const res = await post<PrivacyRequestResponse>('/api/privacy', payload)
+  return res.data
+}
+
 /**
  * Failed-submission drafts.
  *

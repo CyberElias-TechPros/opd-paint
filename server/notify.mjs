@@ -48,6 +48,15 @@ const config = () => ({
     .map((address) => address.trim())
     .filter(Boolean),
   emailFrom: (process.env.OPD_NOTIFY_FROM ?? '').trim(),
+  /**
+   * Where transactional email is posted.
+   *
+   * The default is Resend's endpoint. The variable exists for two reasons: a
+   * test can point it at a local server and watch what the service actually
+   * sends, and a deployment that changes vendor changes one configuration line
+   * rather than three call sites.
+   */
+  resendUrl: (process.env.OPD_RESEND_URL ?? '').trim() || 'https://api.resend.com/emails',
 })
 
 /** Channel names that are switched on, safe to expose in `/api/health`. */
@@ -57,6 +66,71 @@ export function configuredChannels() {
   if (current.webhook) channels.push('webhook')
   if (current.resendKey && current.emailTo.length && current.emailFrom) channels.push('email')
   return channels
+}
+
+/* --------------------------------------------------------- channel health */
+
+/**
+ * Roadmap 17.03.05: monitor third-party integration failures.
+ *
+ * A webhook that has been dead for three days is indistinguishable from a quiet
+ * week unless something counts. This holds the last outcome per channel in
+ * memory — enough for `/api/health` to report and for a monitor to alert on, and
+ * deliberately not enough to be a second log (that is `notifications.jsonl`).
+ */
+const channels = new Map()
+
+/** Consecutive failures before a channel is called down rather than flaky. */
+const DOWN_AFTER = (() => {
+  const configured = Number(process.env.OPD_NOTIFY_DOWN_AFTER)
+  return Number.isFinite(configured) && configured >= 1 ? configured : 3
+})()
+
+function recordOutcome(channel, outcome) {
+  const previous =
+    channels.get(channel) ??
+    { ok: true, consecutiveFailures: 0, failures: 0, delivered: 0, lastFailureAt: null, lastOkAt: null, lastError: null }
+  const next = {
+    ...previous,
+    ok: outcome.ok,
+    consecutiveFailures: outcome.ok ? 0 : previous.consecutiveFailures + 1,
+    failures: previous.failures + (outcome.ok ? 0 : 1),
+    delivered: previous.delivered + (outcome.ok ? 1 : 0),
+    lastOkAt: outcome.ok ? new Date().toISOString() : previous.lastOkAt,
+    lastFailureAt: outcome.ok ? previous.lastFailureAt : new Date().toISOString(),
+    lastError: outcome.ok ? null : String(outcome.error ?? '').slice(0, 200),
+  }
+  channels.set(channel, next)
+  if (!outcome.ok && next.consecutiveFailures === DOWN_AFTER) {
+    // `error`, not `warn`: this is the line an alert should be built on. Enquiries
+    // are still being stored, but nobody is being told about them.
+    log.error('notify.channel_down', {
+      channel,
+      consecutiveFailures: next.consecutiveFailures,
+      detail: `no ${channel} delivery has succeeded ${DOWN_AFTER} times in a row — enquiries are being stored, and nobody is being alerted`,
+    })
+  }
+}
+
+/**
+ * Per-channel delivery state, safe to publish.
+ *
+ * Counts and timestamps only: no webhook URL, no API key, no recipient address.
+ * `/api/health` is public.
+ */
+export function channelHealth() {
+  const summary = {}
+  for (const [channel, state] of channels) {
+    summary[channel] = {
+      ok: state.ok,
+      consecutiveFailures: state.consecutiveFailures,
+      delivered: state.delivered,
+      failures: state.failures,
+      lastOkAt: state.lastOkAt,
+      lastFailureAt: state.lastFailureAt,
+    }
+  }
+  return summary
 }
 
 /* ------------------------------------------------------------------ payload */
@@ -153,7 +227,7 @@ function deliveries(record, routing) {
     senders.push([
       'email',
       () =>
-        postOnce('https://api.resend.com/emails', {
+        postOnce(current.resendUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -165,6 +239,206 @@ function deliveries(record, routing) {
   }
 
   return senders
+}
+
+/* --------------------------------------------------- the customer's copy */
+
+/**
+ * Whether the visitor gets an acknowledgement.
+ *
+ * On by default when a working email channel exists, because a form that hands
+ * over a reference number and then goes silent is a form people do not trust —
+ * and roadmap 14.02.05 asks for transactional email to the customer. It is one
+ * message about the enquiry they just made, sent to the address they gave for
+ * that purpose, with no marketing in it and a sentence at the end saying plainly
+ * that nothing else will follow. `OPD_ACK_CUSTOMER=off` turns it off.
+ */
+function acknowledgementEnabled(current) {
+  const configured = (process.env.OPD_ACK_CUSTOMER ?? 'on').trim().toLowerCase()
+  if (['off', 'false', '0', 'no'].includes(configured)) return false
+  return Boolean(current.resendKey && current.emailFrom)
+}
+
+export function acknowledgementText(record, routing) {
+  const lines = [
+    `Hello ${String(record.name ?? '').split(' ')[0] || 'there'},`,
+    '',
+    // `projectType` is validated on the way in, but this function is exported and
+    // could be handed a record from anywhere: a missing field must not reach a
+    // customer as the word "undefined".
+    `Thank you for ${record.projectType ? `your ${record.projectType} enquiry` : 'your enquiry'}. Your reference is ${record.reference} — quote it if you call us.`,
+    '',
+    'What happens next:',
+    `  • It has gone to the ${routing?.routedTo ?? 'colour desk'}.`,
+    `  • Someone will reply within ${routing?.slaHours ?? 24} hours of our next working day.`,
+    '  • Urgent? Call 0902 642 4350 and give the reference above.',
+    record.colors?.length ? `\nColours you asked about: ${record.colors.join(', ')}.` : null,
+    record.quantities?.length
+      ? `\nQuantities you measured: ${record.quantities
+          .map((item) => `${item.label} — ${item.amount} ${item.unit}`)
+          .join('; ')}.`
+      : null,
+    record.message ? `\nYou wrote: "${record.message.slice(0, 400)}${record.message.length > 400 ? '…' : ''}"` : null,
+    '',
+    'Those quantities are an estimate from our own coverage rates, not a quotation. Prices are not published; the desk',
+    'will confirm what the job costs once it knows the surface and the condition of the walls.',
+    '',
+    'Your data: we keep this enquiry only as long as we need it to answer you and to honour any guarantee. To see,',
+    'correct or delete what we hold, reply to this message or write to hello@opudapaint.com — we answer within 30 days.',
+    '',
+    'This is a one-off acknowledgement, not a newsletter. Nothing else will be sent to this address unless you ask.',
+    '',
+    "OPUDA'S PAINT · Manufactured in Port Harcourt · opudapaint.com",
+  ]
+  return lines.filter((line) => line !== null).join('\n')
+}
+
+/**
+ * Send the visitor their own reference back. Never rejects, and runs after the
+ * response has gone out, so it cannot make a successful enquiry feel slow.
+ */
+export async function notifyCustomer(record, routing, { dataDir } = {}) {
+  const current = config()
+  if (!acknowledgementEnabled(current)) return { sent: false, reason: 'disabled' }
+  if (!record.email) {
+    // No address to reply to is not a failure: plenty of enquiries are phone-only.
+    return { sent: false, reason: 'no-address' }
+  }
+
+  const outcome = await withRetries('acknowledgement', () =>
+    postOnce(current.resendUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${current.resendKey}` },
+      body: JSON.stringify({
+        from: current.emailFrom,
+        to: [record.email],
+        subject: `Your OPUDA'S PAINT enquiry ${record.reference}`,
+        text: acknowledgementText(record, routing),
+      }),
+    }),
+  )
+  recordOutcome('acknowledgement', outcome)
+  log[outcome.ok ? 'info' : 'error']('notify.acknowledgement', {
+    reference: record.reference,
+    ok: outcome.ok,
+    ...(outcome.ok ? {} : { error: outcome.error }),
+  })
+
+  // The audit line says a message went to a customer, and whether it arrived.
+  // The address itself already lives on the enquiry record; it does not need a
+  // second copy in a second file.
+  if (dataDir) {
+    try {
+      await appendFile(
+        join(dataDir, 'notifications.jsonl'),
+        `${JSON.stringify({
+          at: new Date().toISOString(),
+          reference: record.reference,
+          kind: 'acknowledgement',
+          results: [{ channel: 'acknowledgement', ok: outcome.ok, ...(outcome.ok ? {} : { error: outcome.error }) }],
+        })}\n`,
+        'utf8',
+      )
+    } catch (error) {
+      log.error('notify.audit_failed', { reference: record.reference, error: String(error) })
+    }
+  }
+
+  return { sent: outcome.ok, ...(outcome.ok ? {} : { reason: 'delivery-failed' }) }
+}
+
+/* ------------------------------------------------- data-subject requests */
+
+/**
+ * Tell the desk that a customer has exercised a right.
+ *
+ * Roadmap 16.03.07 and NDPA sections 30–36: a request to see, correct or delete
+ * personal data has a statutory clock on it, so it is announced the same way an
+ * enquiry is, and its delivery is audited the same way.
+ */
+export async function notifyPrivacyRequest(record, { dataDir } = {}) {
+  const current = config()
+  const text = [
+    `Data-subject request — ${record.reference}`,
+    '',
+    `Right exercised: ${record.type}`,
+    record.enquiryReference ? `About enquiry: ${record.enquiryReference}` : null,
+    `Reply to: ${record.email}`,
+    '',
+    record.note ? `"${record.note.slice(0, 500)}"` : null,
+    '',
+    'The clock on this one is statutory, not commercial: answer within 30 days.',
+  ]
+    .filter((line) => line !== null)
+    .join('\n')
+
+  const senders = []
+  if (current.webhook) {
+    senders.push([
+      'webhook',
+      () =>
+        postOnce(current.webhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, record, kind: 'privacy-request', source: "OPUDA'S PAINT website" }),
+        }),
+    ])
+  }
+  if (current.resendKey && current.emailTo.length && current.emailFrom) {
+    senders.push([
+      'email',
+      () =>
+        postOnce(current.resendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${current.resendKey}` },
+          body: JSON.stringify({
+            from: current.emailFrom,
+            to: current.emailTo,
+            subject: `Data-subject request ${record.reference} — ${record.type}`,
+            text,
+            reply_to: record.email,
+          }),
+        }),
+    ])
+  }
+
+  if (!senders.length) {
+    log.warn('notify.skipped', { reference: record.reference, kind: 'privacy-request', reason: 'no channels configured' })
+    return { configured: false, results: [] }
+  }
+
+  const results = await Promise.all(
+    senders.map(async ([channel, send]) => {
+      const outcome = await withRetries(channel, send)
+      recordOutcome(channel, outcome)
+      log[outcome.ok ? 'info' : 'error']('notify.privacy_request', {
+        reference: record.reference,
+        channel,
+        ok: outcome.ok,
+        ...(outcome.ok ? {} : { error: outcome.error }),
+      })
+      return { channel, ...outcome }
+    }),
+  )
+
+  if (dataDir) {
+    try {
+      await appendFile(
+        join(dataDir, 'notifications.jsonl'),
+        `${JSON.stringify({
+          at: new Date().toISOString(),
+          reference: record.reference,
+          kind: 'privacy-request',
+          results: results.map(({ channel, ok, error }) => ({ channel, ok, ...(error ? { error } : {}) })),
+        })}\n`,
+        'utf8',
+      )
+    } catch (error) {
+      log.error('notify.audit_failed', { reference: record.reference, error: String(error) })
+    }
+  }
+
+  return { configured: true, results }
 }
 
 /**
@@ -181,6 +455,7 @@ export async function notifyEnquiry(record, routing, { dataDir } = {}) {
   const results = await Promise.all(
     senders.map(async ([channel, send]) => {
       const outcome = await withRetries(channel, send)
+      recordOutcome(channel, outcome)
       log[outcome.ok ? 'info' : 'error']('notify.delivered', {
         reference: record.reference,
         channel,

@@ -503,6 +503,35 @@ function unsubsOnDisk(): Array<Record<string, unknown>> {
     .map((line) => JSON.parse(line))
 }
 
+function privacyRequestsOnDisk(): Array<Record<string, unknown>> {
+  const file = join(dataDir, 'privacy-requests.jsonl')
+  if (!existsSync(file)) return []
+  return readFileSync(file, 'utf8')
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
+}
+
+/**
+ * Mount the privacy notice with its route parameters.
+ *
+ * `Legal` reads the slug from the router, so a bare `MemoryRouter` renders the
+ * not-found page and tests nothing.
+ */
+async function mountLegal(slug = 'privacy') {
+  const { MemoryRouter, Route, Routes } = await import('react-router-dom')
+  const { AppProvider } = await import('../src/store/AppStore')
+  const { createElement: h } = await import('react')
+  const { default: Legal } = await import('../src/routes/Legal')
+  return render(
+    h(
+      MemoryRouter,
+      { initialEntries: [`/legal/${slug}`] },
+      h(AppProvider, null, h(Routes, null, h(Route, { path: '/legal/:slug', element: h(Legal) }))),
+    ),
+  )
+}
+
 function quotesOnDisk(): Array<Record<string, unknown>> {
   const file = join(dataDir, 'quotes.jsonl')
   if (!existsSync(file)) return []
@@ -972,6 +1001,81 @@ async function main(): Promise<void> {
         }
       } finally {
         for (const undo of restore.reverse()) undo()
+      }
+    })
+
+    /* ------------------------------------------ data-subject requests */
+
+    await check('the privacy notice offers a way to exercise a right, and it reaches the service', async () => {
+      const { unmount } = await mountLegal()
+      try {
+        assert(text().includes('Ask us about your data'), 'the notice describes a right but offers no way to exercise it')
+
+        const erasure = document.querySelector('input[name="right"][value="erasure"]') as HTMLInputElement
+        assert(erasure, 'no way to ask for deletion')
+        await click(erasure)
+        await type(input('email') as Element, 'adaeze@example.com')
+        await type(input('enquiryReference') as Element, 'OPD-260101-1A2B')
+        await type(input('note') as Element, 'Please delete everything you hold about me.')
+
+        const before = privacyRequestsOnDisk().length
+        await submit(document.querySelector('form[data-testid], form') as Element)
+        await waitFor(() => /DSAR-\d{6}-[0-9A-F]{4}/.test(text()), 'the reference on screen')
+
+        const stored = privacyRequestsOnDisk()
+        assertEqual(stored.length, before + 1, 'the request was not stored')
+        const record = stored.at(-1)!
+        assertEqual(record.type, 'erasure', 'the right the visitor chose is the one recorded')
+        assertEqual(record.email, 'adaeze@example.com', 'the address to answer at was not stored')
+        assertEqual(record.enquiryReference, 'OPD-260101-1A2B', 'the enquiry the request is about was not stored')
+        assertEqual(record.basis, 'data-subject-right', 'the record does not say why we hold this')
+
+        // The deadline is on the screen, not only in the record: a right without a
+        // visible date is a right nobody can hold us to.
+        const dueBy = Date.parse(String(record.dueBy))
+        const days = (dueBy - Date.now()) / 86_400_000
+        assert(days > 29.5 && days < 30.5, `the deadline is not 30 days out (got ${days.toFixed(1)})`)
+        assert(text().includes('Answer by'), 'the screen does not show the deadline')
+
+        // The form sits inside a section, so it must not break the heading order
+        // the rest of the site is audited for.
+        const levels = [...document.querySelectorAll('h1, h2, h3, h4')].map((node) => Number(node.tagName.slice(1)))
+        for (let index = 1; index < levels.length; index += 1) {
+          assert(levels[index] - levels[index - 1] <= 1, `heading order jumps at ${index}: ${levels.join('>')}`)
+        }
+      } finally {
+        await unmount()
+      }
+    })
+
+    await check('a data request with nowhere to answer it is stopped in the browser', async () => {
+      const { unmount } = await mountLegal()
+      try {
+        const before = privacyRequestsOnDisk().length
+        await submit(document.querySelector('form') as Element)
+        await waitFor(() => text().includes('Enter an email address we can answer at'), 'the field error')
+
+        const email = input('email') as HTMLInputElement
+        assertEqual(email.getAttribute('aria-invalid'), 'true', 'the invalid field is not marked for assistive tech')
+        assertEqual(document.activeElement, email, 'focus did not move to the field that needs attention')
+        assertEqual(privacyRequestsOnDisk().length, before, 'an unusable request reached the service')
+      } finally {
+        await unmount()
+      }
+    })
+
+    await check('the request form never hides the human route', async () => {
+      const { unmount } = await mountLegal()
+      try {
+        // If the service is down, the right still has to be exercisable. The form
+        // says so in its own markup rather than only in an error message.
+        const mail = document.querySelector('a[href="mailto:hello@opudapaint.com"]')
+        assert(mail, 'no email route alongside the form')
+        const phone = document.querySelector('a[href^="tel:"]')
+        assert(phone, 'no phone route alongside the form')
+        assert(text().includes('within 30 days'), 'and no statement of the deadline we are held to')
+      } finally {
+        await unmount()
       }
     })
 
