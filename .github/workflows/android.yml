@@ -44,7 +44,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # `contents: write` so a failing build can post its own errors as a commit
+  # comment. The job log lives on a host a development sandbox cannot reach, and
+  # a build failure that can only be read in a browser is a failure an agent
+  # cannot fix. This is the same reason the asset job comments on pull requests.
+  contents: write
 
 concurrency:
   group: android-${{ github.ref }}
@@ -108,14 +112,55 @@ jobs:
             exit 1
           fi
 
-      - name: Lint, unit tests, assemble
+      - name: Build, test, lint
         run: |
           set -euo pipefail
           cd android
-          ./gradlew --no-daemon --stacktrace \
-            :app:lintDebug \
+          # `--console=plain` because the CI log is read as text, and the rich
+          # console's cursor escapes turn a compile error into noise.
+          #
+          # Compile first, then tests, then lint: if the code does not build, the
+          # other two have nothing to say, and Gradle stops at the first failing
+          # task. `--continue` still reports every task that could run, so one
+          # cycle surfaces as much as possible.
+          #
+          # `tee` keeps a copy for the failure comment below, and `pipefail` (set
+          # above) is what stops `tee` from reporting success on a failed build.
+          ./gradlew --no-daemon --stacktrace --continue --console=plain \
+            :app:assembleDebug \
             :app:testDebugUnitTest \
-            :app:assembleDebug
+            :app:lintDebug 2>&1 | tee ../gradle-output.txt
+
+      - name: Report the failure where it can be read
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          log="gradle-output.txt"
+          [ -f "$log" ] || log="/dev/null"
+          {
+            echo "### Android build failed on \`${GITHUB_SHA:0:7}\`"
+            echo
+            echo "Job: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo '```'
+            # Compiler errors first, then Gradle's own summary. Kotlin writes
+            # `e: file:///path:line:col: message`, which is the part worth reading.
+            grep -E "^e: |^error: |FAILURE:|What went wrong|Execution failed|Caused by:|> Task .* FAILED" "$log" \
+              | head -100 || true
+            echo '```'
+            echo
+            echo '<details><summary>last 60 lines</summary>'
+            echo
+            echo '```'
+            tail -60 "$log" || true
+            echo '```'
+            echo
+            echo '</details>'
+          } > android-failure.md
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" \
+            -F body=@android-failure.md > /dev/null
 
       - name: Report what the build produced
         run: |
