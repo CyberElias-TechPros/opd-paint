@@ -112,6 +112,14 @@ jobs:
             exit 1
           fi
 
+      - name: Pre-flight the Kotlin sources
+        # A second of scanning instead of a five-minute Gradle round trip. This
+        # sandbox cannot reach Google's Maven repository, so CI is the only
+        # compiler this tree has, and the mistakes it catches — a glob inside
+        # KDoc, a truncated file, a drawable that does not exist — are exactly
+        # the ones that cost a whole cycle to discover.
+        run: python3 tools/check-android-static.py
+
       - name: Build, test, lint
         run: |
           set -euo pipefail

@@ -42,8 +42,9 @@ import kotlinx.serialization.json.Json
  * dealer list.
  *
  * The bundle is generated, not hand-written: `tools/build-android-data.mjs`
- * serialises the same `app/src/data/*.ts` modules the website renders, so the app
- * and the site cannot drift apart without CI failing (see `tools/check-assets.py`).
+ * serialises the same TypeScript modules under `app/src/data` that the website
+ * renders, so the app and the site cannot drift apart without CI failing
+ * (see `tools/check-assets.py`).
  *
  * Loading is lazy and parallel. Nine files, ~150 KB, parsed once per process and
  * held: the first screen that asks for colours pays for colours only, and the
