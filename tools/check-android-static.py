@@ -237,6 +237,90 @@ def check_expression_body_returns(stripped: str, path: str) -> list[str]:
     return errors
 
 
+# `class Foo(a: A, private val b: B)` — capture the parameter list.
+CLASS_HEADER_RE = re.compile(
+    r"^\s*(?:(?:public|internal|private|abstract|open|sealed|data|value|enum|annotation)\s+)*"
+    r"class\s+(\w+)[^(]*\(([^)]*)\)",
+    re.MULTILINE,
+)
+
+MEMBER_START_RE = re.compile(
+    r"^\s*(?:@\w+(?:\([^)]*\))?\s*)*"
+    r"(?:(?:public|internal|private|protected|override|open|abstract|suspend|inline|operator)\s+)*"
+    r"(fun|val|var)\b"
+)
+
+PARAM_NAME_RE = re.compile(r"(\w+)\s*:")
+
+
+def check_ctor_param_scope(stripped: str, path: str) -> list[str]:
+    """
+    Warn when a constructor parameter that is not a property is used inside a
+    member function.
+
+    Kotlin scopes constructor parameters to property initialisers and init blocks.
+    `class Tokens(bundle: Bundle)` lets `bundle` appear in `val x = bundle.y` but
+    not in `fun z() = bundle.y`, which fails to compile — and the failure reads as
+    "Unresolved reference", pointing at nothing obviously wrong. Declaring the
+    parameter `private val` fixes it.
+
+    This is a warning rather than an error because it works by segmenting members
+    line by line, and a heuristic that can be wrong must not be able to fail a
+    build.
+    """
+    warnings: list[str] = []
+    lines = stripped.splitlines()
+
+    for header in CLASS_HEADER_RE.finditer(stripped):
+        class_name = header.group(1)
+        ctor_only: set[str] = set()
+        for part in header.group(2).split(","):
+            part = part.strip()
+            if not part or re.search(r"\b(?:val|var)\b", part):
+                continue  # a property, so it stays in scope everywhere
+            match = PARAM_NAME_RE.search(part)
+            if match:
+                ctor_only.add(match.group(1))
+        if not ctor_only:
+            continue
+
+        start_line = stripped[: header.start()].count("\n")
+        # Segment the class body: each member begins on its own line in this
+        # project's style, which is enough to tell initialisers from functions.
+        segment_kind = ""
+        segment_lines: list[tuple[int, str]] = []
+        own_names: set[str] = set()
+
+        def flush() -> None:
+            if segment_kind != "fun" or not ctor_only:
+                return
+            for line_no, line in segment_lines:
+                for name in ctor_only - own_names:
+                    if re.search(r"\b%s\b" % re.escape(name), line):
+                        warnings.append(
+                            f"{path}:{line_no}: '{name}' is a constructor parameter of "
+                            f"{class_name}, not a property, so it is out of scope inside "
+                            "this function. Declare it `private val`."
+                        )
+                        return
+
+        for index in range(start_line, len(lines)):
+            line = lines[index]
+            member = MEMBER_START_RE.match(line)
+            if member:
+                flush()
+                segment_kind = member.group(1)
+                segment_lines = []
+                own_names = set(PARAM_NAME_RE.findall(line)) if segment_kind == "fun" else set()
+                continue
+            if segment_kind:
+                segment_lines.append((index + 1, line))
+                own_names.update(re.findall(r"\b(?:val|var)\s+(\w+)", line))
+        flush()
+
+    return warnings
+
+
 def check_balance(stripped: str, path: str) -> list[str]:
     """Braces and parentheses must balance, or the file was truncated."""
     errors = []
@@ -436,6 +520,7 @@ def main() -> int:
         return 0
 
     errors: list[str] = []
+    warnings: list[str] = []
     unscannable: set[str] = set()
 
     for path in kotlin_files:
@@ -446,6 +531,7 @@ def main() -> int:
         unbalanced = check_balance(stripped, path)
         unbalanced.extend(check_expression_body_returns(stripped, path))
         errors.extend(unbalanced)
+        warnings.extend(check_ctor_param_scope(stripped, path))
         if problems or unbalanced:
             # Declarations in this file cannot be trusted, so do not accuse other
             # files of importing symbols it plainly does declare.
@@ -464,6 +550,15 @@ def main() -> int:
         )
 
     print(f"Checked {len(kotlin_files)} Kotlin files under {os.path.relpath(android_dir, root)}")
+
+    if warnings:
+        # Printed, but deliberately not fatal: these come from a heuristic that
+        # segments members by line, and a check that can be wrong must not be able
+        # to fail a build. Read them; do not trust them blindly.
+        print(f"\n{len(warnings)} suspicious pattern(s), not fatal:\n")
+        for warning in warnings:
+            print("  ? " + warning)
+
     if errors:
         print(f"\n{len(errors)} problem(s):\n")
         for error in errors:

@@ -49,7 +49,20 @@ import com.opudas.paint.core.engine.parseHex
 @Immutable
 class BrandTokens(bundle: ThemeBundle) {
 
-    private val resolved: Map<String, Color> = bundle.colors.mapValues { (_, hex) -> hexToColor(hex) }
+    /**
+     * The raw hex per token, kept because the colour arithmetic works in integer
+     * channels and a Compose [Color] would have to be converted back through
+     * floats to get them.
+     *
+     * A property, not the constructor parameter: `bundle` is visible to the
+     * initialisers below and to nothing else, so a member function that reached
+     * for it would not compile. Kotlin scopes constructor parameters to the
+     * initialisers and init blocks, which is easy to forget from Java or
+     * TypeScript, where the same name would still be in scope.
+     */
+    private val hexes: Map<String, String> = bundle.colors
+
+    private val resolved: Map<String, Color> = hexes.mapValues { (_, hex) -> hexToColor(hex) }
     private val radii: Map<String, Int> = bundle.radii
 
     /** A brand colour by token name. Falls back to ink, and logs nothing: an unknown token is a programming error the content tests catch. */
@@ -66,7 +79,7 @@ class BrandTokens(bundle: ThemeBundle) {
      * Written as a `let` rather than `?: return null`: an expression-body function
      * may not contain `return`, and the compiler says so only after a full build.
      */
-    fun rgb(name: String): Rgb? = bundle.colors[name]?.let { parseHex(it) }
+    fun rgb(name: String): Rgb? = hexes[name]?.let { parseHex(it) }
 
     /** Corner radius by token name, in dp. */
     fun radius(name: String) = (radii[name] ?: 12).dp
