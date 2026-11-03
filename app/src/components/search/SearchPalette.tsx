@@ -10,8 +10,9 @@ import { DEALERS } from '../../data/dealers'
 import { Modal } from '../ui/Modal'
 import { cn } from '../../lib/cn'
 import { track } from '../../lib/analytics'
+import { searchColours, type ColourHit } from '../../lib/api'
 
-type Hit = { id: string; kind: 'Colour' | 'Product' | 'Guide' | 'Project' | 'Palette' | 'Dealer'; title: string; sub: string; href: string; hex?: string }
+type Hit = { id: string; kind: 'Colour' | 'Product' | 'Guide' | 'Project' | 'Palette' | 'Dealer'; title: string; sub: string; href: string; hex?: string | undefined }
 
 /**
  * Site search. Runs against the local content index so results appear as the
@@ -101,6 +102,44 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
     setActive(0)
   }, [query])
 
+  /**
+   * Server-side fallback.
+   *
+   * The local index is the whole library bundled with the app, so this only ever
+   * runs when it found nothing — a code typed with a transposed digit, a colour
+   * added to the service after this bundle shipped. Results are appended in
+   * their own group and labelled, so a visitor can see where an answer came
+   * from. Every failure is silent: search that cannot reach the network still
+   * has the local index, and a spinner that never resolves is worse than no
+   * result at all.
+   */
+  const [remote, setRemote] = useState<ColourHit[]>([])
+  const requestId = useRef(0)
+
+  useEffect(() => {
+    const q = query.trim()
+    // No synchronous state write here — hiding a stale result is derived below,
+    // which also means a keystroke cannot flash an empty group into existence.
+    if (results.length || q.length < 2) return
+    const id = ++requestId.current
+    let cancelled = false
+    void searchColours(q)
+      .then((hits) => {
+        // Only the newest request may write: typing "sag" then "sage" fires two,
+        // and the slower one landing last would show stale matches.
+        if (!cancelled && id === requestId.current) setRemote(hits.slice(0, 5))
+      })
+      .catch(() => {
+        if (!cancelled && id === requestId.current) setRemote([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [query, results.length])
+
+  /** Shown only while the local index has nothing and the query is long enough. */
+  const remoteHits = !results.length && query.trim().length >= 2 ? remote : []
+
   useEffect(() => {
     if (open) {
       setQuery('')
@@ -179,7 +218,49 @@ export function SearchPalette({ open, onClose }: { open: boolean; onClose: () =>
             </button>
           </li>
         ))}
-        {!results.length ? (
+        {remoteHits.length ? (
+          <>
+            <li className="px-2 pt-3">
+              <p className="text-[0.66rem] font-bold uppercase tracking-[0.14em] text-ink/72">
+                From the colour index on the server
+              </p>
+            </li>
+            {remoteHits.map((hit) => (
+              <li key={`remote-${hit.id}`}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    go({
+                      id: hit.id,
+                      kind: 'Colour',
+                      title: hit.name,
+                      sub: `${hit.code}${hit.family ? ` · ${hit.family}` : ''}`,
+                      href: `/colours/${hit.id}`,
+                      hex: hit.hex,
+                    })
+                  }
+                  className="flex w-full items-center gap-3 rounded-sm px-2 py-3 text-left transition-colors hover:bg-ink/4"
+                >
+                  {hit.hex ? (
+                    <span
+                      aria-hidden
+                      className="size-8 shrink-0 rounded-[3px] ring-1 ring-inset ring-black/10"
+                      style={{ background: hit.hex }}
+                    />
+                  ) : null}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[0.9rem] font-semibold">{hit.name}</span>
+                    <span className="block truncate text-[0.74rem] text-ink/72">
+                      {hit.code}
+                      {hit.family ? ` · ${hit.family}` : ''}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </>
+        ) : null}
+        {!results.length && !remoteHits.length ? (
           <li className="px-2 py-8 text-center">
             <p className="text-[0.9rem] font-semibold">Nothing matched “{query}”.</p>
             <p className="mt-1 text-[0.8rem] text-ink/72">

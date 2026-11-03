@@ -24,6 +24,23 @@ server/data/*.jsonl  the enquiry log — the only thing that must be backed up
 
 ## Environment variables
 
+Two of these decide whether the service behaves correctly *in a deployment*
+rather than on a laptop, and both are easy to miss:
+
+- **`OPD_TRUST_PROXY`** — behind nginx or Docker networking every request arrives
+  from the gateway address, so an in-memory rate limit keyed on the socket locks
+  out a whole city after twelve enquiries in ten minutes. Set it to the number of
+  proxies you run. `deploy/nginx.conf` overwrites `X-Forwarded-For` with
+  `$remote_addr` rather than appending to it, so a visitor cannot invent the
+  address the limiter sees; the service also counts hops from the right, which
+  keeps that true even on a config that appends.
+- **`OPD_ALLOWED_ORIGIN`** — a cross-origin response without
+  `Access-Control-Allow-Origin` is discarded by the browser, so an enquiry can
+  succeed on disk and still look broken on screen. One exact origin, no
+  wildcard, and the header is sent on every status including 422 and 429.
+
+
+
 | Variable | Default | Notes |
 | --- | --- | --- |
 | `PORT` | `8787` | The service binds `0.0.0.0`. |
@@ -38,6 +55,9 @@ server/data/*.jsonl  the enquiry log — the only thing that must be backed up
 | `OPD_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. |
 | `OPD_RELEASE` | unset | Name attached to error reports; Vercel supplies the commit SHA automatically. |
 | `OPD_API_ORIGIN` | unset | Vercel only: where `app/api/[...path].js` forwards `/api/*`. |
+| `OPD_ALLOWED_ORIGIN` | unset | The one origin allowed to call `/api/*` from a browser. Set it only when site and service are on different origins; unset means same-origin only. Never `*` — enquiry bodies carry names and phone numbers. |
+| `OPD_TRUST_PROXY` | unset | How many proxy hops to believe: `true`/`1` for one reverse proxy or Docker network, `2` for a CDN in front of that. Rate limits and the abuse log then key on the visitor instead of the gateway. Entries are counted from the right of `X-Forwarded-For`; leave unset on a port exposed directly to the internet. |
+| `OPD_COLOUR_INDEX` | `server/colour-index.json` | Where the service reads the colour index it searches. Generated at build time; override only to point at another copy. |
 
 The behaviour behind these — what is written where, what to alert on, what to do
 when a lead was never announced — is in [operations.md](operations.md). The

@@ -13,7 +13,7 @@ type WrapProps = {
    * accessible name, so those callers ask for a plain `span` heading instead.
    */
   labelAs?: 'label' | 'span'
-  children: (props: { id: string; describedBy?: string; invalid: boolean }) => ReactNode
+  children: (props: { id: string; describedBy?: string | undefined; invalid: boolean }) => ReactNode
 }
 
 export function Field({ label, hint, error, required, className, labelAs = 'label', children }: WrapProps) {

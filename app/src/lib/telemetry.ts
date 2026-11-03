@@ -27,7 +27,7 @@ export type ReportKind = 'error' | 'unhandledrejection' | 'boundary' | 'manual'
 export interface ErrorReport {
   kind: ReportKind
   message: string
-  stack?: string
+  stack?: string | undefined
   path?: string
   release?: string
   userAgent?: string

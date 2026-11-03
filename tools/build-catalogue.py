@@ -667,7 +667,7 @@ SECTION_PLAN = [
     {
         "number": "01",
         "title": "Colour Book",
-        "description": "Fifty-nine colours in nine families, with the eight palettes built from them.",
+        "description": "Fifty-nine colours in nine families, with the nine palettes built from them.",
         "format": "A5 portrait",
         "file": DOCS / "opudas-colour-book.pdf",
     },

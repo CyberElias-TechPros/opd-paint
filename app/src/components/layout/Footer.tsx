@@ -5,7 +5,7 @@ import { LogoLockup } from '../brand/Logo'
 import { PaintSwash } from '../brand/Devices'
 import { BRAND_PHONE_DISPLAY, BRAND_PHONE_TEL, WHATSAPP_NUMBER } from '../../data/dealers'
 import { useApp } from '../../store/AppStore'
-import { subscribe } from '../../lib/api'
+import { subscribe, unsubscribe } from '../../lib/api'
 import { track } from '../../lib/analytics'
 import { cn } from '../../lib/cn'
 
@@ -23,11 +23,14 @@ const COLUMNS = [
   {
     title: 'Decide',
     links: [
+      { to: '/tools', label: 'Practical tools' },
+      { to: '/tools/finish-finder', label: 'Finish finder' },
+      { to: '/tools/surface-prep', label: 'Surface preparation' },
       { to: '/calculator', label: 'Paint calculator' },
+      { to: '/project', label: 'Project checklist' },
       { to: '/advice', label: 'Guides & advice' },
       { to: '/dealers', label: 'Where to buy' },
       { to: '/quote', label: 'Request a quote' },
-      { to: '/quote?type=trade', label: 'Trade & contract pricing' },
     ],
   },
   {
@@ -47,6 +50,19 @@ export function Footer() {
   const [email, setEmail] = useState('')
   const [state, setState] = useState<'idle' | 'sending' | 'done'>('idle')
   const [error, setError] = useState<string | null>(null)
+  /**
+   * One form, two directions. The sign-up note has always promised that leaving
+   * is as easy as joining, and an email address typed into a "remove me" field
+   * is the shortest honest version of that on a site with no campaign platform
+   * yet (roadmap Phase 16 adds per-send unsubscribe links).
+   */
+  const [mode, setMode] = useState<'join' | 'leave'>('join')
+
+  const switchMode = (next: 'join' | 'leave') => {
+    setMode(next)
+    setState('idle')
+    setError(null)
+  }
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -56,8 +72,17 @@ export function Footer() {
       return
     }
     setState('sending')
-    track('newsletter_submit', { source: 'footer' })
+    track('newsletter_submit', { source: 'footer', mode })
     try {
+      if (mode === 'leave') {
+        await unsubscribe(email, 'footer')
+        setState('done')
+        setEmail('')
+        toast('You have been removed', {
+          description: 'We will not send anything further to that address. The opt-out is recorded so it cannot be undone by accident.',
+        })
+        return
+      }
       await subscribe(email, 'colour-notes')
       setState('done')
       setEmail('')
@@ -151,7 +176,7 @@ export function Footer() {
                   setError(null)
                   setState('idle')
                 }}
-                placeholder="you@example.com"
+                placeholder={mode === 'leave' ? 'the address you subscribed with' : 'you@example.com'}
                 aria-invalid={Boolean(error)}
                 aria-describedby={error ? 'footer-email-error' : 'footer-email-note'}
                 className={cn(
@@ -164,7 +189,15 @@ export function Footer() {
                 disabled={state === 'sending'}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[3px] bg-paper-2 px-5 text-[0.82rem] font-bold text-ink transition-colors hover:bg-green hover:text-paper-2 disabled:opacity-50"
               >
-                {state === 'sending' ? 'Sending…' : state === 'done' ? 'Subscribed' : 'Subscribe'}
+                {state === 'sending'
+                  ? 'Sending…'
+                  : mode === 'leave'
+                    ? state === 'done'
+                      ? 'Removed'
+                      : 'Remove me'
+                    : state === 'done'
+                      ? 'Subscribed'
+                      : 'Subscribe'}
                 <ArrowRight className="size-4" aria-hidden />
               </button>
             </div>
@@ -173,8 +206,17 @@ export function Footer() {
                 {error}
               </p>
             ) : (
-              <p id="footer-email-note" className="mt-2 text-[0.72rem] text-paper-2/65">
-                Unsubscribe in one click. We never sell your address.
+              <p id="footer-email-note" className="mt-2 text-[0.72rem] leading-relaxed text-paper-2/65">
+                {mode === 'leave'
+                  ? 'Enter the address you subscribed with and we will stop sending. Nothing else is asked, and the opt-out is recorded so it cannot be reversed by accident.'
+                  : 'Leaving is as easy as joining: switch this form to “remove an address” any time. We never sell your address.'}{' '}
+                <button
+                  type="button"
+                  onClick={() => switchMode(mode === 'join' ? 'leave' : 'join')}
+                  className="font-semibold text-paper-2 underline decoration-paper-2/40 underline-offset-2 transition-colors hover:text-green-bright"
+                >
+                  {mode === 'join' ? 'Remove an address instead' : 'Subscribe instead'}
+                </button>
               </p>
             )}
           </form>

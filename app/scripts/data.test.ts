@@ -14,7 +14,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { COLORS, findColor } from '../src/data/colors.ts'
+import { COLORS, FAMILIES, findColor } from '../src/data/colors.ts'
 import { PALETTES, findPalette } from '../src/data/palettes.ts'
 import { PRODUCTS, findProduct } from '../src/data/products.ts'
 import { DEALERS, STATES, directionsUrl, distanceKm } from '../src/data/dealers.ts'
@@ -24,16 +24,32 @@ import { INK, PAPER, contrast, estimateLrv, readableInk, swatchText } from '../s
 import { ALT } from '../src/lib/media.ts'
 
 let passed = 0
-const test = (name, fn) => {
+// Typed because `tsc -b` now covers the test scripts too (tsconfig.scripts.json):
+// an untyped runner is how a suite keeps passing after the module it exercises
+// changes shape.
+const test = (name: string, fn: () => void) => {
   try {
     fn()
     passed += 1
     console.log(`  ok   ${name}`)
   } catch (error) {
     console.error(`  FAIL ${name}`)
-    console.error(error.message)
+    console.error(error instanceof Error ? error.stack ?? error.message : String(error))
     process.exitCode = 1
   }
+}
+
+/**
+ * Composite `foreground` over `background` at `alpha`, the way a browser does,
+ * so a test can reason about `bg-paper-2/8` over `bg-ink` instead of guessing at
+ * the resulting hex.
+ */
+function blend(foreground: string, background: string, alpha: number): string {
+  const channel = (hex: string, offset: number) => parseInt(hex.slice(offset, offset + 2), 16)
+  const mixed = [1, 3, 5].map((offset) =>
+    Math.round(channel(foreground, offset) * alpha + channel(background, offset) * (1 - alpha)),
+  )
+  return `#${mixed.map((value) => value.toString(16).padStart(2, '0')).join('')}`
 }
 
 const manifest = JSON.parse(
@@ -114,18 +130,11 @@ test('findColor resolves by id and returns undefined for junk', () => {
 })
 
 test('the library covers every declared family at least once', () => {
+  // Iterating the declared list rather than a copy of it: a family added to the
+  // type with no colour behind it fails here instead of quietly narrowing the
+  // library's filters.
   const families = new Set(COLORS.map((c) => c.family))
-  for (const family of [
-    'White & Off-White',
-    'Warm Neutral',
-    'Green',
-    'Blue',
-    'Terracotta & Red',
-    'Yellow & Ochre',
-    'Purple & Mauve',
-    'Grey',
-    'Deep & Architectural',
-  ]) {
+  for (const family of FAMILIES) {
     assert.ok(families.has(family), `no colour in ${family}`)
   }
 })
@@ -362,6 +371,77 @@ test('every image in the manifest is actually used by the interface', () => {
     .join('\n')
   const unused = [...mediaKeys].filter((key) => !source.includes(`'${key}'`) && !source.includes(`"${key}"`))
   assert.deepEqual(unused, [], 'manifest images not referenced anywhere')
+})
+
+/* ------------------------------------------------ accents on dark surfaces */
+
+test('the accents used for text on a dark panel clear AA', () => {
+  // axe caught three contrast failures on the finish finder's specification
+  // panel: a `green` badge at 2.59:1 and a `green-bright` link at 3.85:1, both
+  // on surfaces darker than the paper they were designed for. This is the same
+  // check without a browser, reading the real tokens out of the stylesheet so it
+  // cannot drift from them — the next pairing like that fails here, in
+  // `npm test`, instead of in CI on a page nobody has looked at yet.
+  const theme = readFileSync(new URL('../src/styles/theme.css', import.meta.url), 'utf8')
+  const token = (name: string): string => {
+    const match = theme.match(new RegExp(`--color-${name}:\\s*(#[0-9a-fA-F]{6})`))
+    assert.ok(match, `--color-${name} is not defined in theme.css`)
+    return match[1]
+  }
+
+  const ink = token('ink')
+  // The panel sections inside a dark card, as axe measured them: ink under a
+  // paper-2 wash. Computed rather than hardcoded, so a change to either token is
+  // reflected here.
+  const tinted = blend(token('paper-2'), ink, 0.08)
+  const accents: Array<[string, string]> = [
+    ['green-mist', token('green-mist')],
+    ['paper-2', token('paper-2')],
+    ['gold', token('gold')],
+  ]
+  for (const [name, foreground] of accents) {
+    for (const [surface, background] of [['ink', ink], ['a tinted dark panel', tinted]] as const) {
+      const ratio = contrast(foreground, background)
+      assert.ok(
+        ratio >= 4.5,
+        `${name} on ${surface} is ${ratio.toFixed(2)}:1 — under the 4.5:1 AA requires for text this small`,
+      )
+    }
+  }
+})
+
+/* ------------------------------------------------- the service's own index */
+
+test('the colour index the enquiry service ships matches the library', () => {
+  // `server/colour-index.json` is generated from this file's library by
+  // tools/build-colour-index.mjs. `/api/search/colours` reads it at runtime, and
+  // the runtime container has no TypeScript sources to fall back on — so an index
+  // that drifts from the library is a search endpoint quietly lying about the
+  // range. `npm run build` regenerates it; this test proves it was.
+  const raw = readFileSync(new URL('../../server/colour-index.json', import.meta.url), 'utf8')
+  const index = JSON.parse(raw) as {
+    count?: number
+    colours?: Array<{ id: string; code: string; name: string; hex: string; family: string }>
+  }
+  const entries = index.colours ?? []
+  assert.equal(entries.length, COLORS.length, `index has ${entries.length} colours, the library has ${COLORS.length}`)
+  assert.equal(index.count, COLORS.length, 'the index count disagrees with its own contents')
+
+  const library = new Map(COLORS.map((colour) => [colour.id, colour]))
+  const seen = new Set<string>()
+  for (const entry of entries) {
+    const colour = library.get(entry.id)
+    assert.ok(colour, `index carries ${entry.id}, which is not in the library`)
+    assert.equal(entry.code, colour.code, `${entry.id} has the wrong code`)
+    assert.equal(entry.name, colour.name, `${entry.id} has the wrong name`)
+    assert.equal(entry.hex.toUpperCase(), colour.hex.toUpperCase(), `${entry.id} has the wrong hex`)
+    assert.equal(entry.family, colour.family, `${entry.id} has the wrong family`)
+    assert.ok(!seen.has(entry.id), `${entry.id} appears twice in the index`)
+    seen.add(entry.id)
+  }
+  for (const colour of COLORS) {
+    assert.ok(seen.has(colour.id), `${colour.id} is missing from the index — run tools/build-colour-index.mjs`)
+  }
 })
 
 const total = passed

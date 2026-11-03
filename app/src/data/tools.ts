@@ -1,0 +1,397 @@
+/**
+ * Decision-support knowledge base — the practical tools of roadmap 11.02.
+ *
+ * PROVENANCE — read before editing.
+ *  • Nothing here invents a technical claim. Every recommendation points at a
+ *    product id in `products.ts` (which carries the label-transcribed coverage,
+ *    dry times and `claimsStatus`), and every piece of preparation advice points
+ *    at the guide in `guides.ts` that already publishes it. `scripts/data.test.ts`
+ *    fails the build when one of those ids drifts, so this file cannot quietly
+ *    become a second, unreviewed source of technical truth.
+ *  • No prices, no stock, no lead times. Like every other surface, the tools end
+ *    in the calculator, WhatsApp, a dealer or the quote form.
+ *  • Where a recommended product is `pending-verification`, the UI says so. That
+ *    status is read from the product record, never restated here.
+ *
+ * Editing this file is a content task, not a code task: add an option or a
+ * situation, run `npm test`, and the tools pick it up.
+ */
+
+/* --------------------------------------------------------------- finish tool */
+
+/** What is being painted. Drives which product family is even a candidate. */
+export type SurfaceKey =
+  | 'interior-wall'
+  | 'ceiling-trim'
+  | 'kitchen-bath'
+  | 'wood-metal'
+  | 'exterior'
+  | 'new-plaster'
+
+/** The state the surface is in before anything is bought. */
+export type ConditionKey = 'new' | 'sound' | 'flaking' | 'uneven' | 'chalky' | 'damp' | 'mould'
+
+/** How hard the finished surface will be worked. */
+export type WearKey = 'light' | 'moderate' | 'heavy'
+
+/** Sheen the visitor is aiming for — or has not decided yet. */
+export type SheenKey = 'flat' | 'soft' | 'gloss' | 'unsure'
+
+export type FinishAnswers = {
+  surface: SurfaceKey
+  condition: ConditionKey
+  wear: WearKey
+  sheen: SheenKey
+}
+
+export type ToolOption<T extends string> = {
+  id: T
+  label: string
+  /** One line of plain language, shown under the label. */
+  note: string
+}
+
+export type ToolQuestion = {
+  id: keyof FinishAnswers
+  step: string
+  prompt: string
+  /** Why the question is asked — the tools explain themselves, like the calculator. */
+  why: string
+}
+
+export const SURFACE_OPTIONS: ToolOption<SurfaceKey>[] = [
+  { id: 'interior-wall', label: 'Interior walls', note: 'Bedrooms, lounges, offices, corridors' },
+  { id: 'ceiling-trim', label: 'Ceilings and cornices', note: 'Overhead surfaces and plaster detail' },
+  { id: 'kitchen-bath', label: 'Kitchen or bathroom', note: 'Steam, condensation and washing down' },
+  { id: 'wood-metal', label: 'Doors, frames, gates', note: 'Timber and steel that get handled or rained on' },
+  { id: 'exterior', label: 'Exterior walls', note: 'Facades, boundary walls, parapets' },
+  { id: 'new-plaster', label: 'New plaster or blockwork', note: 'Never painted, still curing or freshly screeded' },
+]
+
+export const CONDITION_OPTIONS: ToolOption<ConditionKey>[] = [
+  { id: 'new', label: 'New, unpainted', note: 'Cured render or skim, no existing film' },
+  { id: 'sound', label: 'Painted and sound', note: 'Clean, firmly attached, no cracking' },
+  { id: 'flaking', label: 'Flaking or peeling', note: 'Coating lifting in flakes or sheets' },
+  { id: 'uneven', label: 'Uneven or pitted', note: 'Blockwork undulations, holes, bad patches' },
+  { id: 'chalky', label: 'Chalky or powdering', note: 'Colour rubs off onto your hand' },
+  { id: 'damp', label: 'Damp', note: 'A tide mark, a cold wet patch, or blistering' },
+  { id: 'mould', label: 'Mould or algae', note: 'Black speckling, usually at corners or behind furniture' },
+]
+
+export const WEAR_OPTIONS: ToolOption<WearKey>[] = [
+  { id: 'light', label: 'Light', note: 'A ceiling, a bedroom, a room nobody touches' },
+  { id: 'moderate', label: 'Moderate', note: 'A lounge or office, wiped now and then' },
+  { id: 'heavy', label: 'Heavy', note: 'A corridor, kitchen, children’s room or rental' },
+]
+
+export const SHEEN_OPTIONS: ToolOption<SheenKey>[] = [
+  { id: 'flat', label: 'Flat and quiet', note: 'Hides plaster imperfections, deepest colour' },
+  { id: 'soft', label: 'Soft sheen', note: 'Washable, lifts light into a dark room' },
+  { id: 'gloss', label: 'Hard gloss', note: 'For joinery and metal, not for walls' },
+  { id: 'unsure', label: 'Not sure', note: 'Recommend one from the surface and the wear' },
+]
+
+export const FINISH_QUESTIONS: ToolQuestion[] = [
+  {
+    id: 'surface',
+    step: '01',
+    prompt: 'What are you painting?',
+    why: 'The surface decides the product family before anything else: a wall, a ceiling and a steel gate do not share a coating.',
+  },
+  {
+    id: 'condition',
+    step: '02',
+    prompt: 'What condition is it in?',
+    why: 'Condition decides the preparation, and whether a primer or a screeding pass is needed before any finish coat.',
+  },
+  {
+    id: 'wear',
+    step: '03',
+    prompt: 'How much wear will it take?',
+    why: 'Wear decides between a flat film that hides imperfections and a tighter film that can be washed.',
+  },
+  {
+    id: 'sheen',
+    step: '04',
+    prompt: 'How do you want it to look?',
+    why: 'Sheen changes how the colour reads: matt scatters light and looks deeper, silk returns light and looks richer.',
+  },
+]
+
+export const OPTIONS_FOR: Record<keyof FinishAnswers, ToolOption<string>[]> = {
+  surface: SURFACE_OPTIONS,
+  condition: CONDITION_OPTIONS,
+  wear: WEAR_OPTIONS,
+  sheen: SHEEN_OPTIONS,
+}
+
+/* ---------------------------------------------------------- preparation tool */
+
+export type PrepStep = { step: string; detail: string }
+
+export type PrepSituation = {
+  id: string
+  label: string
+  /** What the visitor is looking at on their own wall — how they recognise it. */
+  signs: string[]
+  /** Where this situation usually turns up. */
+  surfaces: string[]
+  steps: PrepStep[]
+  /** Product ids from `products.ts`, in the order they are used. */
+  products: string[]
+  /** Guide ids from `guides.ts` that carry the full reasoning. */
+  guides: string[]
+  /** Hard stops: things paint cannot fix, or that must happen first. */
+  warnings: string[]
+  /** The finish-tool condition this maps to, so the two tools agree. */
+  condition?: ConditionKey
+}
+
+export const PREP_SITUATIONS: PrepSituation[] = [
+  {
+    id: 'new-render',
+    label: 'New render or blockwork',
+    signs: ['Grey, unpainted cement', 'The building is weeks or months old, not years', 'Hairline shrinkage cracks as it cures'],
+    surfaces: ['Interior walls', 'Exterior walls', 'Ceilings'],
+    steps: [
+      { step: 'Let it cure', detail: 'Cement render cures by chemical reaction, not by drying. 14 days is the absolute minimum; 28 days wherever the schedule allows. Painting early traps moisture and alkali behind the film.' },
+      { step: 'Test for moisture', detail: 'Tape a square of clear polythene tight to the wall for 24 hours. Condensation on the underside means the wall is still releasing water — wait.' },
+      { step: 'Level it if it needs it', detail: 'Where the blockwork undulates, apply two thin passes of screeding compound, sanded at 120 grit between passes. Fill with compound, never with a thick coat of paint.' },
+      { step: 'Dust off', detail: 'Wipe down with a damp cloth and allow to dry. A surface that feels chalky to the hand will not hold paint.' },
+      { step: 'Prime', detail: 'One full coat of alkali-resisting primer on everything new or repaired. It blocks alkali burn and equalises porosity so the topcoat draws evenly.' },
+      { step: 'Finish', detail: 'Two full coats of the chosen finish, recoating at the interval on the data sheet. In the rainy season expect that interval to lengthen.' },
+    ],
+    products: ['screeding', 'primer', 'matt'],
+    guides: ['preparing-walls', 'how-much-paint'],
+    warnings: ['New render under 14 days old should not be painted at all — the blistering appears weeks later and no topcoat repairs it.'],
+    condition: 'new',
+  },
+  {
+    id: 'sound-repaint',
+    label: 'Previously painted and sound',
+    signs: ['The existing film is firmly attached', 'No cracking, no lifting at edges', 'Colour is faded or dirty rather than failing'],
+    surfaces: ['Interior walls', 'Ceilings', 'Exterior walls'],
+    steps: [
+      { step: 'Wash', detail: 'Warm water with a little detergent, working from the bottom up so dirty runs do not streak dry paint. Rinse and allow to dry fully.' },
+      { step: 'Sand the gloss', detail: 'Key any glossy area so the new coat has something to hold. Sand back to a dull surface, then dust off.' },
+      { step: 'Fill and spot-prime', detail: 'Fill nail holes and small damage, sand flat, and spot-prime every bare or filled patch — an unprimed patch drinks the topcoat and reads as a dull spot.' },
+      { step: 'Check the colour change', detail: 'Going significantly lighter or deeper needs an extra coat. A dark colour over a light one may need a tinted primer; ask the desk.' },
+      { step: 'Finish', detail: 'Two full coats, cutting in the edges first and rolling from a wet edge so no lap lines dry into the film.' },
+    ],
+    products: ['primer', 'matt', 'silk'],
+    guides: ['preparing-walls', 'cutting-in'],
+    warnings: ['Do not mix two finishes on one wall — the join reads as a patch in raking light.'],
+    condition: 'sound',
+  },
+  {
+    id: 'flaking',
+    label: 'Flaking or peeling paint',
+    signs: ['Coating lifting in flakes or sheets', 'Edges you can pick at with a fingernail', 'Bare plaster showing through'],
+    surfaces: ['Interior walls', 'Exterior walls', 'Wood & metal'],
+    steps: [
+      { step: 'Strip back to a sound edge', detail: 'Scrape and sand until nothing lifts. Feather the edge so the step between old film and bare substrate cannot be felt, let alone seen.' },
+      { step: 'Ask why it failed', detail: 'Flaking is usually moisture behind the film, or painting over a chalky surface. If the wall is damp, treat the damp first — recoating over it reproduces the failure.' },
+      { step: 'Dust and wipe', detail: 'Remove every particle of scraped paint and dust. Adhesion fails on dust more often than on anything else.' },
+      { step: 'Prime the bare patches', detail: 'One full coat of primer over every exposed substrate, not a dabbed-on spot coat.' },
+      { step: 'Fill if the surface is uneven', detail: 'Where scraping has left hollows, screed, sand and re-prime before finishing.' },
+      { step: 'Finish', detail: 'Two full coats over the whole wall, not only the repaired area, so the sheen is even.' },
+    ],
+    products: ['primer', 'screeding', 'matt'],
+    guides: ['preparing-walls', 'damp-and-mould'],
+    warnings: ['Painting over a flaking film bonds to the loose layer, not the wall. The new coat lifts with the old one.'],
+    condition: 'flaking',
+  },
+  {
+    id: 'uneven',
+    label: 'Uneven, pitted or badly patched',
+    signs: ['Visible undulations in raking light', 'Holes, chased conduits, old fixings', 'Patch repairs that shine against the rest'],
+    surfaces: ['Interior walls', 'Ceilings', 'New plaster'],
+    steps: [
+      { step: 'Find the worst of it with raking light', detail: 'A torch held along the wall shows every hollow. Mark them: a flat finish will not hide them and a silk finish will exaggerate them.' },
+      { step: 'Screed in two thin passes', detail: 'Damp the wall down first so it does not pull water from the mix. Apply 1–2 mm with a steel trowel, allow to set, then apply a second thin pass to close the surface.' },
+      { step: 'Sand at 120 grit', detail: 'Sand between and after the passes, then dust off completely.' },
+      { step: 'Prime', detail: 'Screeded surface is porous and must be primed before the topcoat, or the finish goes patchy.' },
+      { step: 'Choose the finish honestly', detail: 'A flat finish forgives what is left; a silk finish demands the surface be genuinely flat. If the wall cannot be made flat, choose matt.' },
+    ],
+    products: ['screeding', 'primer', 'matt'],
+    guides: ['preparing-walls', 'matt-or-silk'],
+    warnings: ['A thick coat of paint is not a filler. It shrinks, cracks and shows the hollow underneath.'],
+    condition: 'uneven',
+  },
+  {
+    id: 'chalky',
+    label: 'Chalky or powdering surface',
+    signs: ['Colour comes off on your palm', 'Weathered exterior paint', 'A powdery film over old render'],
+    surfaces: ['Exterior walls', 'Interior walls'],
+    steps: [
+      { step: 'Test it', detail: 'Rub the surface with your hand or a dark cloth. If pigment transfers, the binder has failed and no topcoat will hold without a sealing coat.' },
+      { step: 'Dry-brush and wash', detail: 'Remove as much loose material as you can by brushing, then wash down and allow to dry completely.' },
+      { step: 'Stabilise', detail: 'Treat with a stabilising wash or primer and allow it to dry fully. On chalky exterior render a bonding agent is the right call.' },
+      { step: 'Re-test', detail: 'Rub again after the stabiliser has cured. If pigment still lifts, treat it again — do not proceed to a finish coat.' },
+      { step: 'Finish', detail: 'Two coats of a breathable exterior system on facades; two coats of the chosen interior finish inside.' },
+    ],
+    products: ['primer', 'weathershield', 'matt'],
+    guides: ['preparing-walls'],
+    warnings: ['A wall that feels chalky to the hand will not hold paint. Stabilise it or strip it; there is no third option.'],
+    condition: 'chalky',
+  },
+  {
+    id: 'damp',
+    label: 'Damp wall or tide mark',
+    signs: ['A darker band rising from the floor', 'Blistering or a musty smell', 'Paint lifting without flaking, plaster softening'],
+    surfaces: ['Interior walls', 'Exterior walls'],
+    steps: [
+      { step: 'Diagnose before you buy anything', detail: 'Most damp comes from one of four places: a failed roof or gutter, a bridged damp-proof course, plumbing leakage, or rising moisture in a wall built off the ground. Trace the tide mark upward and look for the highest point of wetness.' },
+      { step: 'Fix the source', detail: 'Repair the roof, the gutter, the leak or the ground path. This is a building job, not a painting job, and it comes first.' },
+      { step: 'Let the wall dry', detail: 'Ventilate and wait. Use the polythene test: tape a square tight to the wall for 24 hours and look for condensation on the underside.' },
+      { step: 'Remove what the water destroyed', detail: 'Strip blown or powdery coating back to sound substrate, and remove salt-contaminated plaster where necessary.' },
+      { step: 'Prime, fill and finish', detail: 'Once the wall is genuinely dry: prime, fill, and apply two coats. Photograph the wall first, so you have a reference for what normal looks like.' },
+    ],
+    products: ['primer', 'matt'],
+    guides: ['damp-and-mould', 'preparing-walls'],
+    warnings: [
+      'No coating, at any price, will stop rising damp. If the cause is structural, fix the structure — paint comes after.',
+      'Never seal an actively damp wall with gloss or a waterproof sealer. The film blisters from behind.',
+    ],
+    condition: 'damp',
+  },
+  {
+    id: 'mould',
+    label: 'Mould, mildew or algae',
+    signs: ['Black or green speckling', 'Usually at corners, behind furniture or under a window', 'A bathroom, a kitchen or a shaded exterior wall'],
+    surfaces: ['Interior walls', 'Bathrooms & kitchens', 'Exterior walls'],
+    steps: [
+      { step: 'Reduce the moisture first', detail: 'Mould needs water and a food source. Increase ventilation, fix leaks and move furniture off cold walls — otherwise it returns within weeks of repainting.' },
+      { step: 'Treat with a fungicidal wash', detail: 'Use a proprietary wash, follow its instructions, and allow the surface to dry thoroughly. Do not dry-brush live mould into the air.' },
+      { step: 'Wash the surface', detail: 'Once treated and dry, wash down to remove the staining and any remaining film.' },
+      { step: 'Prime', detail: 'One coat of primer over the treated area so the finish draws evenly.' },
+      { step: 'Finish with an anti-fungi product', detail: 'Two coats of a finish carrying an anti-fungi additive — the Matt and Silk lines both carry one.' },
+    ],
+    products: ['primer', 'silk', 'matt'],
+    guides: ['damp-and-mould'],
+    warnings: ['An anti-fungi additive protects the paint film. It does not remove moisture from the room, so ventilation and leak repair still matter.'],
+    condition: 'mould',
+  },
+  {
+    id: 'efflorescence',
+    label: 'Salt bloom (efflorescence)',
+    signs: ['White, powdery patches or crystals', 'Returns a few weeks after being painted over', 'Usually on new or damp masonry'],
+    surfaces: ['Exterior walls', 'Interior walls', 'New plaster'],
+    steps: [
+      { step: 'Do not wash it into the wall', detail: 'Efflorescence is soluble salt carried to the surface by water. Wetting it dissolves it back into the substrate, where it crystallises again.' },
+      { step: 'Dry-brush it off', detail: 'Stiff brush, dry surface, and remove as much of the bloom as you can.' },
+      { step: 'Find and fix the water', detail: 'The salt only travels when water moves. Until the source is fixed, the bloom returns through any coating.' },
+      { step: 'Treat and dry', detail: 'Apply a stabilising wash and allow the wall to dry completely — verified with the polythene test, not with a guess.' },
+      { step: 'Prime and finish', detail: 'One full coat of alkali-resisting primer, then two finish coats.' },
+    ],
+    products: ['primer', 'weathershield', 'matt'],
+    guides: ['preparing-walls', 'damp-and-mould'],
+    warnings: ['Painting over salt bloom guarantees the paint lifts in sheets, taking the salt with it.'],
+  },
+  {
+    id: 'old-gloss',
+    label: 'Old gloss on timber or metal',
+    signs: ['A hard, shiny film on a door, frame or gate', 'Yellowed or cracked with age', 'Bare timber or rust showing at edges'],
+    surfaces: ['Wood & metal'],
+    steps: [
+      { step: 'Strip the loose, keep the sound', detail: 'Remove anything lifting, then sand the rest back to a dull, keyed surface. A gloss film that is sound can be overcoated; one that is cracking cannot.' },
+      { step: 'Deal with bare metal', detail: 'Degrease with a solvent wipe and treat rust back to bright metal before applying a metal primer.' },
+      { step: 'Deal with bare timber', detail: 'Sand with the grain, seal the knots, and apply a wood primer.' },
+      { step: 'Wipe and dry', detail: 'Remove every trace of dust and solvent, and let the surface dry before coating.' },
+      { step: 'Finish in thin coats', detail: 'Two thin coats beat one thick one. Brush in the direction of the grain or the length of the steel, and observe the 16-hour recoat interval.' },
+    ],
+    products: ['gloss'],
+    guides: ['preparing-walls'],
+    warnings: ['Gloss is solvent-based: ventilate the space and use the PPE the data sheet specifies.'],
+  },
+  {
+    id: 'coastal',
+    label: 'Coastal or salt-air exposure',
+    signs: ['A facade near the creek or the sea', 'Salt crusting on metalwork', 'Faster chalking and fading than inland'],
+    surfaces: ['Exterior walls', 'Wood & metal'],
+    steps: [
+      { step: 'Expect a shorter maintenance cycle', detail: 'Salt air and UV accelerate chalking and corrosion. Plan a wash-down and an inspection every year rather than waiting for failure.' },
+      { step: 'Wash the surface first', detail: 'Remove deposited salt by washing; coating over salt reproduces efflorescence under the film.' },
+      { step: 'Repair metal early', detail: 'Treat any rust back to bright metal and prime it before it spreads under a sound-looking film.' },
+      { step: 'Use the exterior system', detail: 'Prime, then two coats of the textured exterior coating, which bridges hairline cracks and sheds water.' },
+      { step: 'Protect it while it cures', detail: 'Keep the elevation out of rain for 24 hours after the final coat, and avoid painting in direct midday sun on a hot wall.' },
+    ],
+    products: ['primer', 'weathershield', 'gloss'],
+    guides: ['preparing-walls'],
+    warnings: ['If you can feel heat radiating from the render, wait. A hot wall flash-dries a water-based coat before it can be laid off.'],
+  },
+]
+
+export const findPrepSituation = (id: string): PrepSituation | undefined =>
+  PREP_SITUATIONS.find((situation) => situation.id === id)
+
+/**
+ * The preparation sequences that apply to a condition answer, so the finish tool
+ * sends a visitor to the right one instead of to a generic "prepare the wall".
+ */
+export const prepForCondition = (condition: ConditionKey): PrepSituation[] => {
+  const direct = PREP_SITUATIONS.filter((situation) => situation.condition === condition)
+  return direct.length ? direct : PREP_SITUATIONS.filter((situation) => situation.id === 'sound-repaint')
+}
+
+/* ------------------------------------------------------------------- the hub */
+
+export type ToolCard = {
+  id: string
+  to: string
+  name: string
+  summary: string
+  /** Roadmap task ids this tool answers — kept here so the claim is checkable. */
+  roadmap: string[]
+  kind: 'guided' | 'calculator' | 'canvas' | 'checklist'
+}
+
+export const TOOL_CARDS: ToolCard[] = [
+  {
+    id: 'finish-finder',
+    to: '/tools/finish-finder',
+    name: 'Finish finder',
+    summary:
+      'Four questions — the surface, its condition, the wear and the look you want — answered with a product system, a preparation sequence and the arithmetic to size it.',
+    roadmap: ['11.02.01'],
+    kind: 'guided',
+  },
+  {
+    id: 'surface-prep',
+    to: '/tools/surface-prep',
+    name: 'Surface preparation',
+    summary:
+      'Pick the situation you are looking at — new render, flaking paint, damp, salt bloom, old gloss, coastal exposure — and get the sequence that goes before the paint.',
+    roadmap: ['11.02.02'],
+    kind: 'guided',
+  },
+  {
+    id: 'calculator',
+    to: '/calculator',
+    name: 'Paint calculator',
+    summary:
+      'Room dimensions or a measured wall area, doors and windows deducted, coats and trim allowance, rounded up to the pack sizes the product is actually sold in.',
+    roadmap: ['11.01'],
+    kind: 'calculator',
+  },
+  {
+    id: 'project',
+    to: '/project',
+    name: 'Project checklist',
+    summary:
+      'Everything you saved — colours, products, quantities — turned into an ordered list of what to buy and what to do, printable, copyable and shareable as a link.',
+    roadmap: ['11.02.04', '11.02.05', '11.01.15'],
+    kind: 'checklist',
+  },
+  {
+    id: 'room-preview',
+    to: '/room-preview',
+    name: 'Room preview',
+    summary:
+      'Upload a photograph, select the wall and see any colour from the library on it — matt or silk, before and after. The image never leaves your device.',
+    roadmap: ['12.02'],
+    kind: 'canvas',
+  },
+]
+
+export const findTool = (id: string): ToolCard | undefined => TOOL_CARDS.find((tool) => tool.id === id)

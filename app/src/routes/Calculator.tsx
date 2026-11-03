@@ -19,7 +19,16 @@ export default function CalculatorPage() {
       name: 'OPUDA’S PAINT calculator',
       applicationCategory: 'UtilitiesApplication',
       operatingSystem: 'Any',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'NGN' },
+      browserRequirements: 'Requires JavaScript',
+      featureList: [
+        'Metric and imperial room dimensions',
+        'Door and window deductions',
+        'Coats, ceiling and trim allowance',
+        'Rounding to the pack sizes the product is sold in',
+        'The full arithmetic shown',
+      ],
+      // No `offers`: the tool is free and the site publishes no prices, so a
+      // price field of any value would be a claim this project does not make.
     },
   })
 

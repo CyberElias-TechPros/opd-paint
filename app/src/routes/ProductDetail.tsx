@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Bookmark, BookmarkCheck, Download, FileText, Ruler, ShieldCheck } from 'lucide-react'
 import { usePageMeta } from '../lib/seo'
@@ -11,6 +11,7 @@ import { Button, ButtonLink } from '../components/ui/Button'
 import { ColourCard } from '../components/colour/ColourCard'
 import { useApp } from '../store/AppStore'
 import { WHATSAPP_NUMBER } from '../data/dealers'
+import { track } from '../lib/analytics'
 import NotFound from './NotFound'
 
 const SUGGESTED_COLOURS: Record<string, string[]> = {
@@ -26,6 +27,12 @@ export default function ProductDetail() {
   const { id = '' } = useParams()
   const product = findProduct(id)
   const { isProductSaved, toggleProduct } = useApp()
+
+  useEffect(() => {
+    if (!product) return
+    track('product_view', { productId: product.id, finish: product.finish, claims: product.claimsStatus })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id])
 
   const suggested = useMemo(() => {
     if (!product) return []

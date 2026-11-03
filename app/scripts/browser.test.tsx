@@ -17,6 +17,7 @@
  *
  *   npm run test:browser
  */
+import type { JSX } from 'react'
 import { JSDOM } from 'jsdom'
 import { spawn, type ChildProcess } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs'
@@ -349,6 +350,159 @@ function allButtonsByText(label: string): HTMLElement[] {
   ) as HTMLElement[]
 }
 
+/**
+ * Mount any route the way the app does: inside a router, inside the store
+ * provider, with the search string a real link would carry.
+ */
+async function mountPage(path: string, Page: () => JSX.Element) {
+  const { MemoryRouter } = await import('react-router-dom')
+  const { AppProvider } = await import('../src/store/AppStore')
+  const { createElement: h } = await import('react')
+  return render(h(MemoryRouter, { initialEntries: [path] }, h(AppProvider, null, h(Page))))
+}
+
+/** Pick a radio option in the finish finder by its question and value. */
+async function chooseAnswer(question: string, value: string): Promise<void> {
+  const radio = document.querySelector(`input[name="finish-${question}"][value="${value}"]`)
+  assert(radio, `no option "${value}" for question "${question}"`)
+  await click(radio)
+}
+
+/* ------------------------------------------------- a canvas jsdom can run */
+
+type Restore = () => void
+
+/**
+ * Give jsdom the parts of a canvas the visualiser touches.
+ *
+ * jsdom ships the element but not the 2D context, and the room preview is
+ * nothing *but* drawing — so without this the whole feature is untestable here
+ * and only Chromium ever sees it. The stand-in keeps no pixels: it exists so the
+ * component can run its real code path (decode, compose, measure, report). These
+ * tests therefore assert what the visitor is told and which controls come alive,
+ * never what the picture looks like — that is axe's and Lighthouse's job.
+ */
+function installCanvas({ supported = true }: { supported?: boolean } = {}): Restore {
+  const canvasProto = window.HTMLCanvasElement.prototype as unknown as Record<string, unknown>
+  const elementProto = window.Element.prototype as unknown as Record<string, unknown>
+  const previousContext = canvasProto.getContext
+  const previousCapture = elementProto.setPointerCapture
+
+  const blank = (width: number, height: number) => ({
+    data: new Uint8ClampedArray(Math.max(1, width * height) * 4),
+    width,
+    height,
+    colorSpace: 'srgb' as const,
+  })
+  const gradient = { addColorStop() {} }
+  const context = {
+    globalAlpha: 1,
+    globalCompositeOperation: 'source-over',
+    fillStyle: '#000000',
+    drawImage() {},
+    clearRect() {},
+    fillRect() {},
+    save() {},
+    restore() {},
+    beginPath() {},
+    arc() {},
+    fill() {},
+    createRadialGradient: () => gradient,
+    createLinearGradient: () => gradient,
+    getImageData: (_x: number, _y: number, width: number, height: number) => blank(width, height),
+    putImageData() {},
+  }
+
+  canvasProto.getContext = supported ? () => context : () => null
+  // Pointer capture is what lets a brush stroke survive leaving the canvas.
+  // jsdom has no implementation, and the visualiser calls it on every mouse down.
+  elementProto.setPointerCapture = function setPointerCapture() {}
+
+  return () => {
+    canvasProto.getContext = previousContext
+    if (previousCapture === undefined) delete elementProto.setPointerCapture
+    else elementProto.setPointerCapture = previousCapture
+  }
+}
+
+/** An <img> that decodes at once, so a load can be tested without a browser. */
+function installDecodedImage(width = 800, height = 600): Restore {
+  const previousGlobal = Object.getOwnPropertyDescriptor(globalThis, 'Image')
+
+  class Decoded {
+    naturalWidth = width
+    naturalHeight = height
+    crossOrigin: string | null = null
+    onload: (() => void) | null = null
+    onerror: (() => void) | null = null
+    set src(_value: string) {
+      setTimeout(() => this.onload?.(), 0)
+    }
+  }
+
+  Object.defineProperty(globalThis, 'Image', { value: Decoded, configurable: true, writable: true })
+  return () => {
+    if (previousGlobal) Object.defineProperty(globalThis, 'Image', previousGlobal)
+    else delete (globalThis as unknown as Record<string, unknown>).Image
+  }
+}
+
+/** jsdom measures nothing, so a canvas has to be told how big it appears. */
+function stubRect(node: Element, width = 400, height = 300): void {
+  ;(node as HTMLElement).getBoundingClientRect = () =>
+    ({ x: 0, y: 0, left: 0, top: 0, right: width, bottom: height, width, height, toJSON: () => ({}) }) as DOMRect
+}
+
+/** Dispatch a pointer event React will read as one, including its pointer type. */
+async function pointer(
+  node: Element,
+  type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel',
+  x: number,
+  y: number,
+  pointerType: 'mouse' | 'touch' | 'pen' = 'mouse',
+): Promise<void> {
+  const { act } = await import('react')
+  await act(async () => {
+    const event = new window.MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y })
+    Object.defineProperty(event, 'pointerType', { value: pointerType })
+    Object.defineProperty(event, 'pointerId', { value: 1 })
+    node.dispatchEvent(event)
+  })
+  await flush()
+}
+
+async function key(node: Element, keyName: string, shiftKey = false): Promise<void> {
+  const { act } = await import('react')
+  await act(async () => {
+    node.dispatchEvent(new window.KeyboardEvent('keydown', { key: keyName, shiftKey, bubbles: true, cancelable: true }))
+  })
+  await flush()
+}
+
+/** The visualiser's own live region — its promises to the visitor. */
+function liveRegion(container: HTMLElement): string {
+  return (container.querySelector('p[aria-live="polite"]')?.textContent ?? '').trim()
+}
+
+async function mountVisualizer(path = '/room-preview') {
+  const { default: RoomPreviewPage } = await import('../src/routes/RoomPreview')
+  const mounted = await mountPage(path, RoomPreviewPage)
+  const canvas = mounted.container.querySelector('canvas')
+  assert(canvas, 'the preview draws on a canvas')
+  stubRect(canvas)
+  await waitFor(() => liveRegion(mounted.container).includes('Tap or click the wall'), 'the room to finish loading')
+  return { ...mounted, canvas }
+}
+
+function unsubsOnDisk(): Array<Record<string, unknown>> {
+  const file = join(dataDir, 'unsubscriptions.jsonl')
+  if (!existsSync(file)) return []
+  return readFileSync(file, 'utf8')
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
+}
+
 function quotesOnDisk(): Array<Record<string, unknown>> {
   const file = join(dataDir, 'quotes.jsonl')
   if (!existsSync(file)) return []
@@ -541,6 +695,286 @@ async function main(): Promise<void> {
         await unmount()
       }
     })
+    /* ------------------------------------------------------------ the tools */
+
+    const { default: FinishFinderPage } = await import('../src/routes/FinishFinder')
+    const { default: ProjectPage } = await import('../src/routes/Project')
+    const { default: ToolsPage } = await import('../src/routes/Tools')
+    const { default: SurfacePrepPage } = await import('../src/routes/SurfacePrep')
+
+    await check('the finish finder answers four questions with a specification', async () => {
+      window.localStorage.clear()
+      const { unmount } = await mountPage('/tools/finish-finder', FinishFinderPage)
+      try {
+        assert(!text().includes('Your specification'), 'a specification is shown before anything is answered')
+        await chooseAnswer('surface', 'kitchen-bath')
+        await chooseAnswer('condition', 'sound')
+        await chooseAnswer('wear', 'heavy')
+        await chooseAnswer('sheen', 'soft')
+        await waitFor(() => text().includes('Your specification'), 'the specification panel')
+        const panel = text()
+        assert(/Silk/i.test(panel), 'a washable wall in heavy wear is not answered with the silk line')
+        assert(panel.includes('m² per'), 'the coverage figure comes from the product data')
+        assert(/Claims from the label|Specification in review/.test(panel), 'the claim status is shown, not implied')
+        assert(
+          document.querySelector('a[href="/products/silk"]') !== null,
+          'the recommendation links to the product it names',
+        )
+      } finally {
+        await unmount()
+      }
+    })
+
+    await check('the finish finder refuses to sell a system for a damp wall', async () => {
+      window.localStorage.clear()
+      const { unmount } = await mountPage('/tools/finish-finder', FinishFinderPage)
+      try {
+        await chooseAnswer('surface', 'interior-wall')
+        await chooseAnswer('condition', 'damp')
+        await chooseAnswer('wear', 'moderate')
+        await chooseAnswer('sheen', 'flat')
+        await waitFor(() => text().includes('Fix the water before you buy paint'), 'the hard stop')
+        assert(!text().includes('Your specification'), 'a damp wall still gets a product recommendation')
+        assert(
+          document.querySelector('a[href="/advice/damp-and-mould"]') !== null,
+          'the visitor is sent to the guide that explains what to do instead',
+        )
+      } finally {
+        await unmount()
+      }
+    })
+
+    await check('a saved estimate becomes a checklist line, and the checklist becomes a link', async () => {
+      window.localStorage.clear()
+
+      // 1. Size a job in the calculator and save it to the project.
+      const calculator = await mountCalculator()
+      try {
+        await type(document.getElementById('room-label') as Element, 'Lounge')
+        await waitFor(() => /\d+ × \d+ L/.test(document.querySelector('.lg\\:sticky')?.textContent ?? ''), 'packs')
+        const save = allButtonsByText('Save this estimate to my project')[0]
+        assert(save, 'the calculator offers no way to keep its answer')
+        await click(save)
+        await waitFor(
+          () => (window.localStorage.getItem('opd.board.v2') ?? '').includes('Lounge'),
+          'the estimate to reach storage',
+        )
+      } finally {
+        await calculator.unmount()
+      }
+
+      // 2. The checklist prints it, and can be shared.
+      let shared = ''
+      const originalClipboard = (navigator as { clipboard?: unknown }).clipboard
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: async (value: string) => { shared = value } },
+      })
+      const project = await mountPage('/project', ProjectPage)
+      try {
+        await waitFor(() => text().includes('Lounge'), 'the room name on the checklist')
+        assert(/2 × 20 L|\d+ × \d+ L/.test(text()), 'the pack combination is on the checklist')
+        assert(text().includes('digital proof'), 'the checklist repeats what a screen cannot show')
+        await click(allButtonsByText('Share link')[0])
+        await waitFor(() => shared.includes('/project?s='), 'a shareable link')
+      } finally {
+        await project.unmount()
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: originalClipboard })
+      }
+
+      // 3. The link opens the same project on a device that has never seen it.
+      window.localStorage.clear()
+      const token = new URL(shared).searchParams.get('s') ?? ''
+      const visitor = await mountPage(`/project?s=${token}`, ProjectPage)
+      try {
+        await waitFor(() => text().includes('Shared project'), 'the shared-project notice')
+        assert(text().includes('Lounge'), 'the quantity travelled inside the link')
+      } finally {
+        await visitor.unmount()
+      }
+    })
+
+    await check('the tools hub and the preparation advisor link to real routes', async () => {
+      window.localStorage.clear()
+      const { unmount } = await mountPage('/tools', ToolsPage)
+      try {
+        assert(text().includes('Finish finder'), 'the hub lists the finish finder')
+        assert(
+          document.querySelector('a[href="/tools/finish-finder"]') !== null &&
+            document.querySelector('a[href="/tools/surface-prep"]') !== null,
+          'the hub links to the tools it describes',
+        )
+      } finally {
+        await unmount()
+      }
+
+      const prep = await mountPage('/tools/surface-prep?situation=new-render', SurfacePrepPage)
+      try {
+        await waitFor(() => text().includes('New render'), 'the situation detail')
+        assert(/14 days|cure/i.test(text()), 'the sequence states the curing wait')
+        assert(
+          document.querySelector('a[href="/products/primer"]') !== null,
+          'the sequence links to the primer it specifies',
+        )
+        assert(
+          document.querySelector('script[type="application/ld+json"]') !== null,
+          'the sequence carries HowTo structured data',
+        )
+      } finally {
+        await prep.unmount()
+      }
+    })
+
+    await check('the footer removes an address as easily as it adds one', async () => {
+      const { Footer } = await import('../src/components/layout/Footer')
+      const { unmount } = await mountPage('/', Footer)
+      try {
+        assert(text().includes('Remove an address instead'), 'the promise to leave is on the page')
+        await click(allButtonsByText('Remove an address instead')[0])
+        await waitFor(
+          () => allButtonsByText('Remove me').length > 0,
+          'the form to switch to opting out',
+        )
+        await type(document.getElementById('footer-email') as Element, 'ade@example.com')
+        await submit(document.querySelector('form'))
+        await waitFor(() => unsubsOnDisk().length > 0, 'the opt-out to reach the service')
+        const [record] = unsubsOnDisk()
+        assertEqual(record.email, 'ade@example.com', 'the address that opted out')
+        assertEqual(record.source, 'footer', 'where the opt-out came from')
+        assert(typeof record.at === 'string', 'the opt-out is timestamped')
+      } finally {
+        await unmount()
+      }
+    })
+
+    /* -------------------------------------------- "try it on your wall" */
+
+    await check('the room preview opens showing the paint, not only the photograph', async () => {
+      const restore = [installCanvas(), installDecodedImage()]
+      try {
+        const { container, unmount } = await mountVisualizer()
+        try {
+          const divider = container.querySelector('input[type="range"][aria-label*="divider"]') as HTMLInputElement | null
+          assert(divider, 'the before/after divider is a real range input, so it is keyboard operable')
+          // It used to open at 100 — which is the whole frame showing the
+          // *original*, so selecting a wall and a colour changed nothing on
+          // screen until the visitor dragged a slider towards "Before".
+          assertEqual(divider.value, '50', 'the divider opens half and half')
+          assert(
+            (divider.getAttribute('aria-valuetext') ?? '').includes('50% of the frame shows the original'),
+            'what the divider means is said, not only shown',
+          )
+
+          const paint = container.querySelector('canvas[role="img"]') as HTMLCanvasElement
+          assert(paint.getAttribute('aria-describedby') === 'visualizer-help', 'the canvas points at its instructions')
+          assert(
+            (container.querySelector('#visualizer-help')?.textContent ?? '').includes('arrow keys'),
+            'the keyboard route is written down where a keyboard user will find it',
+          )
+          assert(
+            text().includes('drop a photograph onto the picture') && text().includes('paste one from the clipboard'),
+            'dragging and pasting a photo are offered, not only the file input',
+          )
+        } finally {
+          await unmount()
+        }
+      } finally {
+        for (const undo of restore.reverse()) undo()
+      }
+    })
+
+    await check('a browser with no canvas is told so, and given somewhere to go', async () => {
+      const restore = [installCanvas({ supported: false }), installDecodedImage()]
+      try {
+        const { default: RoomPreviewPage } = await import('../src/routes/RoomPreview')
+        const { container, unmount } = await mountPage('/room-preview', RoomPreviewPage)
+        try {
+          await waitFor(
+            () => text().includes('This browser cannot paint the photograph.'),
+            'the fallback to replace the tool',
+          )
+          // Roadmap 12.02.11: a usable fallback. A dead canvas with a spinner
+          // that never stops is not one.
+          assertEqual(container.querySelectorAll('canvas').length, 0, 'no canvas is offered that cannot be drawn on')
+          assert(container.querySelector('a[href="/colours"]') !== null, 'the colour library still works without a canvas')
+          assert(
+            container.querySelector('a[href="/documents/opudas-colour-book.pdf"]') !== null,
+            'the printed colour book is offered instead',
+          )
+          assert(container.querySelector('a[href="/quote"]') !== null, 'and so are physical samples')
+        } finally {
+          await unmount()
+        }
+      } finally {
+        for (const undo of restore.reverse()) undo()
+      }
+    })
+
+    await check('a tap paints the wall and a scroll does not', async () => {
+      const restore = [installCanvas(), installDecodedImage()]
+      try {
+        const { container, canvas, unmount } = await mountVisualizer()
+        try {
+          // On a phone the picture is the first thing on the page, so a swipe
+          // that started on it used to be read as "paint this wall" — and the
+          // canvas swallowed the scroll as well.
+          await pointer(canvas, 'pointerdown', 100, 120, 'touch')
+          assert(
+            liveRegion(container).includes('Tap or click the wall'),
+            'touching the picture does not paint before the finger lifts',
+          )
+          await pointer(canvas, 'pointerup', 100, 120, 'touch')
+          assert(liveRegion(container).includes('Wall selected'), 'a tap that stays put selects the wall')
+
+          await pointer(canvas, 'pointerdown', 100, 120, 'touch')
+          await pointer(canvas, 'pointermove', 300, 260, 'touch')
+          await pointer(canvas, 'pointerup', 300, 260, 'touch')
+          assert(
+            liveRegion(container).includes('That was a scroll, not a tap'),
+            'a swipe is reported as a scroll rather than painting somewhere else',
+          )
+
+          // A mouse has no such ambiguity, so it still paints on the way down.
+          await pointer(canvas, 'pointerdown', 200, 150, 'mouse')
+          assert(liveRegion(container).includes('Wall selected'), 'a mouse click paints at once')
+          const undo = allButtonsByText('Undo')[0] as HTMLButtonElement
+          assert(!undo.disabled, 'undo comes alive once there is something to undo')
+        } finally {
+          await unmount()
+        }
+      } finally {
+        for (const undo of restore.reverse()) undo()
+      }
+    })
+
+    await check('the wall can be selected without a pointer at all', async () => {
+      const restore = [installCanvas(), installDecodedImage()]
+      try {
+        const { container, canvas, unmount } = await mountVisualizer()
+        try {
+          await key(canvas, 'ArrowRight')
+          assert(/Cursor \d+% from the left/.test(liveRegion(container)), 'moving the cursor is announced')
+          assert(
+            container.querySelector('span[aria-hidden].rounded-full.border-2') !== null,
+            'and drawn, so the position is not only spoken',
+          )
+          await key(canvas, 'Enter')
+          assert(liveRegion(container).includes('Wall selected'), 'Enter applies the selected tool at the cursor')
+
+          // Switching to the brush has to change what Enter does; it used to
+          // flood-fill whatever the tool said.
+          await click(allButtonsByText('Brush')[0])
+          await key(canvas, 'ArrowDown', true)
+          await key(canvas, 'Enter')
+          assert(liveRegion(container).includes('Brushed at the cursor'), 'Enter uses the brush when the brush is chosen')
+        } finally {
+          await unmount()
+        }
+      } finally {
+        for (const undo of restore.reverse()) undo()
+      }
+    })
+
     // Static imports so the bundler resolves them; the routes themselves are
     // lazy in the app, which is a shipping concern, not a testing one.
     const { default: ColoursPage } = await import('../src/routes/Colours')
@@ -555,6 +989,10 @@ async function main(): Promise<void> {
       ['/quote', '/quote', QuotePage],
       ['/products', '/products', ProductsPage],
       ['/dealers', '/dealers', DealersPage],
+      ['/tools', '/tools', ToolsPage],
+      ['/tools/finish-finder', '/tools/finish-finder', FinishFinderPage],
+      ['/tools/surface-prep', '/tools/surface-prep', SurfacePrepPage],
+      ['/project', '/project', ProjectPage],
     ] as const) {
       await check(`headings descend in order: ${path}`, async () => {
         await headingAudit(path, pattern, Page)

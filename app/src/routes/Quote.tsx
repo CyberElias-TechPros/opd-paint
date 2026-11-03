@@ -7,9 +7,18 @@ import { colorsByIds } from '../data/colors'
 import { PRODUCTS } from '../data/products'
 import { BRAND_PHONE_DISPLAY, BRAND_PHONE_TEL, WHATSAPP_NUMBER } from '../data/dealers'
 import { Button, ButtonLink } from '../components/ui/Button'
+import { longDate } from '../lib/format'
 import { Checkbox, Field, Select, TextArea, TextInput } from '../components/ui/Field'
 import { Kicker, Badge, ArrowLink } from '../components/ui/Bits'
-import { ApiFieldError, submitQuote, stashFailedSubmission, type QuoteResponse } from '../lib/api'
+import {
+  ApiFieldError,
+  clearStashedSubmission,
+  readStashedSubmission,
+  stashFailedSubmission,
+  submitQuote,
+  type QuotePayload,
+  type QuoteResponse,
+} from '../lib/api'
 import { track } from '../lib/analytics'
 
 const PROJECT_TYPES = [
@@ -32,6 +41,13 @@ export default function Quote() {
   const [errors, setErrors] = useState<Errors>({})
   const [response, setResponse] = useState<QuoteResponse | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
+  /**
+   * A submission that failed to reach the service was kept on this device. Read
+   * it during the first render — not in an effect — so the fields can be filled
+   * with it, and bumping `formKey` is how "discard it" empties them again.
+   */
+  const [draft, setDraft] = useState(() => readStashedSubmission<QuotePayload>('quote'))
+  const [formKey, setFormKey] = useState(0)
 
   const preselectedColours = useMemo(() => {
     const fromParam = (params.get('colours') ?? '').split(',').filter(Boolean)
@@ -39,6 +55,12 @@ export default function Quote() {
     const single = params.get('colour') ? [params.get('colour') as string] : []
     return [...new Set([...single, ...fromParam, ...fromBoard])]
   }, [params, board.savedColors])
+
+  // Any project type this form actually offers can be preselected by a link
+  // (`/quote?type=exterior`); anything else is ignored rather than guessed at.
+  const typeParam = params.get('type')
+  const requestedType =
+    typeParam && PROJECT_TYPES.some((option) => option.value === typeParam) ? typeParam : (draft?.body.projectType ?? '')
 
   const colours = colorsByIds(preselectedColours)
   const products = board.savedProducts
@@ -79,6 +101,17 @@ export default function Quote() {
     return next
   }
 
+  const estimateProducts = board.estimates
+    .map((estimate) => PRODUCTS.find((product) => product.id === estimate.productId)?.sku)
+    .filter((sku): sku is string => Boolean(sku))
+
+  const discardDraft = () => {
+    clearStashedSubmission('quote')
+    setDraft(null)
+    setFormKey((key) => key + 1)
+    toast('Saved details discarded', { tone: 'info' })
+  }
+
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const form = event.currentTarget
@@ -94,7 +127,13 @@ export default function Quote() {
 
     setState('sending')
     setFailure(null)
-    track('form_start', { source: 'quote' })
+    // 16.01.08: form_start, validation_error and a successful submit are three
+    // different measurements. This one is the attempt that left the browser.
+    track('quote_submit', {
+      projectType: String(data.get('projectType')),
+      colours: colours.length,
+      products: products.length,
+    })
 
     const payload = {
       name: String(data.get('name')).trim(),
@@ -105,7 +144,14 @@ export default function Quote() {
       rooms: String(data.get('rooms') ?? '').trim() || undefined,
       message: String(data.get('message') ?? '').trim() || undefined,
       colors: colours.map((c) => c.code),
-      products: products.map((p) => p.sku),
+      products: [...new Set([...products.map((p) => p.sku), ...estimateProducts])],
+      // The quantities the calculator produced, so the desk quotes the measured
+      // job instead of asking for dimensions a second time.
+      quantities: board.estimates.map((estimate) => ({
+        label: `${estimate.label} — ${estimate.packs}`,
+        amount: estimate.litres,
+        unit: estimate.unit,
+      })),
       consent: true,
       company: String(data.get('company') ?? ''),
       source: params.get('from') ?? 'quote-page',
@@ -113,6 +159,10 @@ export default function Quote() {
 
     try {
       const result = await submitQuote(payload)
+      // The enquiry is with us, so the recovery copy has to go: leaving it would
+      // offer to re-send the same personal data from the next visit.
+      clearStashedSubmission('quote')
+      setDraft(null)
       setResponse(result)
       setState('done')
       track('quote_success', { projectType: payload.projectType })
@@ -150,7 +200,8 @@ export default function Quote() {
           </span>
           <h1 className="display mt-5 text-[clamp(1.9rem,4vw,2.8rem)]">Received. We will come back to you.</h1>
           <p className="mt-3 max-w-xl text-[0.95rem] leading-relaxed text-ink/70">
-            Your enquiry is with the colour desk. Keep this reference — it is how we find your file if you call.
+            Your enquiry is logged and has been routed to the desk that handles this kind of work — which one is
+            shown below. Keep this reference: it is how we find your file if you call.
           </p>
           <dl className="mt-6 grid gap-3 sm:grid-cols-2">
             <div className="rounded-sm border border-ink/12 bg-paper-2 p-4">
@@ -214,7 +265,22 @@ export default function Quote() {
       </header>
 
       <div className="shell grid gap-10 py-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] lg:gap-14">
-        <form onSubmit={onSubmit} noValidate className="space-y-5">
+        {draft ? (
+          <div
+            role="status"
+            className="mb-2 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-gold/50 bg-gold/10 px-4 py-3 lg:col-span-2"
+          >
+            <p className="max-w-2xl text-[0.82rem] leading-relaxed text-ink/75">
+              <span className="font-semibold text-ink">We kept your details.</span> A submission on{' '}
+              {longDate(new Date(draft.at).toISOString().slice(0, 10))} did not reach us, so the answers are back in the
+              form below. They are stored only in this browser.
+            </p>
+            <Button variant="ghost" size="sm" onClick={discardDraft}>
+              Discard and start again
+            </Button>
+          </div>
+        ) : null}
+        <form onSubmit={onSubmit} noValidate className="space-y-5" key={formKey}>
           <input type="hidden" name="company" value="" aria-hidden tabIndex={-1} autoComplete="off" />
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -227,6 +293,7 @@ export default function Quote() {
                   aria-invalid={invalid}
                   aria-describedby={describedBy}
                   placeholder="Adeola Bakare"
+                  defaultValue={draft?.body.name ?? ''}
                 />
               )}
             </Field>
@@ -241,6 +308,7 @@ export default function Quote() {
                   aria-invalid={invalid}
                   aria-describedby={describedBy}
                   placeholder="0803 000 0000"
+                  defaultValue={draft?.body.phone ?? ''}
                 />
               )}
             </Field>
@@ -255,6 +323,7 @@ export default function Quote() {
                   aria-invalid={invalid}
                   aria-describedby={describedBy}
                   placeholder="you@example.com"
+                  defaultValue={draft?.body.email ?? ''}
                 />
               )}
             </Field>
@@ -267,12 +336,13 @@ export default function Quote() {
                   aria-invalid={invalid}
                   aria-describedby={describedBy}
                   placeholder="GRA Phase 2, Port Harcourt"
+                  defaultValue={draft?.body.city ?? ''}
                 />
               )}
             </Field>
             <Field label="Project type" required error={errors.projectType}>
               {({ id, describedBy, invalid }) => (
-                <Select id={id} name="projectType" aria-invalid={invalid} aria-describedby={describedBy} defaultValue={params.get('type') === 'trade' ? 'trade' : params.get('type') === 'sample' ? 'sample' : params.get('type') === 'dealer' ? 'dealer' : ''}>
+                <Select id={id} name="projectType" aria-invalid={invalid} aria-describedby={describedBy} defaultValue={requestedType}>
                   <option value="">Choose one…</option>
                   {PROJECT_TYPES.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -284,7 +354,13 @@ export default function Quote() {
             </Field>
             <Field label="Rooms and approximate size" hint="For example: 3 bedrooms, a lounge and a corridor, about 320 m² of wall.">
               {({ id, describedBy }) => (
-                <TextInput id={id} name="rooms" aria-describedby={describedBy} placeholder="3 bedrooms + lounge" />
+                <TextInput
+                  id={id}
+                  name="rooms"
+                  aria-describedby={describedBy}
+                  placeholder="3 bedrooms + lounge"
+                  defaultValue={draft?.body.rooms ?? ''}
+                />
               )}
             </Field>
           </div>

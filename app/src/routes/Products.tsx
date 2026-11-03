@@ -20,6 +20,18 @@ export default function Products() {
   const [finish, setFinish] = useState<Finish | 'All'>('All')
   const [surface, setSurface] = useState<Surface | 'All'>('All')
 
+  // Roadmap 16.01.04 asks for list-and-filter events: which filters the range is
+  // actually browsed by is the only evidence that tells the technical team
+  // whether a finish or a surface is being shopped for at all.
+  const chooseFinish = (option: Finish | 'All') => {
+    setFinish(option)
+    if (option !== 'All') track('product_filter', { filter: 'finish', value: option })
+  }
+  const chooseSurface = (option: Surface | 'All') => {
+    setSurface(option)
+    if (option !== 'All') track('product_filter', { filter: 'surface', value: option })
+  }
+
   const list = useMemo(
     () =>
       PRODUCTS.filter((product) => {
@@ -87,14 +99,14 @@ export default function Products() {
       <div className="shell py-8">
         <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-2" role="group" aria-label="Filter by finish">
           {FINISHES.map((option) => (
-            <Pill key={option} active={finish === option} onClick={() => setFinish(option)}>
+            <Pill key={option} active={finish === option} onClick={() => chooseFinish(option)}>
               {option}
             </Pill>
           ))}
         </div>
         <div className="no-scrollbar mt-1 flex items-center gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Filter by surface">
           {SURFACES.map((option) => (
-            <Pill key={option} active={surface === option} onClick={() => setSurface(option)}>
+            <Pill key={option} active={surface === option} onClick={() => chooseSurface(option)}>
               {option}
             </Pill>
           ))}

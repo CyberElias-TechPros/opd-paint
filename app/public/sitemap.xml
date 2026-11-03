@@ -26,6 +26,21 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://opudapaint.com/tools</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://opudapaint.com/tools/finish-finder</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://opudapaint.com/tools/surface-prep</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://opudapaint.com/inspiration</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

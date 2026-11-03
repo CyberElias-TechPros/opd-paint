@@ -20,7 +20,7 @@ BRAND = "OPUDA'S PAINT"
 CITY = "Port Harcourt"
 EDITION = "2026"
 
-COVER_LINE = "Fifty-nine colours, nine families, eight palettes —\nand the reasoning behind each one."
+COVER_LINE = "Fifty-nine colours, nine families, nine palettes —\nand the reasoning behind each one."
 
 IMPRINT = "Colour Book · 2026"
 

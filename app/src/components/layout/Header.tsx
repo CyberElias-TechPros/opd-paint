@@ -12,6 +12,7 @@ const NAV = [
   { to: '/colours', label: 'Colours', note: 'The launch fan deck' },
   { to: '/products', label: 'Products', note: 'Matt, Silk, Gloss, exterior' },
   { to: '/room-preview', label: 'Room preview', note: 'Paint your own wall' },
+  { to: '/tools', label: 'Tools', note: 'Finish finder, preparation, checklist' },
   { to: '/inspiration', label: 'Inspiration', note: 'Real OPUDA’S sites' },
   { to: '/advice', label: 'Advice', note: 'Preparation and application' },
   { to: '/dealers', label: 'Dealers', note: 'Counters across Nigeria' },
@@ -104,14 +105,14 @@ export function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
           <LogoLockup />
 
           <nav aria-label="Primary" className="hidden lg:block">
-            <ul className="flex items-center gap-1">
+            <ul className="flex items-center gap-0.5">
               {NAV.map((item) => (
                 <li key={item.to}>
                   <NavLink
                     to={item.to}
                     className={({ isActive }) =>
                       cn(
-                        'relative block rounded-sm px-2.5 py-2 text-[0.72rem] font-bold uppercase tracking-[0.08em] transition-colors',
+                        'relative block rounded-sm px-2 py-2 text-[0.7rem] font-bold uppercase tracking-[0.06em] transition-colors',
                         isActive ? 'text-green' : 'text-ink/75 hover:text-ink',
                       )
                     }

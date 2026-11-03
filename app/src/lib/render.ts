@@ -20,21 +20,43 @@ import { hexToRgb } from './color'
 
 export type FinishLook = 'matt' | 'silk'
 
+/**
+ * The two offscreen canvases a frame needs.
+ *
+ * A brush stroke calls `composeFrame` for every pointer event, and allocating
+ * two frame-sized canvases per call is how a 1400px preview turns a drag into a
+ * stutter — each one is several megabytes the garbage collector has to find
+ * again. The caller owns them for the lifetime of the image and passes them in.
+ */
+export type Scratch = { tint: HTMLCanvasElement; sheen: HTMLCanvasElement }
+
+export function createScratch(): Scratch {
+  return { tint: document.createElement('canvas'), sheen: document.createElement('canvas') }
+}
+
+/** Resize `canvas` only when it has to; returns whether it changed. */
+export function sizeCanvas(canvas: HTMLCanvasElement, width: number, height: number): boolean {
+  if (canvas.width === width && canvas.height === height) return false
+  canvas.width = width
+  canvas.height = height
+  return true
+}
+
 export type FrameInput = {
   ctx: CanvasRenderingContext2D
   source: HTMLCanvasElement
   mask: HTMLCanvasElement
   hex: string
   finish: FinishLook
+  scratch?: Scratch | undefined
 }
 
-export function composeFrame({ ctx, source, mask, hex, finish }: FrameInput) {
+export function composeFrame({ ctx, source, mask, hex, finish, scratch }: FrameInput) {
   const w = source.width
   const h = source.height
 
-  const tint = document.createElement('canvas')
-  tint.width = w
-  tint.height = h
+  const tint = scratch?.tint ?? document.createElement('canvas')
+  sizeCanvas(tint, w, h)
   const tintCtx = tint.getContext('2d') as CanvasRenderingContext2D
 
   ctx.globalCompositeOperation = 'source-over'
@@ -61,9 +83,8 @@ export function composeFrame({ ctx, source, mask, hex, finish }: FrameInput) {
 
   // 4. finish character
   if (finish === 'silk') {
-    const sheen = document.createElement('canvas')
-    sheen.width = w
-    sheen.height = h
+    const sheen = scratch?.sheen ?? document.createElement('canvas')
+    sizeCanvas(sheen, w, h)
     const sheenCtx = sheen.getContext('2d') as CanvasRenderingContext2D
     const gradient = sheenCtx.createLinearGradient(0, 0, w * 0.9, h)
     gradient.addColorStop(0, 'rgba(255,255,255,0.55)')

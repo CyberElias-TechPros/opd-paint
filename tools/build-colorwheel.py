@@ -306,7 +306,7 @@ class WheelDoc(FPDF):
         )
 
         rows = [
-            ("Colour Book", "32 pages, A5. The full library: nine families, eight palettes, "
+            ("Colour Book", "32 pages, A5. The full library: nine families, nine palettes, "
                              "three jobs and four lights for a single colour, specification and "
                              "an index by room.", "opudas-colour-book.pdf"),
             ("Room Book", "20 pages, A5. Indexed by the job a colour has to do, with four methods "

@@ -25,8 +25,8 @@ That is the README's own standard, and it is the right one.
 | **G2** Requirements | Prioritised scope, traceability | ⚠️ Partial | Functional requirements are written. A traceability matrix (requirement → build → test) is not maintained, and nothing is signed off. |
 | **G3** Design | Journeys, wireframes, system, a11y | ✅ Nearly met | Design system, journeys and accessibility rules are built and documented (`/style-guide`). Missing only formal review and approval. |
 | **G4** Data & architecture | Data model, integrations, cost | ❌ Blocked | The *model* is good. The *data* is provisional: unverified dealers, unmeasured colours, unsigned product specs. Pricing is deliberately not part of the data model at all — see §2. No operating-cost assessment. |
-| **G5** Feature completeness | Core pages and journeys | ✅ Met | 18 routes + 404, all five core journeys work, 21-route render test. Needs a human review pass. |
-| **G6** System readiness | Integrations, security, monitoring | ⚠️ Technical half done | Notifications, error intake, structured logs, a restore drill, dependency/secret scanning, axe and Lighthouse gates now exist and run in CI. What is still missing is not code: the credentials for a real notification channel and a Sentry DSN are not issued, the production host is not provisioned, and nobody yet owns the alert. |
+| **G5** Feature completeness | Core pages and journeys | ✅ Met | 22 route modules + 404, all five core journeys work, and the phase 11.02 decision-support tools are built (finish finder, surface preparation, project checklist, durable share link, saved estimates). A 29-case render test asserts an `<h1>`, clean markup and honest structured data on every one. Needs a human review pass. |
+| **G6** System readiness | Integrations, security, monitoring | ⚠️ Technical half done | Notifications, error intake, structured logs, a restore drill, dependency/secret scanning, axe and Lighthouse gates now exist and run in CI, and the deployment edges are covered — CORS for a cross-origin front end, proxy-aware rate limiting, a generated colour index, a traversal-safe static root, CSV formula-injection escaping, and a newsletter opt-out endpoint. What is still missing is not code: the credentials for a real notification channel and a Sentry DSN are not issued, the production host is not provisioned, and nobody yet owns the alert. |
 | **G7** Acceptance | Functional, a11y, device, colour, UAT | ❌ Not met | Automated tests pass. No real-device testing, no assistive-technology audit, no colour QA against physical chips, no user acceptance testing. |
 | **G8** Launch | Go/no-go, rollback, smoke, support | ❌ Not started | No production environment, no DNS/TLS, no rollback exercise, no support rota. |
 | **G9** Handover | Ownership, docs, training | ⚠️ Partial | Four good documents exist (`running`, `content-editing`, `deploying`, `qa-checklist`). No training, no support ownership, no maintenance calendar. |
@@ -105,7 +105,8 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 | 1 | ~~**The Vercel project is misconfigured.**~~ **Done.** `app/vercel.json` builds the app, publishes `dist`, serves `/api/*` from `app/api/[...path].js`, and sets the security headers. The project's Root Directory is `app`, which is where the platform looks for both. | Needs one Vercel environment variable, `OPD_API_ORIGIN`, pointing at the enquiry service — and the service itself must be hosted somewhere. Until then the form fails honestly and keeps the answers on the device. |
 | 2 | ~~**No enquiry notification.**~~ **Built**, not yet *switched on*. Webhook and Resend email channels, retries, an audit file and a startup warning when nothing is configured. | The channel credentials are not issued, so production still announces nothing until `OPD_NOTIFY_WEBHOOK` or `OPD_RESEND_API_KEY`/`OPD_NOTIFY_EMAIL`/`OPD_NOTIFY_FROM` are set. See `docs/operations.md`. |
 | 3 | ~~**No error monitoring.**~~ **Built**, both halves: browser reports to `/api/errors` (scrubbed, rate-limited, no PII), server faults logged structurally, optional Sentry forwarding. | A Sentry DSN (or a decision to rely on the JSONL and the log drain) is still a human step. |
-| 4 | ~~**Backups are never restored.**~~ **Done and drilled.** `tools/restore.sh` restores with traversal checks and quarantines damaged lines; `tools/verify-restore.sh` proves the whole round trip on every CI run. | Restoring a *real* archive quarterly remains a human habit, not a script. |
+| 4 | ~~**Twenty-odd defects that only appear in a deployment or in structured data.**~~ **Done.** Fabricated prices and stock claims removed from 59 pages of JSON-LD and guarded by a test; the colour search endpoint no longer parses TypeScript sources the runtime image does not contain; CORS, proxy-aware rate limiting, the static-root traversal guard, CSV formula injection, unstored routing, the service worker's single-key navigation cache, and five half-wired features (server search, quote quantities, the recovered draft, `?type=exterior`, the dealer map marker). Every one is listed with its remedy and its test in [`implementation-audit.md`](implementation-audit.md). | Each of these passed the tests that existed for it, which is the reason the audit added over sixty checks rather than only fixes. |
+| 5 | ~~**Backups are never restored.**~~ **Done and drilled.** `tools/restore.sh` restores with traversal checks and quarantines damaged lines; `tools/verify-restore.sh` proves the whole round trip on every CI run. | Restoring a *real* archive quarterly remains a human habit, not a script. |
 
 ### Phase 09 — Content management (the biggest remaining build)
 
@@ -122,22 +123,45 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 - CRM integration or webhook routing per desk, with retry and failure alerting.
 - Transactional email: enquiry acknowledgement to the customer, notification to
   the desk, CSV/label attachments where useful.
-- Newsletter: double opt-in, unsubscribe, list integration.
+- Newsletter: double opt-in and list integration. (Unsubscribe is built —
+  `POST /api/unsubscribe` writes a suppression record and the footer offers it —
+  because the footer already promised it.)
 - Dealer finder: a real map (privacy-respecting tile provider) or a deliberate
   decision to stay with the current schematic plus list.
 - **Effort: 4–6 days.**
 
-### Phase 11.02 — The missing decision-support tools
+### Phase 11.02 — The missing decision-support tools — ✅ built
 
-- Finish-selection tool (surface → finish → product) as a guided flow, not a
-  filter. *(0.5 day)*
-- Surface-preparation decision support: what to do for new render, old gloss,
-  damp, efflorescence, salt air. *(1 day)*
-- Project checklist export (what to buy, in what order, what to check off).
-  *(1 day)*
-- Share a project: a durable link rather than the current clipboard message
-  *(1–2 days; needs a tiny backend or URL-encoded state)*.
-- **Effort: 3–5 days.**
+All four P1 task groups are implemented, plus the hub that lists them and the
+calculator-to-project link (11.01.15) the checklist needs to be useful:
+
+- **11.02.01 Finish finder** — `/tools/finish-finder`: four questions answered by
+  an explicit, explainable rule table (`app/src/lib/advisor.ts`), returning a
+  topcoat, a runner-up, primer or screed where the substrate needs one, the coat
+  count from the product's own data sheet, a preparation sequence and the reasons
+  in sentences. Where the honest answer is "fix the building first" — a damp wall
+  — it recommends nothing and says why.
+- **11.02.02 Surface preparation** — `/tools/surface-prep` and
+  `?situation=<id>`: ten situations with recognition signs, ordered steps, the
+  products in the order they are used, guide links and hard stops, plus `HowTo`
+  structured data.
+- **11.02.03 Palette pairing** — already satisfied by `ColourDetail`, which shows
+  the palettes a colour belongs to and the role it plays in each; the new tools
+  link into it rather than duplicating it.
+- **11.02.04 Project checklist** — `/project`: measure, confirm, buy, prepare,
+  apply, cure, built from the board and exported as print, clipboard text or a
+  `.txt` download.
+- **11.02.05 Share a project** — a durable link that *is* the state: bounded JSON
+  in base64url on `/project?s=` (`app/src/lib/share.ts`). No backend, no account,
+  no personal data, and defensive decoding because a shared link is untrusted
+  input.
+- **11.02.06 / 11.02.07 remain deliberately unbuilt.** Both are P2, and 11.02.07
+  is gated in the roadmap on validating its utility and safeguards first.
+
+Evidence: `app/src/routes/{Tools,FinishFinder,SurfacePrep,Project}.tsx`,
+`app/src/data/tools.ts`, `app/src/lib/{advisor,share}.ts`, and 30 tests in
+`app/scripts/advisor.test.ts`. Detail in
+[`implementation-audit.md`](implementation-audit.md) §2. **Effort spent: ~4 days.**
 
 ### Phase 16 — Measurement
 
@@ -149,8 +173,12 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 
 ### Phase 17 — Security and reliability hardening
 
-- Dependency and secret scanning in CI (Dependabot, `npm audit`, gitleaks).
-  *(0.5 day)*
+- ~~Dependency and secret scanning in CI (Dependabot, `npm audit`, gitleaks).~~
+  **Done.**
+- ~~Cross-origin policy and proxy-aware rate limiting.~~ **Done:**
+  `OPD_ALLOWED_ORIGIN` and `OPD_TRUST_PROXY`, both tested in
+  `server/edge.test.mjs`. Neither is on by default, and the trust flag is only
+  safe behind a proxy that overwrites `X-Forwarded-For`.
 - MFA on the enquiry inbox, IP allowlist option, and an access log. *(1 day)*
 - Structured logs (JSON), request IDs, log retention. *(1 day)*
 - Uptime monitoring on `/api/health` with an alert that reaches a phone.
@@ -164,11 +192,12 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 
 | Test | Status | Effort |
 | --- | --- | --- |
-| Unit, content-integrity, server, route render | ✅ Done (28 + 21) | — |
-| Browser end-to-end (Playwright: quote, calculator, visualiser, dealer search) | ❌ | 4 days |
-| Automated accessibility (axe on every route) | ❌ | 1 day |
+| Unit, content-integrity, server, route render | ✅ Done (92 + 61 + 29) | — |
+| Browser end-to-end in jsdom (quote, calculator, tools, project, footer, room preview) | ✅ Done (25) | — |
+| Browser end-to-end on real Chromium (Playwright: dealer geolocation, visual regression, pixels) | ❌ jsdom has no canvas implementation, so the room preview's *pixels* are only checked by axe and Lighthouse in CI | 4 days |
+| Automated accessibility (axe on 22 pages, in CI) | ✅ Runs on every pull request — and caught three contrast defects on a new page that no local check could see | — |
 | Visual regression on key pages | ❌ | 2 days |
-| Lighthouse budgets in CI (LCP, CLS, INP on 3G) | ❌ | 1 day |
+| Lighthouse budgets in CI (LCP, CLS, TBT, weight caps) | ✅ Green on every pull request | — |
 | Manual screen-reader audit (NVDA + VoiceOver) | ❌ | 2–3 days + fixes |
 | Real-device testing on a low-end Android over throttled 4G | ❌ | 2 days |
 | Usability testing with 5–8 real customers | ❌ | Human time, 1–2 weeks elapsed |
@@ -204,9 +233,9 @@ Grouped by phase. Effort is indicative engineering time, not elapsed time.
 | **A. Trust and accuracy** | ✅ Strong | Systemic: this is the strongest part of the build. Remaining risk is only the provisional data in §2. |
 | **B. Accessibility** | ⚠️ Designed in, unverified | Everything is keyboard-operable, focus-visible, reduced-motion aware, never colour-only. **Not yet verified with a real screen reader or an automated audit.** |
 | **C. Performance** | ⚠️ Budgeted, unmeasured | 118 kB gzip entry, lazy routes, WebP, preloaded hero, lazy fonts. **No measurement on a real Nigerian mobile connection.** Lighthouse CI closes this. |
-| **D. Security and privacy** | ⚠️ Good baseline | Headers, CSP, constant-time auth, rate limits, honeypot, consent-gated analytics. **Missing: monitoring, MFA, scanning, DSAR process, legal review.** |
-| **E. Maintainability** | ⚠️ Good, one hole | Typed data, tests, generated documents, reproducibility checks, four docs. **The hole is content editing without a CMS.** |
-| **F. Commercial integrity** | ✅ Strong | No price is ever shown — every inquiry routes to a person. `pending-verification` flags, no invented testimonials, no stock claims, concept work labelled as concept. |
+| **D. Security and privacy** | ⚠️ Good baseline | Headers, CSP, constant-time auth, rate limits, honeypot, consent-gated analytics, single-origin CORS, proxy-aware limiting, a traversal-safe static root, CSV formula-injection escaping, and a working newsletter opt-out. **Missing: monitoring, MFA, a DSAR process, legal review.** |
+| **E. Maintainability** | ⚠️ Good, one hole | Typed data, 207 automated checks, generated documents, reproducibility checks, strict TypeScript across `src/`, the config and the test scripts, and seven docs. **The hole is content editing without a CMS.** |
+| **F. Commercial integrity** | ✅ Strong | No price is ever shown — every inquiry routes to a person — and that is now enforced rather than merely intended: the route render test fails the build if any page emits a price, an offer or an availability claim in its structured data. `pending-verification` flags, no invented testimonials, no stock claims, concept work labelled as concept. |
 
 ---
 
@@ -217,7 +246,7 @@ to hit a date — the README is explicit about that.
 
 **Print collateral — ✅ the colour book**
 A dealer-facing A5 brochure, 32 pages, generated from the same data the website
-serves: nine family chapters, eight palettes with a role per wall, the jobs on the
+serves: nine family chapters, nine palettes with a role per wall, the jobs on the
 wall, one colour under four lights, the specification table and the arithmetic for
 sizing a job, an index by room, and a colophon. Byte-reproducible, so the assets
 check treats it like any other committed artefact. Evidence:
@@ -339,14 +368,14 @@ README's Definition of Done applied to the whole thing:
 
 | Area | Completion |
 | --- | --- |
-| The website itself (design, pages, journeys, tools) | **~95%** |
-| Automated engineering quality (tests, CI, reproducibility, a11y gates) | **~92%** |
-| Truthful content model and guardrails | **~90%** |
+| The website itself (design, pages, journeys, tools) | **~97%** |
+| Automated engineering quality (tests, CI, reproducibility, a11y gates) | **~95%** |
+| Truthful content model and guardrails | **~93%** |
 | Authoritative product and colour data | **~15%** |
 | Verification with real users and assistive tech | **~0%** |
 | Production operations (deploy, monitor, back up, support) | **~45%** — the machinery exists and is drilled; nothing is provisioned and nobody is on call |
 | Content management for non-engineers | **~0%** |
-| Whole project against all 75 roadmap task groups | **~57%** |
+| Whole project against all 75 roadmap task groups | **~60%** |
 
 The remaining half is not more design or more features. It is **data, evidence,
 operations and decisions** — which is exactly what the roadmap says the second

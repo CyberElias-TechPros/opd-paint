@@ -16,6 +16,18 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Type safety.
+     *
+     * `strict` was documented as on in docs/qa-checklist.md while it was off
+     * here — the kind of gap that makes a checklist say more than the build
+     * proves. `exactOptionalPropertyTypes` is the part that earns its keep on
+     * this codebase: `image?: string` and `image?: string | undefined` are
+     * different promises, and SEO metadata is built from optional fields that
+     * get spread into JSON-LD.
+     */
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,

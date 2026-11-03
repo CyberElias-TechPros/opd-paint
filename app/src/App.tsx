@@ -30,6 +30,10 @@ const ProjectDetail = lazy(() => import('./routes/ProjectDetail'))
 const Advice = lazy(() => import('./routes/Advice'))
 const GuideDetail = lazy(() => import('./routes/GuideDetail'))
 const Dealers = lazy(() => import('./routes/Dealers'))
+const Tools = lazy(() => import('./routes/Tools'))
+const FinishFinder = lazy(() => import('./routes/FinishFinder'))
+const SurfacePrep = lazy(() => import('./routes/SurfacePrep'))
+const ProjectPage = lazy(() => import('./routes/Project'))
 const Quote = lazy(() => import('./routes/Quote'))
 const About = lazy(() => import('./routes/About'))
 const DataPage = lazy(() => import('./routes/DataPage'))
@@ -170,6 +174,10 @@ export function App() {
               <Route path="/products/:id" element={<ProductDetail />} />
               <Route path="/room-preview" element={<RoomPreview />} />
               <Route path="/calculator" element={<CalculatorPage />} />
+              <Route path="/tools" element={<Tools />} />
+              <Route path="/tools/finish-finder" element={<FinishFinder />} />
+              <Route path="/tools/surface-prep" element={<SurfacePrep />} />
+              <Route path="/project" element={<ProjectPage />} />
               <Route path="/inspiration" element={<Inspiration />} />
               <Route path="/inspiration/:id" element={<ProjectDetail />} />
               <Route path="/advice" element={<Advice />} />

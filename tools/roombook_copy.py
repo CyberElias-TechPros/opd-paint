@@ -25,7 +25,7 @@ CITY = "Port Harcourt"
 EDITION = "2026"
 
 VOLUMES = [
-    ("Colour Book", "the library, indexed by colour — nine families, 59 colours, 8 palettes"),
+    ("Colour Book", "the library, indexed by colour — nine families, 59 colours, 9 palettes"),
     ("Room Book", "the library, indexed by the job the colour has to do"),
 ]
 

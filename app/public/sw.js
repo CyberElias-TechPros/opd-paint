@@ -15,7 +15,10 @@
  * Bump CACHE_VERSION when the offline page or the shell changes.
  */
 
-const CACHE_VERSION = 'opudas-v1'
+// v2: navigation responses are cached under their own URL. v1 wrote every page
+// a visitor opened to the single key '/', so the offline fallback was whichever
+// page happened to be loaded last — /colours answered a request for /.
+const CACHE_VERSION = 'opudas-v2'
 const SHELL = ['/', '/offline.html', '/brand/mark.svg', '/site.webmanifest']
 
 self.addEventListener('install', (event) => {
@@ -56,12 +59,25 @@ self.addEventListener('fetch', (event) => {
       (async () => {
         try {
           const response = await fetch(request)
-          const cache = await caches.open(CACHE_VERSION)
-          cache.put('/', response.clone())
+          // Only a real page goes in the cache: a 404 must not become the
+          // offline answer for the URL that produced it.
+          if (response.ok) {
+            const cache = await caches.open(CACHE_VERSION)
+            await cache.put(request, response.clone())
+            // The shell is also kept under '/' so a first-ever offline visit to
+            // any unknown path still lands somewhere useful.
+            if (url.pathname === '/') await cache.put('/', response.clone())
+          }
           return response
         } catch {
           const cache = await caches.open(CACHE_VERSION)
-          return (await cache.match('/')) || (await cache.match('/offline.html')) || Response.error()
+          // This exact page first, then the shell, then the branded offline page.
+          return (
+            (await cache.match(request)) ||
+            (await cache.match('/')) ||
+            (await cache.match('/offline.html')) ||
+            Response.error()
+          )
         }
       })(),
     )
@@ -76,7 +92,7 @@ self.addEventListener('fetch', (event) => {
       const cached = await cache.match(request)
       const network = fetch(request)
         .then((response) => {
-          if (response.ok) cache.put(request, response.clone())
+          if (response.ok) cache.put(request, response.clone()).catch(() => {})
           return response
         })
         .catch(() => null)

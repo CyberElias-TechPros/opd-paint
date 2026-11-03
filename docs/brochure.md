@@ -5,7 +5,7 @@ laid out by hand:
 
 | Document | File | Format | Organised by |
 | --- | --- | --- | --- |
-| Colour Book | `app/public/documents/opudas-colour-book.pdf` | A5, 32 pp | colour — nine families, 59 colours, 8 palettes |
+| Colour Book | `app/public/documents/opudas-colour-book.pdf` | A5, 32 pp | colour — nine families, 59 colours, nine palettes |
 | Room Book | `app/public/documents/opudas-room-book.pdf` | A5, 20 pp | the job the colour has to do — four methods, sixteen colourways |
 | Colour Wheel | `app/public/documents/opudas-colour-wheel.pdf` | A4, 3 pp | a single-sheet quick reference — the wheel, the full swatch grid, the library |
 | Specification Sheet | `app/public/documents/opudas-spec-sheet.pdf` | A4 landscape, 2 pp | the six products, by the surface they go on |
@@ -46,7 +46,7 @@ the bytes shows up as a failing check rather than as a mystery diff.
 | 4 | How to read a colour: the code, the family, the undertone, the LRV — and what the book cannot do |
 | 5 | The argument: colour has a job to do |
 | 6–23 | Nine family chapters. Each opens on a full page of the family's lead colour with the idea behind it, then shows the range with codes, LRVs, undertones and hex |
-| 24–26 | Eight palettes, with a role for every wall |
+| 24–26 | Nine palettes, with a role for every wall (three to a page) |
 | 27 | Three jobs on the wall, with the palette specified for each |
 | 28 | One colour, four lights — why a colour chosen at noon can feel wrong at dinner |
 | 29 | Specification: finish, coverage and packs per product, and the arithmetic for sizing a job |
@@ -142,7 +142,7 @@ The photographs on page 27 are the site's own job photography, cropped to the
 page. They are documentary — a wall being painted, a finished facade — which is
 the honest thing for this brand, but it is not the aspirational interior
 photography the mass-market brochures use. If a print run is going to a dealer's
-counter, walk through the eight palettes and confirm each one has a photograph
+counter, walk through the nine palettes and confirm each one has a photograph
 that shows the finished colours it names.
 
 
