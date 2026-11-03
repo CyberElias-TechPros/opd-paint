@@ -107,7 +107,9 @@ android {
          * so the console is the one place the findings are guaranteed to be seen.
          */
         textReport = true
-        textOutput = "stdout"
+        // `file("stdout")`, not the string "stdout": the property is a File, and
+        // Lint treats one named `stdout` as "write to the console".
+        textOutput = file("stdout")
         explainIssues = true
     }
 
@@ -126,13 +128,19 @@ android {
          * Gradle's default is to point at an HTML report under build/reports,
          * which is unreachable from a sandbox that cannot open the Actions log
          * host either — so the failure would be visible only as a red check.
+         *
+         * Named parameters rather than `it`: `all` takes a Gradle `Action<Test>`,
+         * whose SAM conversion hands the task over as an argument rather than as
+         * the lambda's receiver, and the inner `Action<TestLogging>` would shadow
+         * `it` anyway.
          */
-        unitTests.all {
-            testLogging {
-                events("failed", "skipped")
-                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-                showStackTraces = true
-                showCauses = true
+        unitTests.all { test ->
+            test.testLogging { logging ->
+                logging.events("failed", "skipped")
+                logging.exceptionFormat =
+                    org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                logging.showStackTraces = true
+                logging.showCauses = true
             }
         }
     }
