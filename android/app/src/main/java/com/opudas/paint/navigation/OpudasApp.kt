@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -20,6 +21,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.opudas.paint.core.designsystem.TabGlyph
+import com.opudas.paint.core.util.AppCopy
+import com.opudas.paint.core.util.openWeb
 import com.opudas.paint.feature.calculator.CalculatorScreen
 import com.opudas.paint.feature.colours.ColourDetailScreen
 import com.opudas.paint.feature.colours.ColoursScreen
@@ -27,6 +30,7 @@ import com.opudas.paint.feature.home.HomeScreen
 import com.opudas.paint.feature.more.MoreScreen
 import com.opudas.paint.feature.products.ProductDetailScreen
 import com.opudas.paint.feature.products.ProductsScreen
+import com.opudas.paint.feature.quote.QuoteScreen
 
 /**
  * The app's shell: one scaffold, one navigation graph, one bottom bar.
@@ -37,6 +41,8 @@ import com.opudas.paint.feature.products.ProductsScreen
  */
 @Composable
 fun OpudasApp(navController: NavHostController = rememberNavController()) {
+    val context = LocalContext.current
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val showBar = TopLevelDestination.entries.any { tab ->
@@ -148,6 +154,47 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     onOpenColourLibrary = { navController.navigate(Destinations.COLOURS) },
                     onOpenProducts = { navController.navigate(Destinations.PRODUCTS) },
                     onOpenCalculator = { navController.navigate(Destinations.CALCULATOR) },
+                    onOpenQuote = { navController.navigate(Destinations.QUOTE) },
+                )
+            }
+
+            /*
+             * One registration for the bare route and the one carrying context: all
+             * three arguments are nullable with defaults, so "quote" and
+             * "quote?productId=matt&quantity=9%20tins" both match here.
+             */
+            composable(
+                route = Destinations.QUOTE_WITH_CONTEXT,
+                arguments = listOf(
+                    navArgument("colourId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                    navArgument("productId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                    navArgument("quantity") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
+            ) { entry ->
+                QuoteScreen(
+                    onBack = { navController.popBackStack() },
+                    /*
+                     * The notice opens on the website until the in-app legal
+                     * screens exist. That is better than a route that goes nowhere:
+                     * the consent wording refers to the notice, and a reference to
+                     * a document nobody can open is not a reference.
+                     */
+                    onOpenPrivacyNotice = { context.openWeb(AppCopy.WEBSITE + "/legal/privacy") },
+                    colourId = entry.arguments?.getString("colourId"),
+                    productId = entry.arguments?.getString("productId"),
+                    quantity = entry.arguments?.getString("quantity"),
                 )
             }
         }

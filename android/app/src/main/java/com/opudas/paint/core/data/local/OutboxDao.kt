@@ -31,10 +31,10 @@ interface OutboxDao {
     fun observePendingCount(): Flow<Int>
 
     @Query(
-        "UPDATE outbox SET state = 'sent', reference = :reference, sentAt = :sentAt, " +
-            "lastError = NULL, fieldErrors = NULL WHERE id = :id",
+        "UPDATE outbox SET state = 'sent', reference = :reference, responseJson = :responseJson, " +
+            "sentAt = :sentAt, lastError = NULL, fieldErrors = NULL WHERE id = :id",
     )
-    suspend fun markSent(id: Long, reference: String?, sentAt: Long)
+    suspend fun markSent(id: Long, reference: String?, responseJson: String?, sentAt: Long)
 
     /**
      * Record a refusal.

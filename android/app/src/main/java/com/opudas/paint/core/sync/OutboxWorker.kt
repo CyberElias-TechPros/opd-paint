@@ -27,8 +27,14 @@ import kotlinx.serialization.json.Json
 /** What one delivery attempt concluded. */
 private sealed interface Delivery {
 
-    /** The service accepted it. [reference] is the service's own, shown to the person. */
-    data class Accepted(val reference: String?) : Delivery
+    /**
+     * The service accepted it.
+     *
+     * [reference] is the service's own. [responseJson] is its whole reply, kept so
+     * the confirmation can name the desk and the deadline rather than only a
+     * number — see [com.opudas.paint.core.data.local.OutboxEntity.responseJson].
+     */
+    data class Accepted(val reference: String?, val responseJson: String?) : Delivery
 
     /**
      * The service refused it, with reasons.
@@ -82,7 +88,7 @@ class OutboxWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         for (entry in entries) {
             when (val outcome = deliver(api, json, entry)) {
                 is Delivery.Accepted ->
-                    dao.markSent(entry.id, outcome.reference, System.currentTimeMillis())
+                    dao.markSent(entry.id, outcome.reference, outcome.responseJson, System.currentTimeMillis())
 
                 is Delivery.Refused ->
                     dao.markAttempted(entry.id, SubmissionState.FAILED.id, outcome.message, outcome.fieldErrors)
@@ -142,7 +148,7 @@ class OutboxWorker(context: Context, params: WorkerParameters) : CoroutineWorker
     }
 
     private fun toDelivery(json: Json, result: ApiResult<*>): Delivery = when (result) {
-        is ApiResult.Success<*> -> Delivery.Accepted(referenceOf(result.value))
+        is ApiResult.Success<*> -> Delivery.Accepted(referenceOf(result.value), responseJsonOf(json, result.value))
         is ApiResult.Rejected -> Delivery.Refused(result.message, encodeFields(json, result.fields))
         is ApiResult.Unreachable -> Delivery.Unreachable(result.reason)
     }
@@ -183,6 +189,15 @@ class OutboxWorker(context: Context, params: WorkerParameters) : CoroutineWorker
                 fields,
             )
         }
+
+    /** The reply, kept whole. Every kind has its own shape, so each gets its own serializer. */
+    private fun responseJsonOf(json: Json, value: Any?): String? = when (value) {
+        is QuoteResponse -> json.encodeToString(QuoteResponse.serializer(), value)
+        is PrivacyResponse -> json.encodeToString(PrivacyResponse.serializer(), value)
+        is SubscribeResponse -> json.encodeToString(SubscribeResponse.serializer(), value)
+        is UnsubscribeResponse -> json.encodeToString(UnsubscribeResponse.serializer(), value)
+        else -> null
+    }
 
     private fun <T> decode(json: Json, serializer: KSerializer<T>, payload: String): T? = try {
         json.decodeFromString(serializer, payload)

@@ -32,7 +32,11 @@ data class OutboxItem(
     val createdAt: Long,
     val attempts: Int,
     val lastError: String?,
+    /** Per-field refusals as JSON, so they can go back on the inputs that caused them. */
+    val fieldErrors: String?,
     val reference: String?,
+    /** The service's reply as JSON, for an accepted submission. */
+    val responseJson: String?,
     val sentAt: Long?,
 ) {
     val isPending: Boolean
@@ -121,7 +125,9 @@ class SubmissionRepository(
         createdAt = createdAt,
         attempts = attempts,
         lastError = lastError,
+        fieldErrors = fieldErrors,
         reference = reference,
+        responseJson = responseJson,
         sentAt = sentAt,
     )
 

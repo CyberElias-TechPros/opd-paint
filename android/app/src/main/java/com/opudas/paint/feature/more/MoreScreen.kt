@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Search
@@ -74,6 +75,7 @@ fun MoreScreen(
     onOpenColourLibrary: () -> Unit,
     onOpenProducts: () -> Unit,
     onOpenCalculator: () -> Unit,
+    onOpenQuote: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -146,6 +148,12 @@ fun MoreScreen(
                         title = "Size a job",
                         subtitle = "Measure a room and get the tins it takes",
                         onClick = onOpenCalculator,
+                    )
+                    LinkRow(
+                        icon = Icons.AutoMirrored.Filled.Send,
+                        title = "Ask for a quote",
+                        subtitle = "Saved on this phone, sent when there is a signal",
+                        onClick = onOpenQuote,
                     )
                 }
             }

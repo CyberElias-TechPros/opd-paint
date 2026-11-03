@@ -82,5 +82,18 @@ data class OutboxEntity(
     val fieldErrors: String? = null,
     /** The service's reference once accepted — `OPD-…` or `DSAR-…`. */
     val reference: String? = null,
+    /**
+     * The service's whole reply, as JSON.
+     *
+     * Kept because a reference number is not the whole confirmation. The website
+     * tells the person which desk their enquiry was routed to and how many working
+     * hours it aims to reply within; a phone that stored only the reference would
+     * show a weaker confirmation than a browser, from the same service, about the
+     * same enquiry — and the desk and the deadline are the two things somebody
+     * reads back when they call to chase it.
+     *
+     * Small, and only ever written for an accepted submission.
+     */
+    val responseJson: String? = null,
     val sentAt: Long? = null,
 )
