@@ -92,8 +92,23 @@ android {
 
     lint {
         abortOnError = true
+        // Warnings stay warnings. Several are worth reading and none is worth
+        // blocking a build over; errors are, and the difference is the point of
+        // having the setting at all.
         warningsAsErrors = false
         checkDependencies = true
+
+        /*
+         * Findings go to the console as well as the reports directory, with the
+         * explanation text included. Lint writes its detail to HTML and XML under
+         * build/reports, and a build failure that can only be read in a browser is
+         * a failure nobody fixes: this repository's Android build runs in CI
+         * because no development machine here can reach Google's Maven repository,
+         * so the console is the one place the findings are guaranteed to be seen.
+         */
+        textReport = true
+        textOutput = "stdout"
+        explainIssues = true
     }
 
     testOptions {
@@ -105,6 +120,21 @@ android {
          * one that needs an emulator.
          */
         unitTests.isReturnDefaultValues = true
+
+        /*
+         * A failing test names itself, with its full exception, in the console.
+         * Gradle's default is to point at an HTML report under build/reports,
+         * which is unreachable from a sandbox that cannot open the Actions log
+         * host either — so the failure would be visible only as a red check.
+         */
+        unitTests.all {
+            testLogging {
+                events("failed", "skipped")
+                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                showStackTraces = true
+                showCauses = true
+            }
+        }
     }
 }
 

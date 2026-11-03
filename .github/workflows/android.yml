@@ -147,22 +147,53 @@ jobs:
           set -uo pipefail
           log="gradle-output.txt"
           [ -f "$log" ] || log="/dev/null"
+          lint="android/app/build/reports/lint-results-debug.txt"
           {
             echo "### Android build failed on \`${GITHUB_SHA:0:7}\`"
             echo
             echo "Job: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
             echo
+            echo '#### Compiler and Gradle'
+            echo
             echo '```'
-            # Compiler errors first, then Gradle's own summary. Kotlin writes
-            # `e: file:///path:line:col: message`, which is the part worth reading.
+            # Kotlin writes `e: file:///path:line:col: message`, which is the part
+            # worth reading; the rest is Gradle explaining that it stopped.
             grep -E "^e: |^error: |FAILURE:|What went wrong|Execution failed|Caused by:|> Task .* FAILED" "$log" \
-              | head -100 || true
+              | head -60 || true
             echo '```'
             echo
-            echo '<details><summary>last 60 lines</summary>'
+            echo '#### Lint'
             echo
             echo '```'
-            tail -60 "$log" || true
+            # Lint prints `path:line: Error: message [IssueId]`. Its own summary
+            # line is only "Lint found errors in the project", which says that
+            # something is wrong and nothing about what, so the findings are
+            # extracted here as well as printed by the build.
+            grep -E "(Error|Warning): .*\[[A-Za-z0-9]+\]$" "$log" | head -60 || true
+            if [ -f "$lint" ]; then
+              echo
+              echo "--- $lint ---"
+              head -150 "$lint" || true
+            fi
+            echo '```'
+            echo
+            echo '#### Unit tests'
+            echo
+            echo '```'
+            # The test task prints failures to the console (see testLogging in
+            # app/build.gradle.kts). The XML results are swept up too, because a
+            # crash in test setup can leave the console saying very little.
+            grep -E "^.*Test.*FAILED|tests? (completed|failed)" "$log" | head -40 || true
+            for file in android/app/build/test-results/testDebugUnitTest/*.xml; do
+              [ -f "$file" ] || continue
+              grep -hoE 'testcase name="[^"]+" classname="[^"]+"|<failure message="[^"]{0,300}' "$file" || true
+            done | head -60
+            echo '```'
+            echo
+            echo '<details><summary>last 80 lines</summary>'
+            echo
+            echo '```'
+            tail -80 "$log" || true
             echo '```'
             echo
             echo '</details>'
