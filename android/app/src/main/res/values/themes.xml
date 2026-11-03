@@ -3,6 +3,13 @@
   A platform Material theme, not AppCompat or Material Components: the app has
   no XML views to theme, so pulling in a second widget library to colour a
   window background would be paying for something Compose already does.
+
+  This is the definition for API 24 to 26. Everything newer than API 23 that the
+  brand wants lives in a qualified folder — `values-v27` for the navigation bar,
+  `values-v31` for the splash screen — because an attribute that does not exist on
+  the running system is not merely ignored: on some devices manufacturers reused
+  the ids, so it can mean something else. Lint enforces this as a NewApi error,
+  and it is right to.
 -->
 <resources>
     <style name="Theme.OpudasPaint" parent="android:Theme.Material.Light.NoActionBar">
@@ -11,6 +18,5 @@
         <item name="android:navigationBarColor">@color/paper</item>
         <!-- Dark icons on a light bar. API 23+, and minSdk is 24. -->
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>

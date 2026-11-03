@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The API 27 addition to the base theme: dark icons on a light navigation bar.
+
+  `android:windowLightNavigationBar` does not exist before API 27, and minSdk is
+  24, so it cannot live in `values/themes.xml` — lint reports it as a NewApi
+  error, and worse than the error is the runtime hazard lint describes: on some
+  devices manufacturers added custom attributes whose ids collide with later
+  platform ones, so an unqualified newer attribute can be read by an older system
+  as something else entirely. Qualifying it into `values-v27` means it is only
+  ever inflated where it exists.
+
+  `values-v31` repeats the attribute rather than inheriting it: resource
+  qualifiers replace a whole style, they do not merge into it, so each qualified
+  version carries the complete definition for its range.
+-->
+<resources>
+    <style name="Theme.OpudasPaint" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/paper</item>
+        <item name="android:statusBarColor">@color/paper</item>
+        <item name="android:navigationBarColor">@color/paper</item>
+        <!-- Dark icons on a light bar. API 23+, and minSdk is 24. -->
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Dark icons on a light navigation bar. API 27+, hence this folder. -->
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>
