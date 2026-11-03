@@ -537,6 +537,68 @@ def check_internal_imports(
     return errors
 
 
+EXTERNAL_CONFLICT_ALLOWLIST: set[frozenset[str]] = {
+    # Both are real and both are used: the colour library is a grid, everything
+    # else is a list. Looked at, and correct as it stands.
+    frozenset(
+        {
+            "androidx.compose.foundation.lazy.grid.items",
+            "androidx.compose.foundation.lazy.items",
+        }
+    ),
+}
+"""
+Import contradictions that are known to be legitimate.
+
+A simple name can genuinely live in two packages — `Text` exists in both
+`androidx.compose.material3` and `androidx.compose.foundation.text`, and a tree
+may use both. Those pairs go here once they have been looked at and confirmed, so
+that the ones left are worth reading.
+"""
+
+
+def check_import_agreement(
+    imports_by_file: dict[str, list[tuple[int, str]]],
+) -> list[str]:
+    """
+    One simple name imported from two different packages somewhere in the tree.
+
+    At most one of the two can resolve, so a contradiction like this is a compile
+    error in whichever file guessed wrong — and this tool cannot say which,
+    because it does not know the contents of any dependency. It knows only that
+    two files here disagree about where `KeyboardOptions` lives, which is enough
+    to be worth a look before a build spends five minutes finding out.
+
+    Advisory rather than fatal for the same reason: the disagreement can be
+    legitimate, and a check that cries wolf on every run gets ignored.
+    """
+    seen: dict[str, dict[str, list[str]]] = {}
+    for path, entries in imports_by_file.items():
+        short = path.split("com/opudas/paint/")[-1]
+        for line_no, qualified in entries:
+            # Internal imports are checked against real declarations elsewhere;
+            # wildcard imports say nothing about a simple name.
+            if qualified.startswith("com.opudas.") or qualified.endswith(".*"):
+                continue
+            simple = qualified.rsplit(".", 1)[-1]
+            seen.setdefault(simple, {}).setdefault(qualified, []).append(f"{short}:{line_no}")
+
+    out: list[str] = []
+    for simple, by_qualified in sorted(seen.items()):
+        if len(by_qualified) < 2:
+            continue
+        qualified = sorted(by_qualified)
+        if frozenset(qualified) in EXTERNAL_CONFLICT_ALLOWLIST:
+            continue
+        detail = "; ".join(
+            f"{name} ({', '.join(sorted(set(by_qualified[name])))})" for name in qualified
+        )
+        out.append(
+            f"'{simple}' is imported from two packages, so one of these files cannot compile: {detail}"
+        )
+    return out
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--android-dir", default=None, help="android project root")
@@ -558,6 +620,7 @@ def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
     unscannable: set[str] = set()
+    imports_by_file: dict[str, list[tuple[int, str]]] = {}
 
     for path in kotlin_files:
         text = open(path, encoding="utf-8").read()
@@ -573,6 +636,7 @@ def main() -> int:
         errors.extend(check_interpolations(text, path))
 
         warnings.extend(check_ctor_param_scope(stripped, path))
+        imports_by_file[path] = imports_of(stripped)
         if problems or structural:
             # Only a comment or brace failure hides a file's declarations. The
             # other checks find a defect without making anything invisible, so
@@ -586,6 +650,7 @@ def main() -> int:
     errors.extend(check_resources(kotlin_files, android_dir))
     errors.extend(check_assets(kotlin_files, android_dir))
     errors.extend(check_internal_imports(kotlin_files, android_dir, unscannable))
+    warnings.extend(check_import_agreement(imports_by_file))
 
     if unscannable:
         print(
