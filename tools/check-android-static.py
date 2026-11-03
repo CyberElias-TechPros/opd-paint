@@ -17,7 +17,9 @@ invisible to the eye but fatal to `kotlinc`:
      Kotlin resolves these at compile time, so a typo is a build failure, not a
      warning.
   4. Asset paths in the generated bundle that are not actually bundled.
-  5. Imports of symbols from this project's own packages that nothing declares.
+  5. A `return` inside an expression-body function, which Kotlin rejects outright
+     rather than treating as a warning.
+  6. Imports of symbols from this project's own packages that nothing declares.
      Library imports cannot be checked without a classpath and are skipped; this
      project's own can be, because the declarations are all here. The names the
      Android Gradle Plugin generates into the module namespace are excepted:
@@ -204,6 +206,35 @@ def split_import(qualified: str) -> tuple[str, str]:
     if index == 0 or index >= len(parts):
         return qualified, ""
     return ".".join(parts[:index]), parts[index]
+
+
+# `fun f(x: T): R = expr` — an expression body. The capture group is the expression.
+EXPRESSION_BODY_RE = re.compile(r"\bfun\s+[\w.<>`]+\s*\([^)]*\)\s*(?::[^={]*)?=\s*(.+)$")
+
+
+def check_expression_body_returns(stripped: str, path: str) -> list[str]:
+    """
+    A `return` in an expression-body function is a compile error, not a warning:
+    "Returns are prohibited for functions with an expression body."
+
+    `return@label` is legal — that is a lambda's own return — so it is not
+    reported. Only single-line bodies are checked: delimiting a body wrapped over
+    several lines needs a real parser, and the one-line form is the one that reads
+    naturally, so it is the one that gets written.
+    """
+    errors = []
+    for line_no, line in enumerate(stripped.splitlines(), start=1):
+        if "{" in line:
+            continue  # a block body or a lambda: `return` is fine there
+        match = EXPRESSION_BODY_RE.search(line)
+        if not match:
+            continue
+        if re.search(r"\breturn\b(?!@)", match.group(1)):
+            errors.append(
+                f"{path}:{line_no}: `return` inside an expression-body function — "
+                "Kotlin prohibits it. Use a block body, or `?.let { }`."
+            )
+    return errors
 
 
 def check_balance(stripped: str, path: str) -> list[str]:
@@ -413,6 +444,7 @@ def main() -> int:
         for line_no, message in problems:
             errors.append(f"{path}:{line_no}: {message}")
         unbalanced = check_balance(stripped, path)
+        unbalanced.extend(check_expression_body_returns(stripped, path))
         errors.extend(unbalanced)
         if problems or unbalanced:
             # Declarations in this file cannot be trusted, so do not accuse other

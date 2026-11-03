@@ -58,7 +58,15 @@ class BrandTokens(bundle: ThemeBundle) {
     /** The same lookup, for the cases where "no such token" has a meaning of its own. */
     fun find(name: String): Color? = resolved[name]
 
-    fun rgb(name: String): Rgb? = parseHex(bundle.colors[name] ?: return null)
+    /**
+     * The token as raw red/green/blue, for the arithmetic that has to happen in
+     * integers. Null when the bundle has no such token, or its value is not a
+     * colour this code can parse.
+     *
+     * Written as a `let` rather than `?: return null`: an expression-body function
+     * may not contain `return`, and the compiler says so only after a full build.
+     */
+    fun rgb(name: String): Rgb? = bundle.colors[name]?.let { parseHex(it) }
 
     /** Corner radius by token name, in dp. */
     fun radius(name: String) = (radii[name] ?: 12).dp
