@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 /*
@@ -122,27 +124,6 @@ android {
          * one that needs an emulator.
          */
         unitTests.isReturnDefaultValues = true
-
-        /*
-         * A failing test names itself, with its full exception, in the console.
-         * Gradle's default is to point at an HTML report under build/reports,
-         * which is unreachable from a sandbox that cannot open the Actions log
-         * host either — so the failure would be visible only as a red check.
-         *
-         * Named parameters rather than `it`: `all` takes a Gradle `Action<Test>`,
-         * whose SAM conversion hands the task over as an argument rather than as
-         * the lambda's receiver, and the inner `Action<TestLogging>` would shadow
-         * `it` anyway.
-         */
-        unitTests.all { test ->
-            test.testLogging { logging ->
-                logging.events("failed", "skipped")
-                logging.exceptionFormat =
-                    org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-                logging.showStackTraces = true
-                logging.showCauses = true
-            }
-        }
     }
 }
 
@@ -253,4 +234,30 @@ dependencies {
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+/*
+ * A failing test names itself, with its full exception, in the console.
+ *
+ * Configured here rather than through `android.testOptions.unitTests.all`, which
+ * AGP declares with both a Groovy `Closure` and a Gradle `Action` overload: a
+ * lambda with a named parameter does not resolve between the two, and the
+ * resulting error points at the lambda instead of at the ambiguity.
+ * `tasks.withType` has one overload, and the task is the lambda's receiver, so
+ * `testLogging` and its own settings are both in scope.
+ *
+ * The reason to do this at all is that Gradle's default is to report a failing
+ * test as a path to an HTML report under build/reports. This repository's Android
+ * build runs in CI because no development machine here can reach Google's Maven
+ * repository, and the Actions log host is not reachable from here either — so a
+ * failure that is only in a report is a failure that cannot be read, and cannot
+ * be fixed.
+ */
+tasks.withType<Test>().configureEach {
+    testLogging {
+        events("failed", "skipped")
+        exceptionFormat = TestExceptionFormat.FULL
+        showStackTraces = true
+        showCauses = true
+    }
 }
