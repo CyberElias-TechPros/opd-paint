@@ -135,9 +135,16 @@ kotlin {
 
 ksp {
     /*
-     * Room schemas are exported and committed. A migration without the schema it
+     * Room schemas are exported to app/schemas. A migration without the schema it
      * migrates *from* cannot be tested, and an untested migration against a
      * database holding somebody's queued enquiries is a way to lose them.
+     *
+     * The generated JSON is not in the repository yet, and cannot be produced
+     * anywhere except a machine with the Android toolchain: the build writes it
+     * during KSP. The Android workflow therefore uploads app/schemas as an
+     * artifact, and the first build on a machine that has one should have its
+     * output committed. Until then the export is on and the directory is empty —
+     * which is a gap to close, not a reason to turn the export off.
      */
     arg("room.schemaLocation", "$projectDir/schemas")
     arg("room.incremental", "true")

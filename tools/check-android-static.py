@@ -162,7 +162,8 @@ DECLARATION_RE = re.compile(
         (?:@\w+(?:\([^)]*\))?\s+)*                     # annotations
         (?:(?:public|internal|private|protected)\s+)?  # visibility
         (?:(?:actual|expect|abstract|sealed|open|data|value|enum|annotation|inline|
-             external|suspend|tailrec|operator|infix|const|lateinit|vararg)\s+)*
+             external|suspend|tailrec|operator|infix|const|lateinit|vararg|
+             fun|companion|inner)\s+)*
         (?:class|object|interface|fun|val|var|typealias)\s+
         (?:<[^>]*>\s*)?                                # receiver generics
         (?:[\w.<>?\[\]]+\.)?                           # extension receiver

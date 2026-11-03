@@ -219,6 +219,19 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # Room writes the schema JSON during KSP. It is not in the repository yet:
+      # nothing in this sandbox can run Gradle to produce it, and a hand-written
+      # schema would be a guess at a file a build owns. Uploading it means the
+      # first person with a toolchain can commit the real thing rather than
+      # reconstruct it, and it keeps migration testing possible later.
+      - name: Upload generated Room schemas
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-room-schemas
+          path: android/app/schemas/**
+          if-no-files-found: warn
+          retention-days: 14
+
       # A red build with no report attached is a red build nobody can diagnose:
       # Actions logs are awkward to read and they expire. These do not.
       - name: Upload reports on failure
