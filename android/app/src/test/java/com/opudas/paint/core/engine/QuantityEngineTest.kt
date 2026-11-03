@@ -107,6 +107,23 @@ class QuantityEngineTest {
     }
 
     @Test
+    fun `converting to metres and back returns the original length`() {
+        // The inverse exists so the calculator's unit switch can convert the
+        // numbers rather than silently relabelling them: 4.2 m read as 4.2 ft is
+        // a third of the wall, and a third of the paint.
+        listOf(0.0, 1.0, 4.2, 2.9, 13.7795).forEach { value ->
+            val there = toMetres(value, MeasureSystem.IMPERIAL)
+            assertEquals(value, fromMetres(there, MeasureSystem.IMPERIAL), TOLERANCE)
+            assertEquals(value, fromMetres(toMetres(value, MeasureSystem.METRIC), MeasureSystem.METRIC), TOLERANCE)
+        }
+        val area = 12.5
+        assertEquals(area, fromSquareMetres(toSquareMetres(area, MeasureSystem.IMPERIAL), MeasureSystem.IMPERIAL), TOLERANCE)
+        // 14 ft is 4.2672 m, so 4.2672 m is 14 ft.
+        assertEquals(14.0, fromMetres(4.2672, MeasureSystem.IMPERIAL), TOLERANCE)
+        assertEquals(4.2672, toMetres(14.0, MeasureSystem.IMPERIAL), TOLERANCE)
+    }
+
+    @Test
     fun `opening area respects count`() {
         val area = openingArea(
             Opening(id = "x", kind = OpeningKind.WINDOW, width = 1.2, height = 1.2, count = 3),

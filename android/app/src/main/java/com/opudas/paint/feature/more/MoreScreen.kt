@@ -15,8 +15,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -42,6 +44,7 @@ import com.opudas.paint.core.designsystem.FactRow
 import com.opudas.paint.core.designsystem.HonestNote
 import com.opudas.paint.core.designsystem.LoadingState
 import com.opudas.paint.core.designsystem.SectionHeader
+import com.opudas.paint.core.util.AppCopy
 import com.opudas.paint.core.util.dial
 import com.opudas.paint.core.util.openWeb
 import com.opudas.paint.core.util.openWhatsApp
@@ -56,9 +59,6 @@ import com.opudas.paint.core.util.sendEmail
  * including how much of it the commercial team has not confirmed yet.
  */
 
-private const val WEBSITE = "https://opudapaint.com"
-private const val PRIVACY_EMAIL = "hello@opudapaint.com"
-
 @Composable
 private fun rememberMoreViewModel(): MoreViewModel {
     val context = LocalContext.current
@@ -72,6 +72,8 @@ private fun rememberMoreViewModel(): MoreViewModel {
 @Composable
 fun MoreScreen(
     onOpenColourLibrary: () -> Unit,
+    onOpenProducts: () -> Unit,
+    onOpenCalculator: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -112,11 +114,11 @@ fun MoreScreen(
                     Spacer(Modifier.height(10.dp))
                     LinkRow(
                         icon = Icons.Filled.Email,
-                        title = "Email $PRIVACY_EMAIL",
+                        title = "Email ${AppCopy.PRIVACY_EMAIL}",
                         subtitle = "Questions, samples, and anything about your data",
                         onClick = {
                             context.sendEmail(
-                                PRIVACY_EMAIL,
+                                AppCopy.PRIVACY_EMAIL,
                                 "Question from the OPUDA'S PAINT app",
                             )
                         },
@@ -124,14 +126,26 @@ fun MoreScreen(
                     LinkRow(
                         icon = Icons.AutoMirrored.Filled.ArrowForward,
                         title = "Open the website",
-                        subtitle = WEBSITE,
-                        onClick = { context.openWeb(WEBSITE) },
+                        subtitle = AppCopy.WEBSITE,
+                        onClick = { context.openWeb(AppCopy.WEBSITE) },
                     )
                     LinkRow(
-                        icon = Icons.Filled.Call,
+                        icon = Icons.Filled.Search,
                         title = "Colour library",
                         subtitle = "${state.colourCount} colours, searchable offline",
                         onClick = onOpenColourLibrary,
+                    )
+                    LinkRow(
+                        icon = Icons.AutoMirrored.Filled.List,
+                        title = "Products",
+                        subtitle = "${state.productCount} products, with their data sheets",
+                        onClick = onOpenProducts,
+                    )
+                    LinkRow(
+                        icon = Icons.Filled.Create,
+                        title = "Size a job",
+                        subtitle = "Measure a room and get the tins it takes",
+                        onClick = onOpenCalculator,
                     )
                 }
             }
@@ -157,7 +171,7 @@ fun MoreScreen(
                     icon = Icons.AutoMirrored.Filled.ArrowForward,
                     title = "Read the privacy notice",
                     subtitle = "The same notice the website publishes, including the 30-day answer to a request",
-                    onClick = { context.openWeb("$WEBSITE/legal/privacy") },
+                    onClick = { context.openWeb(AppCopy.privacyNoticeUrl) },
                 )
                 LinkRow(
                     icon = Icons.Filled.Email,
@@ -165,7 +179,7 @@ fun MoreScreen(
                     subtitle = "A statutory right, answered within 30 days",
                     onClick = {
                         context.sendEmail(
-                            PRIVACY_EMAIL,
+                            AppCopy.PRIVACY_EMAIL,
                             "Data subject request — erasure",
                             "Please delete the personal data you hold for me.\n\nName: \nEmail used: \nEnquiry reference (if you have one): \n",
                         )

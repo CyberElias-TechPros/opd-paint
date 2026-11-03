@@ -20,10 +20,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.opudas.paint.core.designsystem.TabGlyph
+import com.opudas.paint.feature.calculator.CalculatorScreen
 import com.opudas.paint.feature.colours.ColourDetailScreen
 import com.opudas.paint.feature.colours.ColoursScreen
 import com.opudas.paint.feature.home.HomeScreen
 import com.opudas.paint.feature.more.MoreScreen
+import com.opudas.paint.feature.products.ProductDetailScreen
+import com.opudas.paint.feature.products.ProductsScreen
 
 /**
  * The app's shell: one scaffold, one navigation graph, one bottom bar.
@@ -101,9 +104,50 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                 )
             }
 
+            composable(Destinations.PRODUCTS) {
+                ProductsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenProduct = { id -> navController.navigate(Destinations.product(id)) },
+                )
+            }
+
+            composable(
+                route = Destinations.PRODUCT_DETAIL,
+                arguments = listOf(navArgument("productId") { type = NavType.StringType }),
+            ) { entry ->
+                ProductDetailScreen(
+                    productId = entry.arguments?.getString("productId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onSizeThisJob = { id -> navController.navigate(Destinations.calculator(id)) },
+                )
+            }
+
+            /*
+             * One registration for both the bare route and the one carrying a
+             * product: `productId` is nullable with a default, so Navigation
+             * matches "calculator" and "calculator?productId=matt" here alike.
+             */
+            composable(
+                route = Destinations.CALCULATOR_WITH_PRODUCT,
+                arguments = listOf(
+                    navArgument("productId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
+            ) { entry ->
+                CalculatorScreen(
+                    onBack = { navController.popBackStack() },
+                    preselectedProductId = entry.arguments?.getString("productId"),
+                )
+            }
+
             composable(Destinations.MORE) {
                 MoreScreen(
                     onOpenColourLibrary = { navController.navigate(Destinations.COLOURS) },
+                    onOpenProducts = { navController.navigate(Destinations.PRODUCTS) },
+                    onOpenCalculator = { navController.navigate(Destinations.CALCULATOR) },
                 )
             }
         }

@@ -148,6 +148,21 @@ fun toMetres(value: Double, system: MeasureSystem): Double =
 fun toSquareMetres(value: Double, system: MeasureSystem): Double =
     if (system == MeasureSystem.IMPERIAL) value * M2_PER_FT2 else value
 
+/**
+ * The inverse of [toMetres]: a length already in metres, expressed in [system].
+ *
+ * This exists for the unit switch on the calculator. Changing the system without
+ * converting the numbers would silently reinterpret 4.2 m as 4.2 ft, and a
+ * contractor who does not notice orders a third of the paint the job needs — the
+ * one failure mode this engine exists to prevent.
+ */
+fun fromMetres(value: Double, system: MeasureSystem): Double =
+    if (system == MeasureSystem.IMPERIAL) value / METRES_PER_FOOT else value
+
+/** The inverse of [toSquareMetres]. */
+fun fromSquareMetres(value: Double, system: MeasureSystem): Double =
+    if (system == MeasureSystem.IMPERIAL) value / M2_PER_FT2 else value
+
 /** A negative count is treated as zero: two of nothing is nothing. */
 fun openingArea(opening: Opening, system: MeasureSystem): Double =
     toSquareMetres(opening.width * opening.height, system) * max(0, opening.count)

@@ -321,6 +321,41 @@ def check_ctor_param_scope(stripped: str, path: str) -> list[str]:
     return warnings
 
 
+# `$Object.CONSTANT` — an interpolation of an object followed by literal text.
+UNBRACED_QUALIFIED_INTERPOLATION_RE = re.compile(r"\$([A-Z]\w*)\.([A-Z][A-Z0-9_]*)")
+
+
+def check_interpolations(src: str, path: str) -> list[str]:
+    """
+    Report `"$AppCopy.WEBSITE"` — which is not the constant.
+
+    Kotlin's short interpolation form takes a simple name only. `$Object.NAME`
+    parses as `$Object` followed by the literal text `.NAME`, so the string
+    becomes the object's `toString()` with the field name appended:
+    "com.opudas.paint.core.util.AppCopy@1b6d.PRIVACY_EMAIL" rendered onto a
+    button a customer is meant to read.
+
+    This compiles without a warning and there is no type that makes it wrong, so
+    neither the compiler nor lint will ever mention it. Braces fix it:
+    "${AppCopy.WEBSITE}".
+
+    Run against the original text rather than the comment-stripped copy, because
+    the strings are precisely what stripping removes. Comment lines are skipped so
+    that documentation quoting the mistake is not reported as the mistake.
+    """
+    errors = []
+    for line_no, line in enumerate(src.splitlines(), start=1):
+        if line.lstrip().startswith(("*", "//", "/*")):
+            continue
+        for match in UNBRACED_QUALIFIED_INTERPOLATION_RE.finditer(line):
+            errors.append(
+                f"{path}:{line_no}: \"${match.group(1)}.{match.group(2)}\" interpolates the "
+                f"object {match.group(1)} and then writes \".{match.group(2)}\" as literal "
+                f"text. Use braces: \"${{{match.group(1)}.{match.group(2)}}}\"."
+            )
+    return errors
+
+
 def check_balance(stripped: str, path: str) -> list[str]:
     """Braces and parentheses must balance, or the file was truncated."""
     errors = []
@@ -528,13 +563,21 @@ def main() -> int:
         stripped, problems = strip_comments_and_strings(text)
         for line_no, message in problems:
             errors.append(f"{path}:{line_no}: {message}")
-        unbalanced = check_balance(stripped, path)
-        unbalanced.extend(check_expression_body_returns(stripped, path))
-        errors.extend(unbalanced)
+        structural = check_balance(stripped, path)
+        structural.extend(check_expression_body_returns(stripped, path))
+        errors.extend(structural)
+
+        # Interpolations are checked against the original text: stripping strings
+        # would remove the very thing being examined.
+        errors.extend(check_interpolations(text, path))
+
         warnings.extend(check_ctor_param_scope(stripped, path))
-        if problems or unbalanced:
-            # Declarations in this file cannot be trusted, so do not accuse other
-            # files of importing symbols it plainly does declare.
+        if problems or structural:
+            # Only a comment or brace failure hides a file's declarations. The
+            # other checks find a defect without making anything invisible, so
+            # suppressing imports that reach into such a file would hide real
+            # errors — and reporting them for a file whose comments merely scanned
+            # badly would bury one bug under a dozen consequences of it.
             package = package_of(stripped)
             if package:
                 unscannable.add(package)
@@ -563,7 +606,11 @@ def main() -> int:
         print(f"\n{len(errors)} problem(s):\n")
         for error in errors:
             print("  - " + error)
-        print("\nNone of these need a compiler to find, and all of them stop the build.")
+        print(
+            "\nNone of these need a compiler to find. Most of them stop the build; an "
+            "unbraced interpolation does not — it compiles cleanly and renders the "
+            "wrong string, which is the worse of the two."
+        )
         return 1
 
     print("Comments, braces, resources, assets and internal imports are consistent.")

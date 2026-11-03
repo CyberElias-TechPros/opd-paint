@@ -46,6 +46,19 @@ object Destinations {
     fun prepSituation(id: String) = "tools/surface-prep/$id"
 
     const val CALCULATOR = "calculator"
+
+    /**
+     * The calculator with a product already chosen.
+     *
+     * Registered with `productId` nullable and defaulted, so the bare `calculator`
+     * route resolves here too — one destination handles both, which is why there is
+     * no second `composable(CALCULATOR)` block in the graph.
+     */
+    const val CALCULATOR_WITH_PRODUCT = "calculator?productId={productId}"
+
+    fun calculator(productId: String? = null): String =
+        if (productId == null) CALCULATOR else "calculator?productId=$productId"
+
     const val VISUALISER = "visualiser"
 
     const val DEALERS = "dealers"
