@@ -124,7 +124,15 @@ class AdvisorEngineTest {
     fun `a gloss sheen asked for on a wall explains itself rather than recommending gloss`() {
         val result = advice(SurfaceKey.INTERIOR_WALL, sheen = SheenKey.GLOSS)
         assertEquals("silk", result.topcoatId)
-        assertTrue(result.cautions.any { it.guideId == "matt-or-silk" && it.text.contains("no gloss emulsion") })
+        // Two different sentences say two different jobs, and this test had them
+        // mixed up: the caution warns, the reason explains the score. Both reach the
+        // visitor, so both are pinned — to the text each one actually carries.
+        assertTrue(
+            result.cautions.any {
+                it.guideId == "matt-or-silk" && it.text.contains("Gloss is specified for joinery and metal")
+            },
+        )
+        assertTrue(result.reasons.any { it.contains("no gloss emulsion") })
     }
 
     @Test
