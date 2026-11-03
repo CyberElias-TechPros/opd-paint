@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -84,6 +85,7 @@ fun MoreScreen(
     onOpenPalettes: () -> Unit,
     onOpenProjects: () -> Unit,
     onOpenPrivacyRequest: () -> Unit,
+    onOpenGuides: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -138,6 +140,12 @@ fun MoreScreen(
                         title = "Open the website",
                         subtitle = AppCopy.WEBSITE,
                         onClick = { context.openWeb(AppCopy.WEBSITE) },
+                    )
+                    LinkRow(
+                        icon = Icons.Filled.Info,
+                        title = "Advice",
+                        subtitle = "${state.guideCount} guides from the technical desk, dated and reviewed",
+                        onClick = onOpenGuides,
                     )
                     LinkRow(
                         icon = Icons.Filled.Lock,

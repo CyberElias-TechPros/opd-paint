@@ -28,6 +28,8 @@ import com.opudas.paint.feature.colours.ColourDetailScreen
 import com.opudas.paint.feature.colours.ColoursScreen
 import com.opudas.paint.feature.dealers.DealerDetailScreen
 import com.opudas.paint.feature.dealers.DealersScreen
+import com.opudas.paint.feature.guides.GuideDetailScreen
+import com.opudas.paint.feature.guides.GuidesScreen
 import com.opudas.paint.feature.home.HomeScreen
 import com.opudas.paint.feature.more.MoreScreen
 import com.opudas.paint.feature.palettes.PaletteDetailScreen
@@ -220,6 +222,26 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                 )
             }
 
+            composable(Destinations.GUIDES) {
+                GuidesScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenGuide = { id -> navController.navigate(Destinations.guide(id)) },
+                )
+            }
+
+            composable(
+                route = Destinations.GUIDE_DETAIL,
+                arguments = listOf(navArgument("guideId") { type = NavType.StringType }),
+            ) { entry ->
+                GuideDetailScreen(
+                    guideId = entry.arguments?.getString("guideId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onOpenGuide = { id -> navController.navigate(Destinations.guide(id)) },
+                    onOpenColour = { id -> navController.navigate(Destinations.colour(id)) },
+                    onOpenProduct = { id -> navController.navigate(Destinations.product(id)) },
+                )
+            }
+
             composable(Destinations.PRIVACY_REQUEST) {
                 PrivacyRequestScreen(onBack = { navController.popBackStack() })
             }
@@ -234,6 +256,7 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     onOpenPalettes = { navController.navigate(Destinations.PALETTES) },
                     onOpenProjects = { navController.navigate(Destinations.PROJECTS) },
                     onOpenPrivacyRequest = { navController.navigate(Destinations.PRIVACY_REQUEST) },
+                    onOpenGuides = { navController.navigate(Destinations.GUIDES) },
                 )
             }
 
