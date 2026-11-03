@@ -26,6 +26,8 @@ import com.opudas.paint.core.util.openWeb
 import com.opudas.paint.feature.calculator.CalculatorScreen
 import com.opudas.paint.feature.colours.ColourDetailScreen
 import com.opudas.paint.feature.colours.ColoursScreen
+import com.opudas.paint.feature.dealers.DealerDetailScreen
+import com.opudas.paint.feature.dealers.DealersScreen
 import com.opudas.paint.feature.home.HomeScreen
 import com.opudas.paint.feature.more.MoreScreen
 import com.opudas.paint.feature.products.ProductDetailScreen
@@ -149,12 +151,31 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                 )
             }
 
+            composable(Destinations.DEALERS) {
+                DealersScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenDealer = { id -> navController.navigate(Destinations.dealer(id)) },
+                )
+            }
+
+            composable(
+                route = Destinations.DEALER_DETAIL,
+                arguments = listOf(navArgument("dealerId") { type = NavType.StringType }),
+            ) { entry ->
+                DealerDetailScreen(
+                    dealerId = entry.arguments?.getString("dealerId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onOpenDealer = { id -> navController.navigate(Destinations.dealer(id)) },
+                )
+            }
+
             composable(Destinations.MORE) {
                 MoreScreen(
                     onOpenColourLibrary = { navController.navigate(Destinations.COLOURS) },
                     onOpenProducts = { navController.navigate(Destinations.PRODUCTS) },
                     onOpenCalculator = { navController.navigate(Destinations.CALCULATOR) },
                     onOpenQuote = { navController.navigate(Destinations.QUOTE) },
+                    onOpenDealers = { navController.navigate(Destinations.DEALERS) },
                 )
             }
 

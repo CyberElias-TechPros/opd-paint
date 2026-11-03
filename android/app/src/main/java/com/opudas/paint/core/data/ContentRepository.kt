@@ -146,6 +146,19 @@ class ContentRepository(private val assets: AssetManager) {
     /* ------------------------------------------------------------- dealers */
 
     suspend fun dealers(): List<Dealer> = dealersDeferred.await().dealers
+
+    /**
+     * One counter by id, or null.
+     *
+     * Every other entity in the bundle has this accessor — colour, product,
+     * palette, project, guide, preparation situation — and dealers were the odd
+     * one out, which pushed a `firstOrNull` into a screen that then had to know
+     * the list was the source. Null is a real answer here: an id from a deep link
+     * to a counter that has since been removed should render "not found" rather
+     * than an empty card.
+     */
+    suspend fun dealer(id: String): Dealer? = dealers().firstOrNull { it.id == id }
+
     suspend fun dealerStates(): List<String> = dealersDeferred.await().states
     suspend fun dealerServices(): List<String> = dealersDeferred.await().services
     suspend fun contact(): BrandContact = dealersDeferred.await().contact

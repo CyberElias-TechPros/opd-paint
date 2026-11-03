@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -76,6 +77,7 @@ fun MoreScreen(
     onOpenProducts: () -> Unit,
     onOpenCalculator: () -> Unit,
     onOpenQuote: () -> Unit,
+    onOpenDealers: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -154,6 +156,12 @@ fun MoreScreen(
                         title = "Ask for a quote",
                         subtitle = "Saved on this phone, sent when there is a signal",
                         onClick = onOpenQuote,
+                    )
+                    LinkRow(
+                        icon = Icons.Filled.Place,
+                        title = "Where to buy",
+                        subtitle = "${state.dealerCount} counters, ${state.unverifiedDealerCount} still being confirmed",
+                        onClick = onOpenDealers,
                     )
                 }
             }
