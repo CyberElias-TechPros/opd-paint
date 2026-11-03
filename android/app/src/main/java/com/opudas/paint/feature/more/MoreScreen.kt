@@ -19,8 +19,10 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -78,6 +80,8 @@ fun MoreScreen(
     onOpenCalculator: () -> Unit,
     onOpenQuote: () -> Unit,
     onOpenDealers: () -> Unit,
+    onOpenPalettes: () -> Unit,
+    onOpenProjects: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -156,6 +160,18 @@ fun MoreScreen(
                         title = "Ask for a quote",
                         subtitle = "Saved on this phone, sent when there is a signal",
                         onClick = onOpenQuote,
+                    )
+                    LinkRow(
+                        icon = Icons.Filled.Star,
+                        title = "Palettes",
+                        subtitle = "Colours that work together, and what each one is for",
+                        onClick = onOpenPalettes,
+                    )
+                    LinkRow(
+                        icon = Icons.Filled.Home,
+                        title = "Project book",
+                        subtitle = "Rooms that were painted, with the specification behind them",
+                        onClick = onOpenProjects,
                     )
                     LinkRow(
                         icon = Icons.Filled.Place,

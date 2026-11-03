@@ -30,8 +30,12 @@ import com.opudas.paint.feature.dealers.DealerDetailScreen
 import com.opudas.paint.feature.dealers.DealersScreen
 import com.opudas.paint.feature.home.HomeScreen
 import com.opudas.paint.feature.more.MoreScreen
+import com.opudas.paint.feature.palettes.PaletteDetailScreen
+import com.opudas.paint.feature.palettes.PalettesScreen
 import com.opudas.paint.feature.products.ProductDetailScreen
 import com.opudas.paint.feature.products.ProductsScreen
+import com.opudas.paint.feature.projects.ProjectDetailScreen
+import com.opudas.paint.feature.projects.ProjectsScreen
 import com.opudas.paint.feature.quote.QuoteScreen
 
 /**
@@ -151,6 +155,52 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                 )
             }
 
+            composable(Destinations.PALETTES) {
+                PalettesScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenPalette = { id -> navController.navigate(Destinations.palette(id)) },
+                    onOpenColour = { id -> navController.navigate(Destinations.colour(id)) },
+                )
+            }
+
+            composable(
+                route = Destinations.PALETTE_DETAIL,
+                arguments = listOf(navArgument("paletteId") { type = NavType.StringType }),
+            ) { entry ->
+                PaletteDetailScreen(
+                    paletteId = entry.arguments?.getString("paletteId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onOpenColour = { id -> navController.navigate(Destinations.colour(id)) },
+                    onOpenProject = { id -> navController.navigate(Destinations.project(id)) },
+                    onEnquire = { colourId ->
+                        navController.navigate(Destinations.quote(colourId = colourId))
+                    },
+                )
+            }
+
+            composable(Destinations.PROJECTS) {
+                ProjectsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenProject = { id -> navController.navigate(Destinations.project(id)) },
+                )
+            }
+
+            composable(
+                route = Destinations.PROJECT_DETAIL,
+                arguments = listOf(navArgument("projectId") { type = NavType.StringType }),
+            ) { entry ->
+                ProjectDetailScreen(
+                    projectId = entry.arguments?.getString("projectId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                    onOpenColour = { id -> navController.navigate(Destinations.colour(id)) },
+                    onOpenProduct = { id -> navController.navigate(Destinations.product(id)) },
+                    onOpenPalette = { id -> navController.navigate(Destinations.palette(id)) },
+                    onEnquire = { colourId ->
+                        navController.navigate(Destinations.quote(colourId = colourId))
+                    },
+                )
+            }
+
             composable(Destinations.DEALERS) {
                 DealersScreen(
                     onBack = { navController.popBackStack() },
@@ -176,6 +226,8 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     onOpenCalculator = { navController.navigate(Destinations.CALCULATOR) },
                     onOpenQuote = { navController.navigate(Destinations.QUOTE) },
                     onOpenDealers = { navController.navigate(Destinations.DEALERS) },
+                    onOpenPalettes = { navController.navigate(Destinations.PALETTES) },
+                    onOpenProjects = { navController.navigate(Destinations.PROJECTS) },
                 )
             }
 
