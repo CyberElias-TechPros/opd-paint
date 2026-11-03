@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,6 +53,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -582,4 +585,53 @@ enum class TabGlyphKind(val label: String) {
     COLOURS("Colours"),
     TOOLS("Tools"),
     MORE("More"),
+}
+
+/**
+ * One labelled text input, with its error underneath.
+ *
+ * Shared by every form in the app — the enquiry, the data request, the
+ * measurements — because a form is where a person hands the business something,
+ * and two forms that disagree about where an error appears teach the person
+ * nothing they can rely on.
+ *
+ * [error] carries the service's own message when the service produced one, and the
+ * app's when it caught the problem first. Both are the same text the website uses
+ * for the same rule, so somebody moving between the site and the app is not given
+ * two vocabularies for one requirement.
+ *
+ * [supporting] is for a note that is not an error — a character count, say. The
+ * error wins when both are present, because that is the one that needs acting on.
+ */
+@Composable
+fun FormField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    error: String? = null,
+    optional: Boolean = false,
+    singleLine: Boolean = true,
+    keyboard: KeyboardType = KeyboardType.Text,
+    supporting: String? = null,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp),
+        label = { Text(if (optional) "$label (optional)" else label) },
+        isError = error != null,
+        singleLine = singleLine,
+        minLines = if (singleLine) 1 else 3,
+        supportingText = if (error != null) {
+            { Text(error, color = MaterialTheme.colorScheme.error) }
+        } else if (supporting != null) {
+            { Text(supporting) }
+        } else {
+            null
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboard),
+    )
 }

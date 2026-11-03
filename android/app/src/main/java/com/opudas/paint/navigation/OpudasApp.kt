@@ -32,6 +32,7 @@ import com.opudas.paint.feature.home.HomeScreen
 import com.opudas.paint.feature.more.MoreScreen
 import com.opudas.paint.feature.palettes.PaletteDetailScreen
 import com.opudas.paint.feature.palettes.PalettesScreen
+import com.opudas.paint.feature.privacy.PrivacyRequestScreen
 import com.opudas.paint.feature.products.ProductDetailScreen
 import com.opudas.paint.feature.products.ProductsScreen
 import com.opudas.paint.feature.projects.ProjectDetailScreen
@@ -219,6 +220,10 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                 )
             }
 
+            composable(Destinations.PRIVACY_REQUEST) {
+                PrivacyRequestScreen(onBack = { navController.popBackStack() })
+            }
+
             composable(Destinations.MORE) {
                 MoreScreen(
                     onOpenColourLibrary = { navController.navigate(Destinations.COLOURS) },
@@ -228,6 +233,7 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     onOpenDealers = { navController.navigate(Destinations.DEALERS) },
                     onOpenPalettes = { navController.navigate(Destinations.PALETTES) },
                     onOpenProjects = { navController.navigate(Destinations.PROJECTS) },
+                    onOpenPrivacyRequest = { navController.navigate(Destinations.PRIVACY_REQUEST) },
                 )
             }
 

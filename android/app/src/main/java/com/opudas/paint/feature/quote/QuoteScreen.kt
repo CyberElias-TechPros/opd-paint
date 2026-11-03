@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Checkbox
@@ -23,7 +22,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -43,6 +41,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.opudas.paint.container
 import com.opudas.paint.core.designsystem.ContactActions
+import com.opudas.paint.core.designsystem.FormField
 import com.opudas.paint.core.designsystem.HonestNote
 import com.opudas.paint.core.designsystem.LoadingState
 import com.opudas.paint.core.designsystem.PrimaryAction
@@ -421,42 +420,6 @@ private fun FactBlock(label: String, value: String) {
         Spacer(Modifier.height(4.dp))
         Text(value, style = MaterialTheme.typography.titleMedium)
     }
-}
-
-/**
- * One labelled input.
- *
- * The error is the service's message when the service produced one, and the
- * website's message when the app caught it first — the two are the same text, on
- * purpose, so a person moving between the site and the app is not given two
- * vocabularies for one rule.
- */
-@Composable
-private fun FormField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    error: String? = null,
-    optional: Boolean = false,
-    singleLine: Boolean = true,
-    keyboard: KeyboardType = KeyboardType.Text,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 5.dp),
-        label = { Text(if (optional) "$label (optional)" else label) },
-        isError = error != null,
-        singleLine = singleLine,
-        minLines = if (singleLine) 1 else 3,
-        supportingText = if (error == null) null else {
-            { Text(error, color = MaterialTheme.colorScheme.error) }
-        },
-        keyboardOptions = KeyboardOptions(keyboardType = keyboard),
-    )
 }
 
 /**

@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Email
@@ -82,6 +83,7 @@ fun MoreScreen(
     onOpenDealers: () -> Unit,
     onOpenPalettes: () -> Unit,
     onOpenProjects: () -> Unit,
+    onOpenPrivacyRequest: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -136,6 +138,12 @@ fun MoreScreen(
                         title = "Open the website",
                         subtitle = AppCopy.WEBSITE,
                         onClick = { context.openWeb(AppCopy.WEBSITE) },
+                    )
+                    LinkRow(
+                        icon = Icons.Filled.Lock,
+                        title = "Your data",
+                        subtitle = "See it, correct it, delete it — with a reference and a deadline",
+                        onClick = onOpenPrivacyRequest,
                     )
                     LinkRow(
                         icon = Icons.Filled.Search,
