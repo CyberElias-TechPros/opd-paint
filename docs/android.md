@@ -10,8 +10,8 @@ submissions until it can deliver them.
 
 ## What is here today
 
-71 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, thirteen
-features, and 73 JVM tests in 5 suites.
+77 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, fourteen
+features, and 77 JVM tests in 5 suites.
 
 | Journey | Screen | Notes |
 | --- | --- | --- |
@@ -27,17 +27,17 @@ features, and 73 JVM tests in 5 suites.
 | Data request | `feature/privacy` | The five rights, through the same outbox |
 | Tools | `feature/tools` | Finish finder (14 weighted rules), 10 preparation sequences, hub |
 | Legal notices | `feature/legal` | Privacy, terms and accessibility, readable offline |
+| Enquiries inbox | `feature/inbox` | Staff sign-in, a second factor, and the enquiries people sent |
 | More | `feature/more` | The hub, with honest counts from the bundles |
 
 **Not built yet.** Four journeys have no code: the board and checklist, the document
-viewer, the visualiser, and settings. The admin inbox is not merely unfinished but blocked — see
-[the inbox](#the-admin-inbox-is-blocked-on-a-server-endpoint) below.
+viewer, the visualiser, and settings.
 
-Eight routes are declared in `navigation/Destinations.kt` and deliberately not wired
-into the graph, because a route that leads nowhere should not be reachable: `BOARD`,
-`CHECKLIST`, `DOCUMENTS`, `DOCUMENT_VIEWER`, `INBOX`, `INBOX_DETAIL`, `SETTINGS`,
-`VISUALISER`. They are the reserved shape of the remaining work, not an oversight.
-Wire one in the same commit as the screen that answers it.
+Six routes are declared in `navigation/Destinations.kt` and deliberately not wired into
+the graph, because a route that leads nowhere should not be reachable: `BOARD`,
+`CHECKLIST`, `DOCUMENTS`, `DOCUMENT_VIEWER`, `SETTINGS`, `VISUALISER`. They are the
+reserved shape of the remaining work, not an oversight. Wire one in the same commit as
+the screen that answers it.
 
 ## How the content gets in
 
@@ -130,7 +130,7 @@ Credentials and session cookies are never written to disk.
 
 ```
 cd android
-./gradlew testDebugUnitTest     # the 54 JVM tests
+./gradlew testDebugUnitTest     # the 77 JVM tests
 ./gradlew lintDebug             # findings are routed to stdout, not to a file nobody opens
 ./gradlew assembleDebug         # the APK
 ```
@@ -203,25 +203,53 @@ data rather than by judgement:
 - **Deep links use `autoVerify="false"`**, because verified app links need a hosted
   asset statement on a deployed domain.
 
-## The admin inbox is blocked on a server endpoint
+## The admin inbox
 
-The inbox's only machine-readable endpoint is `GET /admin/enquiries.csv`, and it is
+The inbox is in the app. It needed one server change to get there.
+
+`GET /admin/enquiries.csv` was the inbox's only machine-readable endpoint, and it is
 restricted to the `exporter` role on purpose: it takes every customer's name, phone
-number and message off the machine at once.
+number and message off the machine at once. A phone that read the inbox through it
+would force every user to hold the most privileged role, and would download the whole
+log to read one enquiry — the opposite of what the roles and the minimisation were for.
 
-A phone app that read the inbox through that endpoint would force every user to hold
-the most privileged role, and would download the entire log to read one enquiry.
-That defeats the roles and the minimisation the access model was built for. So the
-app needs a JSON inbox endpoint a `viewer` may read. Until it exists, the inbox in
-the app is blocked, not unfinished — and `INBOX` / `INBOX_DETAIL` stay unwired.
+So the service now also serves `GET /admin/enquiries.json`: a page of at most 200
+enquiries, newest first, readable by a `viewer` or an `exporter`, in the same envelope
+as every other route. It carries the fifteen fields `publicEnquiry` exposes — nothing
+the website's own inbox does not already show — plus `desks` and `receivedToday` for the
+summary line. Eight tests in `server/admin.test.mjs` pin the field list, the ordering,
+the page clamping and both refusals, so the app and the service cannot drift apart in
+silence.
 
-The rest of the admin flow is already understood and implementable against today's
-service: `GET /admin` with Basic auth returns a second-factor challenge and sets the
-`opd_mfa` cookie; `POST /admin/second-factor` takes a form-encoded `code` and
-exchanges it for the signed `opd_admin` session cookie; `POST /admin/sign-out`
-clears both. The challenge expires after 300 seconds and six wrong codes in ten
-minutes lock the attempt out. An app implementing this needs a cookie jar and must
-not persist any of it.
+The app drives the flow the service already had: Basic credentials to `GET /admin`,
+which either signs in an account with no second factor or returns a challenge with the
+`opd_mfa` cookie; a form-encoded `code` to `POST /admin/second-factor`, which exchanges
+it for the signed `opd_admin` session cookie; `POST /admin/sign-out` to clear both. The
+challenge lasts 300 seconds, and six wrong codes in ten minutes lock the attempt out —
+which is what the screen says when it happens, rather than a bare "try again".
+
+**Nothing is persisted.** `MemoryCookieJar` holds the session for the life of the
+process and nowhere else: no disk, no DataStore, no backup, nothing for a device
+transfer to restore. A token that opens other people's phone numbers does not belong on
+a phone that gets handed to somebody else, lost, or cloned. The password leaves the
+view model the moment the service answers it, and signing out resets the whole screen
+state, so the page already read does not sit in memory afterwards either.
+
+The JSON endpoint refuses in JSON too: `{ok:false,error:"..."}` with a 401 for both
+"no credentials" and "second factor required". That distinction is the whole reason —
+it is what lets the app tell a wrong password from a code it still has to ask for,
+instead of parsing a sentence the page returns to a browser.
+
+Redirects are not followed. A `303` from the second-factor post *is* the success
+signal; a client that followed it would land on a `200` it could not distinguish from a
+page it was authorised to read.
+
+One honest cost, named rather than hidden: the service has no single-enquiry endpoint,
+so the detail screen reads a page and picks the reference out of it. Opening one enquiry
+moves up to 200 of them across the network — still far less than the CSV, and the same
+data this account may already read on the list. A reference outside that page is
+reported as "not in the most recent 200 of 517" rather than as missing, because those
+are different facts.
 
 ## Known warnings
 

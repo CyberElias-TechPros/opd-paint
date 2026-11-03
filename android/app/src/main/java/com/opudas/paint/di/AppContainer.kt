@@ -5,6 +5,7 @@ import com.opudas.paint.core.data.ContentRepository
 import com.opudas.paint.core.data.OutboxScheduler
 import com.opudas.paint.core.data.SubmissionRepository
 import com.opudas.paint.core.data.local.OpudasDatabase
+import com.opudas.paint.core.data.remote.AdminApi
 import com.opudas.paint.core.data.remote.ApiClient
 import com.opudas.paint.core.designsystem.BrandTokens
 import com.opudas.paint.core.sync.WorkManagerOutboxScheduler
@@ -63,6 +64,16 @@ class AppContainer(private val context: Context) {
 
     /** The service. Constructed on first use because an OkHttp client owns thread pools. */
     val api: ApiClient by lazy { ApiClient() }
+
+    /**
+     * The admin inbox.
+     *
+     * Lazy for the same reason the client above is, and signed in for no longer than
+     * the process: its cookies live in memory, because a session token that opens an
+     * inbox of other people's phone numbers is not something to write to disk on a
+     * phone that gets handed to somebody else, lost, or restored from a cloud backup.
+     */
+    val admin: AdminApi by lazy { AdminApi() }
 
     /** How delivery is requested. WorkManager, behind an interface the data layer does not know about. */
     val scheduler: OutboxScheduler by lazy { WorkManagerOutboxScheduler(context) }

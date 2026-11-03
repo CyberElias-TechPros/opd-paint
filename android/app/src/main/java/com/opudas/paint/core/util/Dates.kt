@@ -3,6 +3,7 @@ package com.opudas.paint.core.util
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 /**
  * An ISO date written out in full, in the reader's own locale.
@@ -52,6 +53,36 @@ fun formatShortDate(iso: String): String? {
         val parser = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { isLenient = false }
         val parsed = parser.parse(day) ?: return null
         SimpleDateFormat("d MMM yyyy", Locale.getDefault()).format(parsed)
+    } catch (error: ParseException) {
+        null
+    }
+}
+
+private const val TIMESTAMP_PATTERN = "yyyy-MM-dd'T'HH:mm:ss"
+private const val TIMESTAMP_LENGTH = 19
+
+/**
+ * A moment, in the reader's own time zone: "3 November 2026 at 14:31".
+ *
+ * The service writes UTC and always will (`toISOString`), so the timestamp is parsed
+ * as UTC and formatted in the device's zone. Parsing it in the local zone instead
+ * would not crash and would not look wrong — it would show an enquiry arriving four
+ * hours earlier than it did, on a screen whose whole job is telling somebody whether
+ * a 24-hour service level has been met. That is the kind of error worth four extra
+ * lines.
+ *
+ * Returns null for anything that is not a full timestamp, so a caller can fall back to
+ * the raw string rather than showing a time it made up.
+ */
+fun formatDateTime(iso: String): String? {
+    val text = iso.trim()
+    if (text.length < TIMESTAMP_LENGTH) return null
+    return try {
+        val parsed = SimpleDateFormat(TIMESTAMP_PATTERN, Locale.US).apply {
+            isLenient = false
+            timeZone = TimeZone.getTimeZone("UTC")
+        }.parse(text.substring(0, TIMESTAMP_LENGTH)) ?: return null
+        SimpleDateFormat("d MMM yyyy 'at' HH:mm", Locale.getDefault()).format(parsed)
     } catch (error: ParseException) {
         null
     }

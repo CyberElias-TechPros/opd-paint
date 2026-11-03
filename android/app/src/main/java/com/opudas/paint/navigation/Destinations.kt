@@ -100,6 +100,15 @@ object Destinations {
 
     const val INBOX = "inbox"
     const val INBOX_DETAIL = "inbox/{reference}"
+
+    /**
+     * One enquiry, named in the path.
+     *
+     * A reference is `OPD-YYMMDD-XXXX` — letters, digits and hyphens — so there is
+     * nothing here to escape, and putting it in the path rather than a query means the
+     * detail screen cannot be opened without naming exactly one enquiry.
+     */
+    fun inboxDetail(reference: String) = "inbox/$reference"
     fun inboxEntry(reference: String) = "inbox/$reference"
 
     const val MORE = "more"

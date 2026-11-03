@@ -54,6 +54,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -614,8 +616,22 @@ fun FormField(
     singleLine: Boolean = true,
     keyboard: KeyboardType = KeyboardType.Text,
     supporting: String? = null,
+    /**
+     * Mask what is typed.
+     *
+     * For a password and for nothing else in this app. A six-digit code that rotates
+     * every thirty seconds is hidden from nobody who matters, and is much easier to
+     * get wrong when it cannot be read back — so the inbox masks one field and not
+     * the other.
+     */
+    secret: Boolean = false,
 ) {
     OutlinedTextField(
+        visualTransformation = if (secret) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
+        },
         value = value,
         onValueChange = onValueChange,
         modifier = modifier

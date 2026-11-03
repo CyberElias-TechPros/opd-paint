@@ -1,6 +1,7 @@
 package com.opudas.paint.core.util
 
 import java.util.Locale
+import java.util.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -99,5 +100,72 @@ class DatesTest {
     @Test
     fun `surrounding whitespace and a trailing time do not matter`() {
         assertEquals(formatLongDate("2026-08-12"), formatLongDate("  2026-08-12  "))
+    }
+
+    /*
+     * The inbox shows when an enquiry arrived next to the hours a desk has to answer
+     * it, so the time zone is not a detail. These read the service's UTC and assert
+     * the wall clock in three zones, including one where the date changes.
+     */
+    @Test
+    fun `a moment from the service is read as UTC and shown in the reader's zone`() {
+        val originalLocale = Locale.getDefault()
+        val originalZone = TimeZone.getDefault()
+        try {
+            Locale.setDefault(Locale.UK)
+            val stamp = "2026-11-03T14:31:09.123Z"
+
+            TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+            assertEquals("3 Nov 2026 at 14:31", formatDateTime(stamp))
+
+            TimeZone.setDefault(TimeZone.getTimeZone("GMT+1"))
+            assertEquals("3 Nov 2026 at 15:31", formatDateTime(stamp))
+
+            TimeZone.setDefault(TimeZone.getTimeZone("GMT-5"))
+            assertEquals("3 Nov 2026 at 09:31", formatDateTime(stamp))
+        } finally {
+            Locale.setDefault(originalLocale)
+            TimeZone.setDefault(originalZone)
+        }
+    }
+
+    @Test
+    fun `a late arrival crosses the date in a zone ahead of UTC`() {
+        val originalLocale = Locale.getDefault()
+        val originalZone = TimeZone.getDefault()
+        try {
+            Locale.setDefault(Locale.UK)
+            TimeZone.setDefault(TimeZone.getTimeZone("GMT+1"))
+            // Parsing this in the local zone instead of UTC would not crash. It would
+            // quietly put the enquiry on the wrong day, on a screen whose job is to say
+            // whether a 24-hour service level has been met.
+            assertEquals("4 Nov 2026 at 00:30", formatDateTime("2026-11-03T23:30:00.000Z"))
+        } finally {
+            Locale.setDefault(originalLocale)
+            TimeZone.setDefault(originalZone)
+        }
+    }
+
+    @Test
+    fun `anything short of a full timestamp renders as nothing`() {
+        assertNull(formatDateTime(""))
+        assertNull(formatDateTime("2026-11-03"))
+        assertNull(formatDateTime("2026-11-03T14:31"))
+        assertNull(formatDateTime("not a timestamp at all"))
+        assertNull(formatDateTime("2026-13-45T99:99:99Z"))
+    }
+
+    @Test
+    fun `a timestamp without milliseconds or a zone is still a timestamp`() {
+        val originalLocale = Locale.getDefault()
+        val originalZone = TimeZone.getDefault()
+        try {
+            Locale.setDefault(Locale.UK)
+            TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+            assertEquals("3 Nov 2026 at 14:31", formatDateTime("2026-11-03T14:31:09"))
+        } finally {
+            Locale.setDefault(originalLocale)
+            TimeZone.setDefault(originalZone)
+        }
     }
 }

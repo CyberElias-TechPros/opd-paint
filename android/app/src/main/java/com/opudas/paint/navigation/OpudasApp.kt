@@ -31,6 +31,8 @@ import com.opudas.paint.feature.dealers.DealersScreen
 import com.opudas.paint.feature.guides.GuideDetailScreen
 import com.opudas.paint.feature.guides.GuidesScreen
 import com.opudas.paint.feature.home.HomeScreen
+import com.opudas.paint.feature.inbox.InboxDetailScreen
+import com.opudas.paint.feature.inbox.InboxScreen
 import com.opudas.paint.feature.legal.LegalDocScreen
 import com.opudas.paint.feature.legal.LegalScreen
 import com.opudas.paint.feature.more.MoreScreen
@@ -337,6 +339,32 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     onOpenPrivacyNotice = {
                         navController.navigate(Destinations.legal("privacy"))
                     },
+                    onOpenInbox = { navController.navigate(Destinations.INBOX) },
+                )
+            }
+
+            /*
+             * The enquiries inbox: the one part of the product that is not for
+             * customers. It signs in against the same service and the same accounts as
+             * the inbox on the website, and keeps nothing on the device — no password,
+             * no code, no session cookie, no page already read.
+             */
+            composable(Destinations.INBOX) {
+                InboxScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenEnquiry = { reference ->
+                        navController.navigate(Destinations.inboxDetail(reference))
+                    },
+                )
+            }
+
+            composable(
+                route = Destinations.INBOX_DETAIL,
+                arguments = listOf(navArgument("reference") { type = NavType.StringType }),
+            ) { entry ->
+                InboxDetailScreen(
+                    reference = entry.arguments?.getString("reference").orEmpty(),
+                    onBack = { navController.popBackStack() },
                 )
             }
 

@@ -137,6 +137,15 @@ roles and data minimisation are for. So the app needs a JSON inbox endpoint that
 `viewer` may read, and until that exists the inbox in the app is the part of the
 product that is genuinely blocked rather than merely unfinished.
 
+**Resolved.** `GET /admin/enquiries.json` exists now: a page of at most 200 enquiries,
+newest first, readable by a `viewer` or an `exporter`, in the same envelope as every
+other route, and pinned by eight tests in `server/admin.test.mjs`. The CSV stays
+`exporter`-only, because a bulk export is still a bulk export and widening it would
+have been the easy way to get this wrong. `INBOX` and `INBOX_DETAIL` are wired in
+`feature/inbox`, and the session lives in an in-memory cookie jar that is never
+written down. The decision this records is unchanged; the thing it was waiting for
+arrived.
+
 ## What would make us revisit this
 
 - **A CMS lands (roadmap phase 09).** If content starts changing faster than app

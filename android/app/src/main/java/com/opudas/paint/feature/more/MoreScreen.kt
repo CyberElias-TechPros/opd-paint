@@ -91,6 +91,8 @@ fun MoreScreen(
     onOpenTools: () -> Unit,
     onOpenLegal: () -> Unit,
     onOpenPrivacyNotice: () -> Unit,
+    /** Staff only: the enquiries people sent, behind the same accounts as the website. */
+    onOpenInbox: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -278,6 +280,24 @@ fun MoreScreen(
                     )
                     FactRow("Version", BuildConfig.VERSION_NAME)
                 }
+            }
+        }
+
+        item {
+            SectionHeader(
+                title = "For the team",
+                subtitle = "Not for customers: the enquiries people sent, and which desk each one landed at",
+            )
+        }
+
+        item {
+            Column {
+                LinkRow(
+                    icon = Icons.Filled.Lock,
+                    title = "Enquiries inbox",
+                    subtitle = "Staff sign-in with a second factor. Nothing is stored on this phone.",
+                    onClick = onOpenInbox,
+                )
             }
         }
 
