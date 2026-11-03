@@ -674,6 +674,45 @@ export async function pruneRetention() {
  * quote leaves the value readable and inert, which is the OWASP remedy for CSV
  * formula injection.
  */
+/**
+ * How many enquiries one JSON page carries.
+ *
+ * Capped because a phone on a slow link asking for "everything" is a phone that
+ * shows nothing for several seconds. The HTML inbox renders the whole log; the
+ * JSON one is read by something that can ask for the next page.
+ */
+const JSON_PAGE_DEFAULT = 50
+const JSON_PAGE_MAX = 200
+
+/**
+ * One enquiry, as the inbox may show it.
+ *
+ * The same fields the HTML table renders and the CSV exports, and no more. Returning
+ * the raw record instead would carry whatever the log happens to hold — including
+ * anything added later for another purpose — and "the app can see it" is a wider
+ * grant than "the inbox shows it". A list is also the contract: it is what makes the
+ * omission deliberate rather than accidental.
+ */
+function publicEnquiry(record) {
+  return {
+    reference: record.reference,
+    receivedAt: record.receivedAt ?? null,
+    name: record.name,
+    phone: record.phone,
+    email: record.email ?? null,
+    city: record.city,
+    projectType: record.projectType,
+    rooms: record.rooms ?? null,
+    colors: record.colors ?? [],
+    products: record.products ?? [],
+    quantities: record.quantities ?? [],
+    routedTo: record.routedTo ?? null,
+    slaHours: record.slaHours ?? null,
+    message: record.message ?? null,
+    source: record.source ?? null,
+  }
+}
+
 function csvCell(value) {
   const text = Array.isArray(value)
     ? value.map((item) => csvText(item)).join(' | ')
@@ -1367,7 +1406,10 @@ async function handle(req, res) {
       return
     }
 
-    if (req.method !== 'GET' || (path !== '/admin' && path !== '/admin/enquiries.csv')) {
+    if (
+      req.method !== 'GET' ||
+      (path !== '/admin' && path !== '/admin/enquiries.csv' && path !== '/admin/enquiries.json')
+    ) {
       send(res, 404, { ok: false, error: 'Unknown endpoint' })
       return
     }
@@ -1394,6 +1436,15 @@ async function handle(req, res) {
     if (!identity) {
       if (!pending) {
         await logAccess({ id, ip, method: req.method, path, decision: 'denied-credentials' }, { dataDir: DATA_DIR })
+        if (path.endsWith('.json')) {
+          // Same refusal, in the envelope every other JSON route uses. A client that
+          // has to parse prose to know whether it was unauthenticated or merely
+          // half-authenticated will get that wrong eventually.
+          send(res, 401, { ok: false, error: 'Authentication required.' }, {
+            'WWW-Authenticate': 'Basic realm="OPUDA\'S PAINT enquiries", charset="UTF-8"',
+          })
+          return
+        }
         demandAuth(res)
         return
       }
@@ -1401,6 +1452,17 @@ async function handle(req, res) {
         { id, ip, method: req.method, path, user: pending.name, role: pending.role, decision: 'challenge-mfa' },
         { dataDir: DATA_DIR },
       )
+      if (path.endsWith('.json')) {
+        /*
+         * JSON rather than the sentence the download gets. A client cannot tell a
+         * text refusal from a credentials refusal by reading it, and it has to:
+         * "you need a code" is a step it can take, "your password was wrong" is not.
+         */
+        send(res, 401, { ok: false, error: 'Second factor required.' }, {
+          'WWW-Authenticate': 'Basic realm="OPUDA\'S PAINT enquiries", charset="UTF-8"',
+        })
+        return
+      }
       if (path !== '/admin') {
         // A download cannot render a form. Tell the browser to open the page
         // that can, which is also where the session cookie comes from.
@@ -1463,6 +1525,45 @@ async function handle(req, res) {
     }, {})
     const today = new Date().toISOString().slice(0, 10)
     const todays = newestFirst.filter((record) => String(record.receivedAt ?? '').startsWith(today)).length
+
+    /*
+     * 17.01.14 — the inbox as JSON.
+     *
+     * The CSV was the only machine-readable view of the inbox, and it is restricted
+     * to the `exporter` role because it takes every customer's name, phone number and
+     * message off the machine at once. That is the right rule for a bulk export, and
+     * the wrong one for a phone that wants to read the enquiries: it would force
+     * every user of the app to hold the most privileged role, and download the whole
+     * log to show one entry.
+     *
+     * So this returns a page of the same records the HTML table shows, readable by
+     * either role, and the CSV stays the thing only an exporter can do. Same gate,
+     * same logging, same fields — a different shape and a smaller grant.
+     */
+    if (path === '/admin/enquiries.json') {
+      const requested = Number.parseInt(url.searchParams.get('limit') ?? '', 10)
+      const limit = Number.isFinite(requested)
+        ? Math.min(Math.max(requested, 1), JSON_PAGE_MAX)
+        : JSON_PAGE_DEFAULT
+      const page = newestFirst.slice(0, limit)
+      send(
+        res,
+        200,
+        {
+          ok: true,
+          data: {
+            enquiries: page.map(publicEnquiry),
+            returned: page.length,
+            total: newestFirst.length,
+            limit,
+            desks,
+            receivedToday: todays,
+          },
+        },
+        { 'Cache-Control': 'no-store' },
+      )
+      return
+    }
 
     const rows = newestFirst
       .map((record) => {

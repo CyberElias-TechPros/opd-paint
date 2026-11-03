@@ -459,9 +459,17 @@ test('a network outside the allowlist cannot reach the inbox at all', async () =
 })
 
 test('an unrecognised path under /admin is a 404 like any other missing route', async () => {
-  const res = await send('/admin/enquiries.json', { headers: { Authorization: basic('grace') } })
+  // Not `enquiries.json`, which used to be this test's example and is the JSON inbox
+  // now. An example of an unknown path has to stay unknown, or the assertion passes
+  // for the opposite reason it was written — and it was this suite that said so, by
+  // failing, rather than a reader noticing later.
+  const res = await send('/admin/enquiries.xml', { headers: { Authorization: basic('grace') } })
   assert.equal(res.status, 404)
   await res.text()
+
+  const other = await send('/admin/nothing-here', { headers: { Authorization: basic('grace') } })
+  assert.equal(other.status, 404)
+  await other.text()
 })
 
 /* --------------------------------------------------------------- the log */
@@ -549,4 +557,164 @@ test('guessing codes is rate limited, and the refusals are logged', async () => 
     accessLog().filter((entry) => entry.decision === 'denied-rate').length >= 2,
     'the throttled attempts are in the access log',
   )
+})
+
+/* ------------------------------------------------------- the inbox as JSON */
+
+/**
+ * Post an enquiry the way a customer would, so the JSON tests have something to read.
+ *
+ * Each differs in name and phone on purpose: a repeat of an enquiry already in the log
+ * is treated as a duplicate and does not add a record, which would make a count
+ * assertion pass or fail for a reason the test never intended.
+ */
+const seedEnquiry = async (index) => {
+  const res = await send('/api/quotes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: `Seeded Customer ${index}`,
+      phone: `0803 123 45${String(index).padStart(2, '0')}`,
+      city: 'Port Harcourt',
+      projectType: 'interior',
+      message: `Seeded enquiry ${index}, for the JSON inbox tests.`,
+      consent: true,
+    }),
+  })
+  const body = await res.json()
+  assert.equal(res.status, 201, JSON.stringify(body))
+  return body.data
+}
+
+/** The fields an enquiry may carry out of the service. Anything else is a leak. */
+const PUBLIC_FIELDS = [
+  'city', 'colors', 'email', 'message', 'name', 'phone', 'products', 'projectType',
+  'quantities', 'receivedAt', 'reference', 'rooms', 'routedTo', 'slaHours', 'source',
+]
+
+test('a viewer may read the inbox as JSON, and is still refused the bulk export', async () => {
+  await seedEnquiry(1)
+
+  // `grace` is the account with no second factor and the viewer role: the one that
+  // could not use the app's inbox at all while the CSV was the only readable shape.
+  const res = await send('/admin/enquiries.json', { headers: { Authorization: basic('grace') } })
+  assert.equal(res.status, 200)
+  assert.match(res.headers.get('content-type'), /application\/json/)
+  const body = await res.json()
+  assert.equal(body.ok, true)
+  assert.ok(Array.isArray(body.data.enquiries), 'a page, not the whole log')
+  assert.ok(body.data.total >= 1)
+  assert.equal(body.data.enquiries.length, body.data.returned)
+
+  const entry = lastDecision()
+  assert.equal(entry.decision, 'allowed')
+  assert.equal(entry.path, '/admin/enquiries.json')
+  assert.equal(entry.user, 'grace')
+  assert.equal(entry.role, 'viewer')
+
+  // The grant did not widen: the same account still cannot take the whole log off the
+  // machine, because that is what the exporter role is for.
+  const csv = await send('/admin/enquiries.csv', { headers: { Authorization: basic('grace') } })
+  assert.equal(csv.status, 403)
+  await csv.text()
+  assert.equal(lastDecision().decision, 'denied-role')
+})
+
+test('the JSON carries exactly the fields the inbox shows, and no others', async () => {
+  const res = await send('/admin/enquiries.json', { headers: { Authorization: basic('grace') } })
+  const body = await res.json()
+  const [enquiry] = body.data.enquiries
+  assert.ok(enquiry, 'a seeded enquiry is there to inspect')
+
+  // A raw record would carry whatever the log happens to hold, including anything added
+  // later for another purpose. Listing the fields is what makes the omission deliberate
+  // rather than accidental, and this is the assertion that keeps it so.
+  assert.deepEqual(Object.keys(enquiry).sort(), PUBLIC_FIELDS)
+
+  assert.match(enquiry.reference, /^OPD-\d{6}-[0-9A-F]{4}$/)
+  assert.equal(enquiry.name, 'Seeded Customer 1')
+  assert.ok(Array.isArray(enquiry.colors), 'a list even when the customer named no colours')
+  assert.equal(enquiry.email, null, 'an absent optional field is null, not missing')
+})
+
+test('the page limit is clamped, and the newest enquiry comes first', async () => {
+  await seedEnquiry(2)
+  await seedEnquiry(3)
+
+  const page = async (query) => {
+    const res = await send(`/admin/enquiries.json${query}`, { headers: { Authorization: basic('grace') } })
+    assert.equal(res.status, 200)
+    return (await res.json()).data
+  }
+
+  const two = await page('?limit=2')
+  assert.equal(two.returned, 2)
+  assert.equal(two.limit, 2)
+  assert.ok(two.total >= 3)
+  assert.equal(two.enquiries[0].name, 'Seeded Customer 3', 'newest first, as the HTML table shows it')
+
+  assert.equal((await page('?limit=0')).limit, 1, 'zero would be a page nobody can read')
+  assert.equal((await page('?limit=-5')).limit, 1)
+  assert.equal((await page('?limit=99999')).limit, 200, 'a phone on a slow link cannot ask for everything')
+  assert.equal((await page('?limit=abc')).limit, 50, 'junk falls back to the default rather than to NaN')
+  assert.equal((await page('')).limit, 50)
+})
+
+test('the summary counts desks and today, the way the page above the table does', async () => {
+  const res = await send('/admin/enquiries.json', { headers: { Authorization: basic('grace') } })
+  const data = (await res.json()).data
+
+  assert.equal(typeof data.desks, 'object')
+  const deskTotal = Object.values(data.desks).reduce((sum, n) => sum + n, 0)
+  assert.equal(deskTotal, data.total, 'every enquiry is at some desk')
+  assert.ok(data.receivedToday >= 3, 'the three seeded today are counted')
+  assert.match(res.headers.get('cache-control'), /no-store/, "a phone must not cache somebody else's enquiries")
+})
+
+test('with no credentials the JSON inbox refuses and says how to authenticate', async () => {
+  const res = await send('/admin/enquiries.json')
+  assert.equal(res.status, 401)
+  assert.match(res.headers.get('www-authenticate') ?? '', /Basic realm=/)
+  const body = await res.json()
+  assert.equal(body.ok, false)
+  assert.equal(lastDecision().decision, 'denied-credentials')
+})
+
+test('a pending second factor is a JSON 401, so a client can tell it from a wrong password', async () => {
+  // `bola` has a TOTP secret, so credentials alone are half a sign-in. The download gets
+  // a sentence telling a human to open a browser; a client gets a shape it can branch on,
+  // because "enter a code" is a step it can take and "wrong password" is not.
+  const res = await send('/admin/enquiries.json', { headers: { Authorization: basic('bola') } })
+  assert.equal(res.status, 401)
+  assert.match(res.headers.get('content-type'), /application\/json/)
+  const body = await res.json()
+  assert.equal(body.ok, false)
+  assert.equal(body.error, 'Second factor required.')
+  assert.equal(lastDecision().decision, 'challenge-mfa')
+})
+
+test('a session cookie alone opens the JSON inbox', async () => {
+  // The reason this endpoint lives under /admin rather than /api/admin: the session
+  // cookie is scoped to Path=/admin, so a route outside it would never be sent the
+  // cookie, and widening the path to suit one endpoint would expose it to the rest of
+  // the service for no reason.
+  //
+  // The cookie is minted here rather than earned through `signIn`, because the test
+  // above deliberately exhausts the second-factor attempt counter for this address and
+  // leaves it exhausted. This test is about the cookie, not about the code.
+  const session = `opd_admin=${createSession({ name: 'bola', role: 'exporter' })}`
+  const res = await send('/admin/enquiries.json', { headers: { Cookie: session } })
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.equal(body.ok, true)
+  assert.ok(body.data.total >= 3)
+  assert.equal(lastDecision().via, 'session')
+})
+
+test('an exporter may read the JSON inbox too', async () => {
+  const session = `opd_admin=${createSession({ name: 'ada', role: 'exporter' })}`
+  const res = await send('/admin/enquiries.json', { headers: { Cookie: session } })
+  assert.equal(res.status, 200)
+  assert.equal((await res.json()).ok, true)
+  assert.equal(lastDecision().role, 'exporter')
 })
