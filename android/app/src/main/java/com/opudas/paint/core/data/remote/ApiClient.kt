@@ -13,6 +13,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.logging.HttpLoggingInterceptor
 
 /**
  * Where the app talks to, and how it identifies itself.
@@ -248,9 +249,7 @@ class ApiClient(
                  * status are all anyone debugging a transport problem needs.
                  */
                 builder.addInterceptor(
-                    okhttp3.logging.HttpLoggingInterceptor().apply {
-                        level = okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
-                    },
+                    HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC },
                 )
             }
             return builder.build()
