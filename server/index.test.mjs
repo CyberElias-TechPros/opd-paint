@@ -37,11 +37,29 @@ after(async () => {
   rmSync(dataDir, { recursive: true, force: true })
 })
 
+/**
+ * Make every posted enquiry a *different* enquiry.
+ *
+ * The service now suppresses duplicate submissions (roadmap 14.01.05): two
+ * identical enquiries inside ten minutes come back with the first one's
+ * reference and no second record, which is exactly what a double click should
+ * do. This suite posts one shared fixture from many tests, so without a nonce
+ * the second test would be asserting against the first test's receipt. The nonce
+ * goes in the message — part of the fingerprint, and asserted on elsewhere only
+ * for its escaping, never for its exact contents. Duplicate suppression itself
+ * has its own tests, in `limits.test.mjs`.
+ */
+let nonce = 0
+const unique = (body) =>
+  body && typeof body === 'object' && !body.company
+    ? { ...body, message: `${body.message ?? ''} (#${(nonce += 1)})` }
+    : body
+
 const post = (path, body, headers = {}) =>
   fetch(`${base}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...headers },
-    body: JSON.stringify(body),
+    body: JSON.stringify(path === '/api/quotes' ? unique(body) : body),
   })
 
 const validEnquiry = {
@@ -111,9 +129,25 @@ test('the honeypot looks successful but stores nothing', async () => {
   const before = readFileSync(join(dataDir, 'quotes.jsonl'), 'utf8').trim().split('\n').length
   const res = await post('/api/quotes', { ...validEnquiry, name: 'Spam Bot', company: 'spam.example' })
   const after = readFileSync(join(dataDir, 'quotes.jsonl'), 'utf8').trim().split('\n').length
-  assert.equal(res.status, 200)
-  assert.equal((await res.json()).ok, true)
+  const body = await res.json()
+
   assert.equal(after, before, 'a honeypot submission was written to the log')
+  assert.equal(body.ok, true)
+
+  // Indistinguishable from the real thing. A trap that answers differently is a
+  // trap that teaches a bot where the trap is, so the status, the reference shape
+  // and the routing all have to match what a genuine submission of the same type
+  // would have been told.
+  const genuine = await (await post('/api/quotes', validEnquiry)).json()
+  assert.equal(res.status, 201, `the real form answers ${genuine ? 201 : '?'}, so the trap must too`)
+  assert.deepEqual(
+    Object.keys(body.data).sort(),
+    Object.keys(genuine.data).sort().filter((key) => key !== 'duplicate'),
+    'the reply carries the same fields',
+  )
+  assert.match(body.data.reference, /^OPD-\d{6}-[0-9A-F]{4}$/, 'and a reference of the same shape')
+  assert.equal(body.data.routedTo, genuine.data.routedTo, 'and the same desk for the same project type')
+  assert.equal(body.data.slaHours, genuine.data.slaHours)
 })
 
 test('trade and sample enquiries route to a different desk from a colour question', async () => {

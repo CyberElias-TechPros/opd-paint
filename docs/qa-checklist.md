@@ -24,7 +24,12 @@ teams, not in a repository.
 | Room book | 20-page A5 scheme book: four methods, sixteen colourways rendered on the company's own site photographs. |
 | Colour wheel | 3-page A4 quick-reference card: the full library as one wheel, the complete swatch grid, and a contact page. |
 | Specification sheet | 2-page A4-landscape trade sheet: every product's finish, coverage and timing on one page, read from the product dictionary. |
-| Enquiry inbox | `GET /admin` and `/admin/enquiries.csv`, basic auth over a constant-time comparison, 404 unless credentials are set. |
+| Enquiry inbox | `GET /admin` and `/admin/enquiries.csv` behind basic auth over a constant-time comparison, two roles (`viewer` reads, `exporter` downloads), a TOTP second factor per account, signed session cookies with a configurable TTL, an optional CIDR allowlist, and every decision — allowed, refused, challenged, signed out — written to `admin-access.jsonl`. 404 unless credentials are set, and 404 for an address outside the allowlist, so the inbox is invisible rather than merely locked. |
+| Data-subject requests | `POST /api/privacy` takes the right being exercised (access, erasure, correction, objection, portability), returns a `DSAR-` reference and a 30-day `dueBy` on screen, announces it to the desk with the statutory deadline in the body, and stores it. The privacy notice carries the form and still names the email route beside it. Fulfilment is `tools/erase-record.mjs`: a dry run unless `--yes`, a suppression entry so the address cannot be resurrected, an audit line with references only, and no echo of the record it deleted. |
+| Retention | Enforced, not promised: 30 days for operational logs, 24 months for enquiries and data-subject requests, subscriptions and suppression records kept for as long as they mean something. Runs at startup and daily, rewrites atomically, keeps a line whose date cannot be read, and logs what it dropped. The numbers are the ones the privacy notice publishes. |
+| Notifications | Per-channel delivery with two retries, an audit line per attempt, a consecutive-failure counter, and `notify.channel_down` logged at three — so a webhook that died on Tuesday is not indistinguishable from a quiet week. The customer's own acknowledgement (reference, desk, response commitment, phone number, "estimate, not a quotation", the data-subject route) is sent after the response, in the background, and can never fail a submission. |
+| Abuse limits | Twelve enquiries, six sign-ups, six opt-outs, twenty error reports, six second-factor attempts and three data-subject requests per address per ten minutes, counted in a file that survives a restart, with duplicate submissions inside ten minutes returning the first reference rather than a second record. A refusal always names the human route. |
+| Monitoring | `tools/uptime-check.mjs`: six probes that each assert something about the response — the shell and title are real, every hashed bundle resolves, health says storage is ready and a channel is configured, the colour book is not truncated, the sitemap is there. `tools/smoke-production.mjs`: 21 checks including the release stamp, so a deploy that did not take is a failure rather than a shrug. `tools/load-test.mjs`: latency and error budgets under concurrency. Scheduled in CI, opening one issue on failure and closing it on recovery. |
 | Offline | Service worker: network-first pages, cached photography and fonts, branded offline page, API never cached. |
 | Printing | Print stylesheet keeps every swatch (`print-color-adjust: exact`) and drops the chrome. |
 
@@ -50,8 +55,9 @@ teams, not in a repository.
 cd app && npm run check
 ```
 
-207 automated checks run on every `npm run check`, plus four CI jobs that need a
-browser.
+261 automated checks run on every `npm run check` (92 unit and content-integrity,
+112 server, 29 route render, 28 in a real DOM), plus the CI jobs that need a
+browser binary.
 
 - `npm run lint` — oxlint, zero errors. (Twelve warnings remain, all of them
   deliberate: `react/set-state-in-effect` on the store's hydration effect and
@@ -88,9 +94,22 @@ browser.
   price, offer or availability claim in its structured data** — the site
   publishes no prices and holds no stock, and search engines print JSON-LD
   figures directly into rich results.
-- `npm run test:server` — **61 tests**: the HTTP contract (validation, honeypot,
-  routing and SLA, malformed JSON, 413 on an oversized body, subscriptions,
-  colour search, inbox auth, CSV escaping, rate limiting), the Vercel proxy
+- `npm run test:server` — **112 tests across seven files**: the HTTP contract
+  (validation, honeypot, routing and SLA, malformed JSON, 413 on an oversized
+  body, subscriptions, colour search, inbox auth, CSV escaping, rate limiting),
+  the abuse-limit store (durable counters, window expiry, ties broken by file
+  order, a damaged line ignored rather than fatal, the per-process fallback and
+  the log line that admits it), duplicate suppression (identical within the window,
+  different in any one field, and a fingerprint that covers every field the visitor
+  supplied), the inbox access model (roles, TOTP against RFC 4226 vectors and a
+  ±1 step tolerance, session signing and expiry, tokens whose kind cannot be
+  swapped, the allowlist across IPv4 and IPv6, each refusal's status code, and the
+  access log's ten decisions), the data-subject intake (every right, the reference
+  and the deadline, a note that is too long, the honeypot answering *identically*
+  to the real form, the throttled response naming the human route, and the
+  announcement carrying the statutory clock), retention (each file's own period,
+  subscriptions and suppressions untouched, undated lines kept, a prune failure
+  logged rather than silent), the Vercel proxy
   (`app/api/[...path].js`) against the real service, the operational paths
   (notification delivery and retry, a dead webhook not failing an enquiry,
   error-report scrubbing, health), and the deployment edges — CORS for an
@@ -98,7 +117,7 @@ browser.
   rather than the proxy, the generated colour index, an encoded path traversal
   against a sibling of the static root, CSV formula injection, measured
   quantities, and the newsletter opt-out round trip.
-- `npm run test:browser` — **25 tests** in a jsdom DOM against a real enquiry
+- `npm run test:browser` — **28 tests** in a jsdom DOM against a real enquiry
   service on a real socket: an invalid submission focuses the first bad field, a
   valid one stores exactly one record and shows its reference, a server-side
   field error lands on the right input without losing the typed answers, the
@@ -111,6 +130,11 @@ browser.
   visible rather than hidden behind its own divider, tells a browser with no
   canvas where to go instead, paints on a tap but not on a scroll, and selects a
   wall with no pointer at all — and headings descend in order on nine routes.
+  Three of them drive the privacy notice's request form: a request reaches
+  the service and is stored with its reference and deadline, a request with
+  nowhere to answer it (no address) is stopped in the browser rather than sent,
+  and the human route stays visible beside the form — a form is a path to a
+  right, never a gate on one.
   jsdom has no canvas implementation, so the suite installs a recording stand-in
   for the visualiser; it exercises the real code path and asserts what the visitor
   is told, not what the pixels look like.
@@ -167,7 +191,21 @@ so this part is human.
 10. **Opt out** — switch the footer form to "remove an address", submit an
     address that is on the list, and confirm no further mail would be sent. The
     suppression record is in `server/data/unsubscriptions.jsonl`.
-11. **Your own wall, on a real phone** — `/room-preview`: upload a photograph,
+11. **The inbox, as each role** — sign in as a `viewer` and confirm the CSV
+    export is refused (403) while the list opens; sign in as an `exporter` and
+    download it; enter a wrong second factor and confirm the page says so without
+    signing you in — and that a *replayed* code is named as replayed rather than
+    quietly accepted; then read
+    `admin-access.jsonl` and check every one of those attempts is a line in it.
+12. **A data-subject request, end to end** — submit one from the privacy notice
+    with a real address you control: the reference and the 30-day deadline appear
+    on screen, the desk's channel receives it, the acknowledgement arrives, the
+    record is in `privacy-requests.jsonl`, and `tools/erase-record.mjs --email
+    <that address>` in a dry run lists exactly what would go.
+13. **After a deploy** — `./tools/rollback.sh --snapshot` *before*, then
+    `node tools/smoke-production.mjs --origin <origin> --release <stamp>` from
+    outside the host network. Both are in `launch-runbook.md`.
+14. **Your own wall, on a real phone** — `/room-preview`: upload a photograph,
     then drag one in and paste one; tap a wall and check the paint appears on the
     right of the divider; scroll the page *starting on the picture* and confirm it
     scrolls instead of painting; brush a doorframe out of the selection; undo;
@@ -178,7 +216,10 @@ so this part is human.
 ## Known gaps against the README roadmap
 
 - No CMS. Content is edited in typed files and reviewed in Git (see
-  `content-editing.md`). A headless CMS is the next operational step.
+  `content-editing.md`) — and that is now a recorded decision with its cost and
+  its exit condition, not an omission: [ADR 0002](adr/0002-typed-data-over-a-cms.md).
+  A headless CMS remains the next operational step if a non-engineer has to
+  publish alone.
 - No accounts or dealer portal. The project board is per-browser local storage;
   a *durable share link* carries a project between devices, but it is the visitor
   who keeps it, not us.
@@ -187,7 +228,8 @@ so this part is human.
 - No editor UI. `docs/deploying.md` covers running the service; content review is
   Git-based, and the inbox is read-only by design — there is no way to edit or
   delete a record from the browser, which is the correct default for personal
-  data but means pruning is a shell job.
+  data. Deletion is a logged shell tool (`tools/erase-record.mjs`) and pruning is
+  automatic retention, so neither is a hand-edit of a JSON file any more.
 - Analytics events are queued locally and consent-gated; no vendor is wired up
   and none should be added without the consent review described in the roadmap.
   Every event the roadmap's measurement plan names is now actually fired —
@@ -195,3 +237,12 @@ so this part is human.
   `quote_submit` were declared and called from nowhere.
 - Newsletter sign-up is single opt-in. Double opt-in (a confirmation email before
   an address is mailed) is phase 14 and needs a sending domain.
+- **Nothing is provisioned and nobody is on call.** The notification channel, the
+  Sentry DSN, the dead-man's-switch account (`OPD_UPTIME_HEARTBEAT`), the staging
+  host and the production host all need accounts and credentials this repository
+  cannot create. The runbook has the table with the names left blank.
+- **Alerts reach a channel, not a rota.** The uptime check can fail loudly and the
+  workflow can open an issue, but who is told at 2am, and what they are authorised
+  to do, is roadmap 17.02.12 and 20.01.01.
+- **No penetration test and no legal review of the notices.** Both are gated on a
+  budget and a lawyer (16.03.05, 17.02.13).

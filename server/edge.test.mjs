@@ -70,11 +70,29 @@ after(async () => {
 
 const SITE_ORIGIN = 'https://www.opudapaint.com'
 
+/**
+ * Make every posted enquiry a *different* enquiry.
+ *
+ * The service now suppresses duplicate submissions (roadmap 14.01.05): two
+ * identical enquiries inside ten minutes come back with the first one's
+ * reference and no second record, which is exactly what a double click should
+ * do. This suite posts one shared fixture from many tests, so without a nonce
+ * the second test would be asserting against the first test's receipt. The nonce
+ * goes in the message — part of the fingerprint, and asserted on elsewhere only
+ * for its escaping, never for its exact contents. Duplicate suppression itself
+ * has its own tests, in `limits.test.mjs`.
+ */
+let nonce = 0
+const unique = (body) =>
+  body && typeof body === 'object' && !body.company
+    ? { ...body, message: `${body.message ?? ''} (#${(nonce += 1)})` }
+    : body
+
 const post = (path, body, headers = {}) =>
   fetch(`${base}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...headers },
-    body: JSON.stringify(body),
+    body: JSON.stringify(path === '/api/quotes' ? unique(body) : body),
   })
 
 const enquiry = {

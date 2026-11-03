@@ -16,15 +16,39 @@
  * queue; the JSONL file is then the fallback rather than the destination.
  */
 import { createServer } from 'node:http'
-import { appendFile, mkdir, readFile, stat } from 'node:fs/promises'
+import { appendFile, mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises'
 import { createReadStream, existsSync } from 'node:fs'
 import { dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createHash, randomUUID, timingSafeEqual } from 'node:crypto'
 
 import { log, requestId, describeError } from './logger.mjs'
-import { configuredChannels, notifyEnquiry } from './notify.mjs'
+import {
+  channelHealth,
+  configuredChannels,
+  notifyCustomer,
+  notifyEnquiry,
+  notifyPrivacyRequest,
+} from './notify.mjs'
 import { recordError } from './errors.mjs'
+import { createLimitStore } from './limits.mjs'
+import {
+  adminCapabilities,
+  adminEnabled,
+  authenticate,
+  findAdminUser,
+  challengeCookie,
+  challengeFrom,
+  clearChallengeCookie,
+  clearSessionCookie,
+  createChallenge,
+  createSession,
+  ipAllowed,
+  logAccess,
+  sessionCookie,
+  sessionFrom,
+  verifyTotp,
+} from './auth.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -41,6 +65,23 @@ const SUBS_FILE = join(DATA_DIR, 'subscriptions.jsonl')
  * act instead of a resurrected entry nobody agreed to.
  */
 const UNSUBS_FILE = join(DATA_DIR, 'unsubscriptions.jsonl')
+/**
+ * Data-subject requests (roadmap 16.03.07, NDPA sections 30–36).
+ *
+ * A request to see, correct or delete personal data is a record in its own right:
+ * it proves the request was made, when, and what was done about it.
+ */
+const PRIVACY_FILE = join(DATA_DIR, 'privacy-requests.jsonl')
+/**
+ * The retention schedule, in files. See `pruneRetention` for how it is applied.
+ *
+ * These two lists and the privacy notice on the website are one promise written
+ * in three places: `app/src/routes/Legal.tsx` says enquiries are kept 24 months
+ * and server logs 30 days, and the defaults below are those numbers. Changing one
+ * without the other makes the site say something the service does not do.
+ */
+const OPERATIONAL_LOGS = ['notifications.jsonl', 'errors.jsonl', 'admin-access.jsonl']
+const CUSTOMER_RECORDS = ['quotes.jsonl', 'privacy-requests.jsonl']
 const PORT = Number(process.env.PORT ?? 8787)
 
 /**
@@ -87,9 +128,72 @@ const TRUST_PROXY = (() => {
 // and compression, but nothing here *requires* one.
 const STATIC_DIR = process.env.OPD_STATIC_DIR ? resolve(process.env.OPD_STATIC_DIR) : ''
 
-const ADMIN_USER = process.env.OPD_ADMIN_USER ?? ''
-const ADMIN_PASSWORD = process.env.OPD_ADMIN_PASSWORD ?? ''
-const ADMIN_ENABLED = Boolean(ADMIN_USER && ADMIN_PASSWORD)
+/**
+ * Durable rate limiting and duplicate suppression.
+ *
+ * The buckets used to be a `Map` in this process, so a restart was a free pass
+ * for whoever was being limited and a second instance meant a second allowance.
+ * They live in an append-only file now: `server/limits.mjs` explains the
+ * trade-offs. `OPD_RATE_STORE=memory` opts out, for development and for tests
+ * that want an empty bucket every time.
+ */
+const LIMITS_FILE =
+  (process.env.OPD_RATE_STORE ?? '').trim().toLowerCase() === 'memory' ? '' : join(DATA_DIR, 'limits.jsonl')
+const limits = createLimitStore({ file: LIMITS_FILE })
+
+/**
+ * The enquiry inbox is only mounted when credentials are configured. An
+ * unauthenticated admin page is not a feature, it is an incident — and 404 is the
+ * answer either way, so an unconfigured service does not even admit to having one.
+ */
+const ADMIN_ENABLED = adminEnabled()
+
+/**
+ * How long an identical enquiry is treated as one enquiry.
+ *
+ * Roadmap 14.01.05: prevent duplicate submissions and duplicate records. A
+ * double click, a phone that retries when the connection drops, a visitor who
+ * reloads the "thank you" page and fills the form in again — all of these used
+ * to write a second record for the desk to untangle, and a second reference
+ * number for the customer to quote. Ten minutes is longer than any of those and
+ * shorter than anyone genuinely writing the same message twice.
+ */
+const DEDUPE_TTL_MS = (() => {
+  const minutes = Number(process.env.OPD_DEDUPE_MINUTES)
+  if (Number.isFinite(minutes) && minutes >= 0) return minutes * 60 * 1000
+  return 10 * 60 * 1000
+})()
+
+/** A number of days from an environment variable, where `0` means "keep". */
+const daysFrom = (name, fallback) => {
+  const configured = Number(process.env[name])
+  return Number.isFinite(configured) && configured >= 0 ? configured : fallback
+}
+
+/**
+ * How long operational logs are kept, in days.
+ *
+ * 30, because that is what the privacy notice publishes. Delivery receipts,
+ * diagnostics and access lines are useful for weeks and after that are only a
+ * disk filling up — and keeping them forever would contradict a sentence a
+ * customer can read on this site. `OPD_RETENTION_DAYS=0` keeps them.
+ */
+const RETENTION_DAYS = daysFrom('OPD_RETENTION_DAYS', 30)
+
+/**
+ * How long enquiries and the data-subject requests about them are kept, in days.
+ *
+ * 730 — the 24 months the privacy notice states. An enquiry older than that
+ * cannot be answered, quoted from or guaranteed, so keeping it is keeping
+ * personal data with no purpose, which is the thing the NDPA's storage-limitation
+ * principle exists to prevent. `OPD_ENQUIRY_RETENTION_DAYS=0` keeps them.
+ *
+ * Never applied to `subscriptions.jsonl` or `unsubscriptions.jsonl`. A consent
+ * record lives until the consent is withdrawn, and a suppression record lives
+ * forever: deleting one would silently resurrect an address that asked to be left
+ * alone, which is a worse breach than keeping the row.
+ */
+const ENQUIRY_RETENTION_DAYS = daysFrom('OPD_ENQUIRY_RETENTION_DAYS', 730)
 
 /**
  * Colour index.
@@ -108,26 +212,19 @@ const COLOUR_INDEX_FILE = process.env.OPD_COLOUR_INDEX
 const COLOURS_FILE = join(__dirname, '..', 'app', 'src', 'data', 'colors.ts')
 
 /* --------------------------------------------------------------- utilities */
-const buckets = new Map()
 
 /**
- * Fixed-window rate limiter, scoped per endpoint.
+ * Fixed-window rate limiting, scoped per endpoint, on the durable store.
  *
- * Scoping matters: enquiries are limited to 12 per 10 minutes and newsletter
- * sign-ups to 6, and sharing one bucket meant a busy quoting session could lock
- * a visitor out of subscribing. The trade-off is memory only — a restart clears
- * it, which is acceptable for a single node and is why the limiter is a second
- * line of defence rather than the first.
+ * Scoping still matters: enquiries are limited to 12 per 10 minutes and
+ * newsletter sign-ups to 6, and sharing one bucket meant a busy quoting session
+ * could lock a visitor out of subscribing. What changed is that the count now
+ * survives a restart and is shared by every instance that mounts the data
+ * volume, so the limiter is a control rather than a suggestion.
  */
-function rateLimited(ip, limit = 12, windowMs = 10 * 60 * 1000) {
-  const now = Date.now()
-  const bucket = buckets.get(ip)
-  if (!bucket || now - bucket.start > windowMs) {
-    buckets.set(ip, { start: now, count: 1 })
-    return false
-  }
-  bucket.count += 1
-  return bucket.count > limit
+async function rateLimited(key, limit = 12, windowMs) {
+  const outcome = await limits.hit(key, limit, windowMs)
+  return outcome.limited
 }
 
 function send(res, status, body, extraHeaders = {}) {
@@ -173,12 +270,12 @@ const str = (value, max = 500) => (typeof value === 'string' ? value.trim().slic
 const digits = (value) => String(value ?? '').replace(/[^\d]/g, '')
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/
 
-function reference(date = new Date()) {
+function reference(date = new Date(), prefix = 'OPD') {
   const y = String(date.getFullYear()).slice(2)
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
   const tail = randomUUID().replace(/[^a-f0-9]/g, '').slice(0, 4).toUpperCase()
-  return `OPD-${y}${m}${d}-${tail}`
+  return `${prefix}-${y}${m}${d}-${tail}`
 }
 
 function routeFor(projectType) {
@@ -194,6 +291,17 @@ function routeFor(projectType) {
     default:
       return 'Colour desk — Port Harcourt'
   }
+}
+
+/**
+ * Which desk answers, and how fast they have promised to.
+ *
+ * One function, used by the real path and by the honeypot, so the two cannot
+ * drift: a reply a bot can tell apart from a genuine one is a trap with a
+ * half-life.
+ */
+function routingFor(projectType) {
+  return { routedTo: routeFor(projectType), slaHours: projectType === 'dealer' ? 48 : 24 }
 }
 
 async function ensureData() {
@@ -386,28 +494,34 @@ async function serveStatic(req, res, pathname) {
 
 /* ------------------------------------------------------------------ admin */
 
-/** Constant-time comparison so the inbox cannot be probed by timing. */
-function sameSecret(candidate, expected) {
-  const a = createHash('sha256').update(String(candidate)).digest()
-  const b = createHash('sha256').update(String(expected)).digest()
-  return timingSafeEqual(a, b)
+/** A plain-text answer. The inbox is HTML and JSON; the refusals are sentences. */
+function sendText(res, status, body, extraHeaders = {}) {
+  const payload = String(body)
+  res.writeHead(status, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Content-Length': Buffer.byteLength(payload),
+    'Cache-Control': 'no-store',
+    'X-Robots-Tag': 'noindex, nofollow',
+    ...extraHeaders,
+  })
+  res.end(payload)
 }
 
-function isAdmin(req) {
-  if (!ADMIN_ENABLED) return false
-  const header = req.headers.authorization ?? ''
-  const [scheme, encoded] = header.split(' ')
-  if (scheme !== 'Basic' || !encoded) return false
-  const decoded = Buffer.from(encoded, 'base64').toString('utf8')
-  const separator = decoded.indexOf(':')
-  if (separator === -1) return false
-  const user = decoded.slice(0, separator)
-  const pass = decoded.slice(separator + 1)
-  // Evaluate both comparisons before returning, so a wrong username and a
-  // wrong password take the same time.
-  const userOk = sameSecret(user, ADMIN_USER)
-  const passOk = sameSecret(pass, ADMIN_PASSWORD)
-  return userOk && passOk
+/**
+ * Read an `application/x-www-form-urlencoded` body.
+ *
+ * Only the second-factor form posts one. Small limit, one parse, no multipart
+ * support: unlocking an inbox needs six digits and nothing else.
+ */
+async function readForm(req, limitBytes = 4 * 1024) {
+  const chunks = []
+  let size = 0
+  for await (const chunk of req) {
+    size += chunk.length
+    if (size > limitBytes) throw new Error('Payload too large')
+    chunks.push(chunk)
+  }
+  return Object.fromEntries(new URLSearchParams(Buffer.concat(chunks).toString('utf8')))
 }
 
 function escapeHtml(value) {
@@ -483,6 +597,74 @@ async function damagedRecordCount() {
 }
 
 /**
+ * Drop every line in `name` older than `days`, rewriting the file atomically.
+ *
+ * A line whose timestamp cannot be read is kept. Guessing that an undated line is
+ * old is how an audit trail loses the one entry somebody later needs, and how a
+ * half-written append from a crash becomes a data loss.
+ *
+ * @returns {Promise<number>} how many lines were dropped
+ */
+async function pruneFile(name, days) {
+  if (!days) return 0
+  const file = join(DATA_DIR, name)
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000
+  try {
+    const raw = await readFile(file, 'utf8')
+    const kept = []
+    let dropped = 0
+    for (const line of raw.split('\n')) {
+      if (!line.trim()) continue
+      let at = NaN
+      try {
+        // Logs stamp themselves `at`; customer records are stamped `receivedAt`,
+        // because that is the field the customer and the CSV both quote. Reading
+        // only one of the two would make a 24-month retention promise a no-op.
+        const record = JSON.parse(line)
+        at = Date.parse(record?.at ?? record?.receivedAt ?? '')
+      } catch {
+        at = NaN
+      }
+      if (Number.isNaN(at) || at >= cutoff) kept.push(line)
+      else dropped += 1
+    }
+    if (!dropped) return 0
+    // Atomic: a reader, or a backup running at the same moment, must never see a
+    // half-written file.
+    const temporary = `${file}.${process.pid}.tmp`
+    await writeFile(temporary, kept.length ? `${kept.join('\n')}\n` : '', 'utf8')
+    await rename(temporary, file)
+    log.info('retention.pruned', { file: name, dropped, kept: kept.length, retentionDays: days })
+    return dropped
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      // Not fatal, and not silent: retention that quietly stops running is how a
+      // promise in a privacy notice becomes untrue.
+      log.error('retention.prune_failed', { file: name, message: String(error?.message ?? error) })
+    }
+    return 0
+  }
+}
+
+/**
+ * Apply the retention schedule. Runs at startup and then daily.
+ *
+ * Two periods, because the notice publishes two: 30 days for operational logs and
+ * 24 months for enquiries. Everything else — the consent list and the suppression
+ * list — is kept deliberately, and that decision is recorded in
+ * `docs/operations.md` rather than left to a default.
+ */
+export async function pruneRetention() {
+  const entries = [
+    ...OPERATIONAL_LOGS.map((name) => [name, RETENTION_DAYS]),
+    ...CUSTOMER_RECORDS.map((name) => [name, ENQUIRY_RETENTION_DAYS]),
+  ]
+  let dropped = 0
+  for (const [name, days] of entries) dropped += await pruneFile(name, days)
+  return { dropped }
+}
+
+/**
  * Escape one CSV cell — against both parsing and injection.
  *
  * Quoting is the parsing half. The other half is that a desktop spreadsheet
@@ -505,13 +687,80 @@ const csvText = (value) => {
 }
 
 function demandAuth(res) {
-  const body = 'Authentication required.'
-  res.writeHead(401, {
-    'Content-Type': 'text/plain; charset=utf-8',
-    'Content-Length': Buffer.byteLength(body),
+  sendText(res, 401, 'Authentication required.', {
     'WWW-Authenticate': 'Basic realm="OPUDA\'S PAINT enquiries", charset="UTF-8"',
+  })
+}
+
+/**
+ * The second-factor page.
+ *
+ * Its own document rather than a JSON error, because whoever sees it is a member
+ * of staff with a phone in their hand and a code to type. `form-action 'self'` is
+ * the one permission this page's policy grants that the inbox page does not: it
+ * has to be able to post to itself, and to nothing else.
+ */
+function renderSecondFactor(res, req, { name, error, status = 200 }) {
+  const role = findAdminUser(name)?.role ?? 'viewer'
+  const body = `<!doctype html>
+<html lang="en-NG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Unlock the inbox — OPUDA'S PAINT</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 1.5rem;
+         background: #f7f2e9; color: #0b1a13; font: 15px/1.55 "Archivo", ui-sans-serif, system-ui, sans-serif; }
+  main { width: min(26rem, 100%); background: #fcf9f3; border: 1px solid #d8cdbb; border-radius: 3px; padding: 1.6rem; }
+  h1 { font: 400 1.5rem/1.2 "Instrument Serif", Georgia, serif; margin: 0 0 .4rem; }
+  p.lede { color: #4d6157; margin: 0 0 1.2rem; font-size: .88rem; }
+  label { display: block; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: #4d6157; margin-bottom: .4rem; }
+  input { width: 100%; padding: .7rem .8rem; font: 600 1.3rem/1.2 ui-monospace, Menlo, monospace; letter-spacing: .35em;
+          border: 1px solid #d8cdbb; border-radius: 3px; background: #fff; color: #0b1a13; }
+  input:focus-visible { outline: 2px solid #0c6b45; outline-offset: 2px; }
+  button { margin-top: 1rem; width: 100%; padding: .7rem 1rem; border: 0; border-radius: 3px; background: #0c6b45;
+           color: #fcf9f3; font: 600 .9rem/1 inherit; cursor: pointer; }
+  button:hover { background: #0b1a13; }
+  .error { margin: 0 0 1rem; padding: .6rem .8rem; border: 1px solid #b3261e33; background: #b3261e0d; color: #8c1d18;
+           font-size: .84rem; border-radius: 3px; }
+  .note { margin-top: 1.2rem; font-size: .76rem; color: #4d6157; }
+</style>
+</head>
+<body>
+  <main>
+    <h1>One more step</h1>
+    <p class="lede">Signed in as <strong>${escapeHtml(name)}</strong>. Enter the six-digit code from your
+      authenticator app to open the enquiry inbox.</p>
+    ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
+    <form method="post" action="/admin/second-factor">
+      <label for="code">Authenticator code</label>
+      <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}"
+        maxlength="6" required autofocus>
+      <button type="submit">Unlock the inbox</button>
+    </form>
+    <p class="note">Codes change every 30 seconds and each one works once. This page expires after five minutes;
+      if it does, sign in again.</p>
+  </main>
+</body>
+</html>`
+
+  // 401 rather than 200 when a code was refused: the page is the same one, but a
+  // status that says "here you are" for a failed authentication is a lie that
+  // caches, monitors and logs all repeat.
+  res.writeHead(status, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Content-Length': Buffer.byteLength(body),
     'Cache-Control': 'no-store',
     'X-Robots-Tag': 'noindex, nofollow',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'no-referrer',
+    'Content-Security-Policy':
+      "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+    // A fresh challenge on every render, so the five minutes start now.
+    'Set-Cookie': challengeCookie(createChallenge({ name, role }), req),
   })
   res.end(body)
 }
@@ -613,7 +862,16 @@ async function handle(req, res) {
         storage: dataDir,
         damagedRecords: await damagedRecordCount(),
         notifications: configuredChannels(),
+        notificationHealth: channelHealth(),
         inbox: ADMIN_ENABLED,
+        // Booleans: health is public, so it says whether the controls exist and
+        // never what they are set to.
+        admin: adminCapabilities(),
+        limits: { store: limits.kind(), tracked: await limits.size() },
+        retention: {
+          operationalLogs: RETENTION_DAYS,
+          enquiries: ENQUIRY_RETENTION_DAYS,
+        },
         errorForwarding: Boolean(process.env.OPD_SENTRY_DSN),
       },
     })
@@ -623,7 +881,7 @@ async function handle(req, res) {
   if (req.method === 'POST' && path === '/api/errors') {
     // Diagnostics, not analytics: no consent gate, but also no identifiers, and
     // a rate limit so a loop in one broken browser cannot fill the disk.
-    if (rateLimited(`${ip}:errors`, 20)) {
+    if (await rateLimited(`${ip}:errors`, 20)) {
       send(res, 429, { ok: false, error: 'Too many error reports.' })
       return
     }
@@ -662,7 +920,7 @@ async function handle(req, res) {
   }
 
   if (req.method === 'POST' && path === '/api/quotes') {
-    if (rateLimited(`${ip}:quotes`)) {
+    if (await rateLimited(`${ip}:quotes`)) {
       send(res, 429, { ok: false, error: 'Too many enquiries from this connection. Please call us instead.' })
       return
     }
@@ -678,9 +936,20 @@ async function handle(req, res) {
       return
     }
 
-    // Honeypot: hidden field must be empty. Look successful to the bot, do nothing.
+    /**
+     * Honeypot: the hidden field must be empty.
+     *
+     * Look successful, store nothing — and look successful *in exactly the same
+     * way*. Same status, same fields, same desk for the same project type. A
+     * honeypot that answers 200 while the real form answers 201 is a trap that
+     * teaches the next generation of bots where the trap is.
+     */
     if (str(body.company)) {
-      send(res, 200, { ok: true, data: { reference: reference(), receivedAt: new Date().toISOString(), routedTo: 'Colour desk', slaHours: 24 } })
+      const receivedAt = new Date().toISOString()
+      send(res, 201, {
+        ok: true,
+        data: { reference: reference(new Date(receivedAt)), receivedAt, ...routingFor(str(body.projectType, 40)) },
+      })
       return
     }
 
@@ -710,11 +979,19 @@ async function handle(req, res) {
     // the client, the CSV export and the inbox all show it, and until now only
     // the response carried it — every stored enquiry read "Unrouted" in /admin
     // and the desk split was permanently blank.
-    const routing = { routedTo: routeFor(projectType), slaHours: projectType === 'dealer' ? 48 : 24 }
+    const routing = routingFor(projectType)
 
-    const record = {
+    // The receipt the visitor gets, built once so a duplicate submission can be
+    // answered with the very same numbers rather than a second reference.
+    const receipt = {
       reference: reference(),
       receivedAt: new Date().toISOString(),
+      ...routing,
+    }
+
+    const record = {
+      reference: receipt.reference,
+      receivedAt: receipt.receivedAt,
       name,
       phone: phoneRaw,
       email: email || null,
@@ -743,9 +1020,65 @@ async function handle(req, res) {
       meta: { ua: str(req.headers['user-agent'], 200) },
     }
 
+    /**
+     * Duplicate suppression — roadmap 14.01.05.
+     *
+     * A double click, a phone that retries when the connection drops, a visitor
+     * who reloads the confirmation and fills the form in again: each of these
+     * used to write a second record for the desk to untangle and hand the
+     * customer a second reference to quote on the phone.
+     *
+     * The fingerprint covers **every field the visitor supplied**, normalised the
+     * way it is stored. Not a subset: two submissions that differ in anything —
+     * a different room count, one more colour, a corrected phone digit — are two
+     * enquiries, and collapsing them would lose a lead. Two that differ in
+     * nothing are one enquiry asked twice.
+     *
+     * The window is ten minutes (`OPD_DEDUPE_MINUTES`): longer than any of those
+     * accidents, shorter than anyone deliberately writing the same message twice.
+     */
+    const fingerprint = createHash('sha256')
+      .update(
+        JSON.stringify([
+          record.name.toLowerCase(),
+          record.phone.replace(/[^0-9]/g, ''),
+          record.email?.toLowerCase() ?? null,
+          record.city.toLowerCase(),
+          record.projectType.toLowerCase(),
+          record.rooms?.toLowerCase() ?? null,
+          record.message?.toLowerCase() ?? null,
+          record.colors,
+          record.products,
+          record.quantities,
+        ]),
+      )
+      .digest('hex')
+      .slice(0, 32)
+    const dedupeKey = `dedupe:${fingerprint}`
+
+    if (DEDUPE_TTL_MS) {
+      const earlier = await limits.recall(dedupeKey, DEDUPE_TTL_MS)
+      if (earlier) {
+        let receipt = null
+        try {
+          receipt = JSON.parse(earlier)
+        } catch {
+          receipt = null
+        }
+        if (receipt && typeof receipt.reference === 'string') {
+          log.info('enquiry.duplicate_suppressed', { id, reference: receipt.reference })
+          // 201 with the original numbers, plus `duplicate` so the client can say
+          // "we already have your enquiry" rather than pretending it is new.
+          send(res, 201, { ok: true, data: { ...receipt, duplicate: true } })
+          return
+        }
+      }
+    }
+
     try {
       await ensureData()
       await appendFile(QUOTES_FILE, JSON.stringify(record) + '\n', 'utf8')
+      if (DEDUPE_TTL_MS) await limits.remember(dedupeKey, JSON.stringify(receipt), DEDUPE_TTL_MS)
 
       log.info('enquiry.received', {
         id,
@@ -756,8 +1089,9 @@ async function handle(req, res) {
 
       // Answer the visitor first. Delivery to a human happens afterwards, so a
       // slow webhook can never make a submitted enquiry feel broken.
-      send(res, 201, { ok: true, data: { reference: record.reference, receivedAt: record.receivedAt, ...routing } })
+      send(res, 201, { ok: true, data: receipt })
       void notifyEnquiry(record, routing, { dataDir: DATA_DIR })
+      void notifyCustomer(record, routing, { dataDir: DATA_DIR })
     } catch (error) {
       log.error('enquiry.storage_failed', { id, ...describeError(error) })
       send(res, 503, { ok: false, error: 'We could not save your enquiry. Please call 0902 642 4350.' })
@@ -766,7 +1100,7 @@ async function handle(req, res) {
   }
 
   if (req.method === 'POST' && path === '/api/subscribe') {
-    if (rateLimited(`${ip}:subscribe`, 6)) {
+    if (await rateLimited(`${ip}:subscribe`, 6)) {
       send(res, 429, { ok: false, error: 'Too many requests. Try again later.' })
       return
     }
@@ -780,7 +1114,10 @@ async function handle(req, res) {
     }
     const email = str(body.email, 160)
     if (!EMAIL.test(email)) {
-      send(res, 422, { ok: false, error: 'Enter a valid email address.' })
+      // Per-field, like every other refusal this service makes: the app renders
+      // `fields` against the inputs, and a bare sentence gives it nowhere to put
+      // the message.
+      send(res, 422, { ok: false, error: 'Some details need attention.', fields: { email: 'Enter a valid email address.' } })
       return
     }
     try {
@@ -811,7 +1148,7 @@ async function handle(req, res) {
     // in one click" is printed under the sign-up form, and until this endpoint
     // existed it was not true — which is a consent failure, not a copy problem
     // (NDPA section 34: withdrawing consent must be as easy as giving it).
-    if (rateLimited(`${ip}:unsubscribe`, 6)) {
+    if (await rateLimited(`${ip}:unsubscribe`, 6)) {
       send(res, 429, { ok: false, error: 'Too many requests. Try again later.' })
       return
     }
@@ -844,25 +1181,253 @@ async function handle(req, res) {
       // 201, not 204: the visitor gets a confirmation and the record is durable.
       send(res, 201, { ok: true, data: { email } })
     } catch {
-      send(res, 503, { ok: false, error: 'We could not record that. Email hello@opudaspaint.com and we will remove you by hand.' })
+      send(res, 503, { ok: false, error: 'We could not record that. Email hello@opudapaint.com and we will remove you by hand.' })
     }
     return
   }
 
+  /**
+   * Data-subject requests — roadmap 16.03.07, NDPA sections 30–36.
+   *
+   * The privacy notice already promises a visitor can ask to see, correct or
+   * delete what we hold, and to get an answer within 30 days. A promise with no
+   * intake path is a promise nobody can keep track of: the request arrives in a
+   * mailbox, and the clock is invisible. This gives it a reference number, an
+   * append-only record and the same announcement path an enquiry gets, so the
+   * statutory one is as hard to drop as the commercial one.
+   */
+  if (req.method === 'POST' && path === '/api/privacy') {
+    if (await rateLimited(`${ip}:privacy`, 3)) {
+      send(res, 429, { ok: false, error: 'Too many requests from this connection. Email hello@opudapaint.com and we will help.' })
+      return
+    }
+    let body
+    try {
+      body = await readJson(req, 16 * 1024)
+    } catch (error) {
+      const tooLarge = error instanceof Error && error.message === 'Payload too large'
+      send(res, tooLarge ? 413 : 400, { ok: false, error: tooLarge ? 'That request is too large.' : 'Malformed request.' })
+      return
+    }
+
+    // The same hidden field the enquiry form uses: look successful, store
+    // nothing, and look successful in the same shape a real request does.
+    if (str(body.company)) {
+      const receivedAt = new Date().toISOString()
+      send(res, 201, {
+        ok: true,
+        data: {
+          reference: reference(new Date(receivedAt), 'DSAR'),
+          receivedAt,
+          dueBy: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+      })
+      return
+    }
+
+    const RIGHTS = ['access', 'erasure', 'correction', 'objection', 'portability']
+    const fields = {}
+    const type = str(body.type, 24).toLowerCase()
+    const email = str(body.email, 160)
+    const enquiryReference = str(body.enquiryReference ?? body.reference, 24)
+    const note = str(body.note, 2000)
+
+    if (!RIGHTS.includes(type)) fields.type = 'Choose what you are asking for.'
+    if (!EMAIL.test(email)) fields.email = 'A reachable email address is required, so we can answer you.'
+
+    if (Object.keys(fields).length) {
+      send(res, 422, { ok: false, error: 'Some details need attention.', fields })
+      return
+    }
+
+    const record = {
+      reference: reference(new Date(), 'DSAR'),
+      receivedAt: new Date().toISOString(),
+      type,
+      email,
+      enquiryReference: enquiryReference || null,
+      note: note || null,
+      source: str(body.source, 60) || 'website',
+      // A right, not a marketing consent: recorded so the basis is unambiguous.
+      basis: 'data-subject-right',
+      dueBy: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      meta: { ua: str(req.headers['user-agent'], 200) },
+    }
+
+    try {
+      await ensureData()
+      await appendFile(PRIVACY_FILE, JSON.stringify(record) + '\n', 'utf8')
+      log.info('privacy.request_received', { id, reference: record.reference, type, dueBy: record.dueBy })
+      send(res, 201, { ok: true, data: { reference: record.reference, receivedAt: record.receivedAt, dueBy: record.dueBy } })
+      void notifyPrivacyRequest(record, { dataDir: DATA_DIR })
+    } catch (error) {
+      log.error('privacy.storage_failed', { id, ...describeError(error) })
+      send(res, 503, {
+        ok: false,
+        error: 'We could not record that request. Email hello@opudapaint.com and we will handle it by hand — the clock starts when you write.',
+      })
+    }
+    return
+  }
 
   /* ------------------------------------------------------------- inbox */
 
-  if (req.method === 'GET' && (path === '/admin' || path === '/admin/enquiries.csv')) {
+  if (path.startsWith('/admin')) {
     // 404 rather than 401 when the inbox is not configured: an endpoint that
     // does not exist cannot be attacked, and this one is optional by design.
     if (!ADMIN_ENABLED) {
       send(res, 404, { ok: false, error: 'Unknown endpoint' })
       return
     }
-    if (!isAdmin(req)) {
-      demandAuth(res)
+
+    /**
+     * 17.01.13 — restrict where the inbox can be reached from.
+     *
+     * Also a 404, and logged: the answer to "is there an admin here?" from an
+     * address nobody expected is the same as the answer when there is not one,
+     * but the attempt is still worth a line in `admin-access.jsonl`.
+     */
+    if (!ipAllowed(ip)) {
+      await logAccess({ id, ip, method: req.method, path, decision: 'denied-allowlist' }, { dataDir: DATA_DIR })
+      send(res, 404, { ok: false, error: 'Unknown endpoint' })
       return
     }
+
+    /** Shared machines matter more than convenience here. */
+    if (req.method === 'POST' && path === '/admin/sign-out') {
+      const leaving = sessionFrom(req)
+      await logAccess(
+        { id, ip, method: req.method, path, user: leaving?.name ?? null, role: leaving?.role ?? null, decision: 'signed-out' },
+        { dataDir: DATA_DIR },
+      )
+      res.writeHead(303, {
+        'Set-Cookie': [clearSessionCookie(), clearChallengeCookie()],
+        Location: '/',
+        'Cache-Control': 'no-store',
+      })
+      res.end()
+      return
+    }
+
+    /** The second factor, exchanged for a signed session. */
+    if (req.method === 'POST' && path === '/admin/second-factor') {
+      const challenge = challengeFrom(req)
+      if (!challenge) {
+        await logAccess({ id, ip, method: req.method, path, decision: 'denied-challenge' }, { dataDir: DATA_DIR })
+        sendText(res, 401, 'That unlock page expired. Sign in to the inbox again.')
+        return
+      }
+      // Six digits is a million possibilities, so the attempt itself is limited:
+      // six tries per ten minutes makes guessing a code slower than the code
+      // rotates, which is the whole point of the factor.
+      if (await rateLimited(`${ip}:mfa`, 6)) {
+        await logAccess({ id, ip, method: req.method, path, user: challenge.name, decision: 'denied-rate' }, { dataDir: DATA_DIR })
+        sendText(res, 429, 'Too many attempts. Wait ten minutes, then sign in again.')
+        return
+      }
+      let form
+      try {
+        form = await readForm(req)
+      } catch {
+        sendText(res, 400, 'That form could not be read.')
+        return
+      }
+      const secret = findAdminUser(challenge.name)?.totp ?? ''
+      const result = verifyTotp(secret, form.code, { account: challenge.name })
+      if (!result.ok) {
+        await logAccess(
+          { id, ip, method: req.method, path, user: challenge.name, role: challenge.role, decision: 'denied-mfa', reason: result.reason },
+          { dataDir: DATA_DIR },
+        )
+        renderSecondFactor(res, req, {
+          name: challenge.name,
+          status: 401,
+          error:
+            result.reason === 'replayed'
+              ? 'That code has already been used. Wait for the next one.'
+              : 'That code did not match. Check the clock on your phone and try the current one.',
+        })
+        return
+      }
+      await logAccess(
+        { id, ip, method: req.method, path, user: challenge.name, role: challenge.role, decision: 'allowed-mfa' },
+        { dataDir: DATA_DIR },
+      )
+      // Getting in clears the attempt counter. Two typos earlier in the week
+      // should not leave somebody two-sixths of the way to a lockout on the day
+      // they need the inbox, and the counter exists to stop guessing, not to
+      // punish typing.
+      await limits.forget(`${ip}:mfa`)
+      res.writeHead(303, {
+        'Set-Cookie': [sessionCookie(createSession({ name: challenge.name, role: challenge.role }), req), clearChallengeCookie()],
+        Location: '/admin',
+        'Cache-Control': 'no-store',
+      })
+      res.end()
+      return
+    }
+
+    if (req.method !== 'GET' || (path !== '/admin' && path !== '/admin/enquiries.csv')) {
+      send(res, 404, { ok: false, error: 'Unknown endpoint' })
+      return
+    }
+
+    /**
+     * Identity: a signed session, or credentials that may still need a code.
+     *
+     * 17.01.04 (roles), 17.01.12 (MFA) and 17.01.13 (log privileged activity)
+     * all hang off the three variables below — who this is, how they proved it,
+     * and whether the proof is complete.
+     */
+    const session = sessionFrom(req)
+    let identity = session ? { name: session.name, role: session.role, via: 'session' } : null
+    let pending = null
+
+    if (!identity) {
+      const account = authenticate(req.headers.authorization)
+      if (account) {
+        if (account.totp) pending = account
+        else identity = { name: account.name, role: account.role, via: 'credentials' }
+      }
+    }
+
+    if (!identity) {
+      if (!pending) {
+        await logAccess({ id, ip, method: req.method, path, decision: 'denied-credentials' }, { dataDir: DATA_DIR })
+        demandAuth(res)
+        return
+      }
+      await logAccess(
+        { id, ip, method: req.method, path, user: pending.name, role: pending.role, decision: 'challenge-mfa' },
+        { dataDir: DATA_DIR },
+      )
+      if (path !== '/admin') {
+        // A download cannot render a form. Tell the browser to open the page
+        // that can, which is also where the session cookie comes from.
+        sendText(res, 401, 'Second factor required. Open /admin in a browser, enter your code, then download again.', {
+          'WWW-Authenticate': 'Basic realm="OPUDA\'S PAINT enquiries", charset="UTF-8"',
+        })
+        return
+      }
+      renderSecondFactor(res, req, { name: pending.name, error: null })
+      return
+    }
+
+    // A viewer may read the inbox. Only an exporter may take the whole log —
+    // every customer's name, phone number and message — off the machine.
+    if (path === '/admin/enquiries.csv' && identity.role !== 'exporter') {
+      await logAccess(
+        { id, ip, method: req.method, path, user: identity.name, role: identity.role, decision: 'denied-role' },
+        { dataDir: DATA_DIR },
+      )
+      sendText(res, 403, 'Your account can read the inbox but not export it. The exporter role can.')
+      return
+    }
+
+    await logAccess(
+      { id, ip, method: req.method, path, user: identity.name, role: identity.role, via: identity.via, decision: 'allowed' },
+      { dataDir: DATA_DIR },
+    )
 
     const [quotes, subscriptions] = await Promise.all([
       readRecords(QUOTES_FILE),
@@ -954,7 +1519,12 @@ async function handle(req, res) {
   .actions a { border: 1px solid #0b1a13; border-radius: 3px; padding: .5rem .9rem; text-decoration: none;
                color: #fcf9f3; background: #0c6b45; font-weight: 600; font-size: .8rem; }
   .actions a.ghost { background: transparent; color: #0b1a13; }
+  .who { color: #4d6157; font-size: .78rem; margin: 0 0 1.2rem; }
   .empty { border: 1px dashed #d8cdbb; padding: 2rem; text-align: center; color: #4d6157; background: #fcf9f3; }
+  .actions form { display: inline; }
+  .actions button { border: 1px solid #d8cdbb; border-radius: 3px; padding: .5rem .9rem; background: transparent;
+                    color: #0b1a13; font: 600 .8rem/1 inherit; cursor: pointer; }
+  .actions button:hover { border-color: #0b1a13; }
   footer { margin-top: 2rem; color: #4d6157; font-size: .78rem; max-width: 52rem; }
   @media (max-width: 780px) { thead { display: none; } tr { display: block; border-bottom: 2px solid #d8cdbb; }
     td, tbody th { display: block; border: 0; } td::before { content: attr(data-label); display: block;
@@ -965,6 +1535,8 @@ async function handle(req, res) {
   <h1>Enquiries</h1>
   <p class="lede">Every enquiry submitted through the site, newest first. This page reads the append-only log on
     this machine; it is deliberately read-only, so nothing here can alter a customer record.</p>
+  <p class="who">Signed in as <strong>${escapeHtml(identity.name)}</strong> · ${escapeHtml(identity.role)} role
+    · every open of this page is recorded in <code>admin-access.jsonl</code></p>
   <div class="stats">
     <div class="stat"><b>${quotes.length}</b><span>Total</span></div>
     <div class="stat"><b>${todays}</b><span>Today</span></div>
@@ -972,8 +1544,13 @@ async function handle(req, res) {
     ${Object.entries(desks).map(([desk, count]) => `<div class="stat"><b>${count}</b><span>${escapeHtml(desk)}</span></div>`).join('')}
   </div>
   <div class="actions">
-    <a href="/admin/enquiries.csv">Download CSV</a>
+    ${
+      identity.role === 'exporter'
+        ? '<a href="/admin/enquiries.csv">Download CSV</a>'
+        : '<span class="muted" style="align-self:center">Your role can read this page but not export it</span>'
+    }
     <a class="ghost" href="/">Open the site</a>
+    <form method="post" action="/admin/sign-out"><button type="submit">Sign out</button></form>
   </div>
   ${
     newestFirst.length
@@ -1003,7 +1580,10 @@ ${rows}
       'X-Frame-Options': 'DENY',
       'Referrer-Policy': 'no-referrer',
       'Content-Security-Policy':
-        "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'none'; base-uri 'none'",
+        // `form-action 'self'` because the page now carries a sign-out button.
+        // Itself and nothing else: the CSP is what stops an injected form from
+        // posting a customer log somewhere else.
+        "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
     })
     res.end(html)
     return
@@ -1022,12 +1602,35 @@ const startedDirectly =
 if (startedDirectly) {
   const server = createEnquiryServer()
   server.listen(PORT, '0.0.0.0', () => {
+    // Load whatever the previous process was counting, so a deploy is not a free
+    // pass for whoever was being rate limited, then prune on a daily timer.
+    void limits.open().then(async ({ lines: tracked, kind }) => {
+      const { dropped } = await pruneRetention()
+      log.info('service.retention', {
+        dropped,
+        limits: { store: kind, tracked },
+        schedule: {
+          operationalLogs: RETENTION_DAYS ? `${RETENTION_DAYS} days` : 'kept',
+          enquiries: ENQUIRY_RETENTION_DAYS ? `${ENQUIRY_RETENTION_DAYS} days` : 'kept',
+          consentAndSuppression: 'kept until withdrawn',
+        },
+        detail:
+          'the periods above are the ones the privacy notice publishes; changing them means changing that page too',
+      })
+      const daily = setInterval(() => void pruneRetention(), 24 * 60 * 60 * 1000)
+      daily.unref?.()
+    })
+
     log.info('service.started', {
       port: PORT,
       storage: DATA_DIR,
       staticDir: STATIC_DIR || null,
       notifications: configuredChannels(),
+      acknowledgement: configuredChannels().includes('email') && (process.env.OPD_ACK_CUSTOMER ?? 'on') !== 'off',
       inbox: ADMIN_ENABLED,
+      admin: adminCapabilities(),
+      limits: { store: limits.kind(), file: LIMITS_FILE || null },
+      retention: { operationalLogs: RETENTION_DAYS, enquiries: ENQUIRY_RETENTION_DAYS },
       errorForwarding: Boolean(process.env.OPD_SENTRY_DSN),
     })
     if (!configuredChannels().length) {
@@ -1041,6 +1644,15 @@ if (startedDirectly) {
     }
     if (!ADMIN_ENABLED) {
       log.info('service.inbox_disabled', { detail: 'set OPD_ADMIN_USER and OPD_ADMIN_PASSWORD to enable /admin' })
+    } else if (!adminCapabilities().mfa) {
+      // 17.01.12. Not a refusal to start — a single-person deployment on a
+      // private network is a legitimate choice — but it is a choice that should
+      // be visible in the log rather than assumed.
+      log.warn('service.inbox_without_mfa', {
+        detail:
+          'the enquiry inbox is open with a password only. Set OPD_ADMIN_TOTP_SECRET (or a per-user "totp" in ' +
+          'OPD_ADMIN_USERS) and run `node server/auth.mjs --new-secret "name"` to enrol an authenticator app.',
+      })
     }
   })
 }

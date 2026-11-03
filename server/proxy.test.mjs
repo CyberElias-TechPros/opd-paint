@@ -64,12 +64,30 @@ const enquiry = {
   consent: true,
 }
 
+/**
+ * Make every posted enquiry a *different* enquiry.
+ *
+ * The service now suppresses duplicate submissions (roadmap 14.01.05): two
+ * identical enquiries inside ten minutes come back with the first one's
+ * reference and no second record, which is exactly what a double click should
+ * do. This suite posts one shared fixture from many tests, so without a nonce
+ * the second test would be asserting against the first test's receipt. The nonce
+ * goes in the message — part of the fingerprint, and asserted on elsewhere only
+ * for its escaping, never for its exact contents. Duplicate suppression itself
+ * has its own tests, in `limits.test.mjs`.
+ */
+let nonce = 0
+const unique = (body) =>
+  body && typeof body === 'object' && !body.company
+    ? { ...body, message: `${body.message ?? ''} (#${(nonce += 1)})` }
+    : body
+
 test('without an origin the proxy refuses, and says so', async () => {
   delete process.env.OPD_API_ORIGIN
   const res = await fetch(`${frontUrl}/api/quotes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(enquiry),
+    body: JSON.stringify(unique(enquiry)),
   })
   assert.equal(res.status, 503)
   const body = await res.json()
@@ -91,7 +109,7 @@ test('a POST with a JSON body reaches the service and creates a reference', asyn
   const res = await fetch(`${frontUrl}/api/quotes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(enquiry),
+    body: JSON.stringify(unique(enquiry)),
   })
   assert.equal(res.status, 201)
   const body = await res.json()
@@ -120,8 +138,20 @@ test('the honeypot is still discarded silently', async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...enquiry, company: 'spam-bot' }),
   })
-  assert.equal(res.status, 200)
-  assert.equal((await res.json()).ok, true)
+  /*
+   * 201, not 200 — and with the same fields a genuine submission gets. The trap
+   * has to be indistinguishable through the proxy as well as directly against the
+   * service, or a bot that measures the edge learns where the edge hides a trap.
+   */
+  assert.equal(res.status, 201)
+  const body = await res.json()
+  assert.equal(body.ok, true)
+  assert.match(body.data.reference, /^OPD-\d{6}-[A-Z0-9]{4}$/)
+  assert.ok(body.data.receivedAt, 'the trap is timestamped like a real record')
+  // Same desk and same SLA the genuine path gives this project type (`exterior`).
+  assert.equal(body.data.routedTo, 'Technical desk — exterior specification')
+  assert.equal(body.data.slaHours, 24)
+  assert.deepEqual(Object.keys(body.data).sort(), ['receivedAt', 'reference', 'routedTo', 'slaHours'])
 })
 
 test('the query string is preserved', async () => {
@@ -146,7 +176,7 @@ test('an unreachable origin becomes a 502 the visitor can act on', async () => {
   const res = await fetch(`${frontUrl}/api/quotes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(enquiry),
+    body: JSON.stringify(unique(enquiry)),
   })
   assert.equal(res.status, 502)
   const body = await res.json()

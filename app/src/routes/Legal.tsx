@@ -3,13 +3,14 @@ import { usePageMeta } from '../lib/seo'
 import { Kicker, ArrowLink } from '../components/ui/Bits'
 import { BRAND_PHONE_DISPLAY } from '../data/dealers'
 import NotFound from './NotFound'
+import { DataRequestForm } from '../components/legal/DataRequestForm'
 
 type Doc = {
   slug: string
   title: string
   updated: string
   intro: string
-  sections: { heading: string; body: string[]; list?: string[] }[]
+  sections: { heading: string; body: string[]; list?: string[]; form?: 'data-request' }[]
 }
 
 const DOCS: Doc[] = [
@@ -61,9 +62,13 @@ const DOCS: Doc[] = [
       {
         heading: 'Your rights',
         body: [
-          `You can ask for a copy of what we hold about you, ask us to correct it, or ask us to delete it. Write to hello@opudapaint.com or call ${BRAND_PHONE_DISPLAY}. We will respond within 30 days.`,
+          `You can ask for a copy of what we hold about you, ask us to correct it, or ask us to delete it. Use the form below — it gives your request a reference and a deadline — or write to hello@opudapaint.com or call ${BRAND_PHONE_DISPLAY}. Either way we respond within 30 days.`,
+          'Before we release data we may need to confirm that you are who you say you are. That is not obstruction; it is how your data stops being somebody else’s.',
           'If you are unhappy with our response you may complain to the Nigeria Data Protection Commission.',
         ],
+        // The right is only real if there is a way to exercise it that leaves a
+        // trace. Roadmap 16.03.07.
+        form: 'data-request',
       },
       {
         heading: 'Where your data goes',
@@ -243,6 +248,7 @@ export default function Legal() {
                   ))}
                 </ul>
               ) : null}
+              {section.form === 'data-request' ? <DataRequestForm /> : null}
             </section>
           ))}
           <p className="mt-10 border-t border-ink/12 pt-4 text-[0.78rem] text-ink/72">
