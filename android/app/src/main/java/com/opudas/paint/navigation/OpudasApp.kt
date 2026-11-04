@@ -30,6 +30,7 @@ import com.opudas.paint.feature.colours.ColoursScreen
 import com.opudas.paint.feature.dealers.DealerDetailScreen
 import com.opudas.paint.feature.dealers.DealersScreen
 import com.opudas.paint.feature.documents.DocumentScreen
+import com.opudas.paint.feature.documents.DocumentsScreen
 import com.opudas.paint.feature.guides.GuideDetailScreen
 import com.opudas.paint.feature.guides.GuidesScreen
 import com.opudas.paint.feature.home.HomeScreen
@@ -345,6 +346,7 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                         navController.navigate(Destinations.legal("privacy"))
                     },
                     onOpenBoard = { navController.navigate(Destinations.BOARD) },
+                    onOpenDocuments = { navController.navigate(Destinations.DOCUMENTS) },
                     onOpenInbox = { navController.navigate(Destinations.INBOX) },
                 )
             }
@@ -379,6 +381,15 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
              * through a deep link - so the viewer validates it as a bare filename
              * before it goes anywhere near the filesystem.
              */
+            composable(Destinations.DOCUMENTS) {
+                DocumentsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenDocument = { path, title ->
+                        navController.navigate(Destinations.document(path, title))
+                    },
+                )
+            }
+
             composable(
                 route = Destinations.DOCUMENT_VIEWER,
                 arguments = listOf(

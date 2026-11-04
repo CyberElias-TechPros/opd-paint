@@ -93,6 +93,8 @@ fun MoreScreen(
     onOpenPrivacyNotice: () -> Unit,
     /** The saved project: colours, products, quantities and the checklist they make. */
     onOpenBoard: () -> Unit,
+    /** The brand books and the specification sheet, five of them offline. */
+    onOpenDocuments: () -> Unit,
     /** Staff only: the enquiries people sent, behind the same accounts as the website. */
     onOpenInbox: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
@@ -155,6 +157,12 @@ fun MoreScreen(
                         title = "Tools",
                         subtitle = "Finish finder, surface preparation and the calculator",
                         onClick = onOpenTools,
+                    )
+                    LinkRow(
+                        icon = Icons.AutoMirrored.Filled.List,
+                        title = "Documents",
+                        subtitle = "Colour book, room book, wheel, fan deck, specification sheet",
+                        onClick = onOpenDocuments,
                     )
                     LinkRow(
                         icon = Icons.Filled.Info,

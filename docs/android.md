@@ -10,7 +10,7 @@ submissions until it can deliver them.
 
 ## What is here today
 
-88 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, sixteen
+91 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, sixteen
 features, and 103 JVM tests in 6 suites.
 
 | Journey | Screen | Notes |
@@ -29,23 +29,23 @@ features, and 103 JVM tests in 6 suites.
 | Legal notices | `feature/legal` | Privacy, terms and accessibility, readable offline |
 | Project board | `feature/board` | Saved colours, products and quantities, and the checklist they make |
 | Enquiries inbox | `feature/inbox` | Staff sign-in, a second factor, and the enquiries people sent |
-| Documents | `feature/documents` | The eight data and safety sheets behind the products, read with no signal |
+| Documents | `feature/documents` | Six brand books and twelve product sheets; all but the 126-page catalogue open with no signal |
 | More | `feature/more` | The hub, with honest counts from the bundles |
 
 **Not built yet.** Two journeys have no code: the visualiser and settings.
 
-Three routes are declared in `navigation/Destinations.kt` and deliberately not wired into
-the graph, because a route that leads nowhere should not be reachable: `DOCUMENTS`,
-`SETTINGS`, `VISUALISER`. They are the reserved shape of the remaining work, not an
-oversight. Wire one in the same commit as the screen that answers it — `DOCUMENT_VIEWER`
-was reserved for two months and wired the day the viewer existed.
+Two routes are declared in `navigation/Destinations.kt` and deliberately not wired into the
+graph, because a route that leads nowhere should not be reachable: `SETTINGS`, `VISUALISER`.
+They are the reserved shape of the remaining work, not an oversight. Wire one in the same
+commit as the screen that answers it — `DOCUMENT_VIEWER` and `DOCUMENTS` were both reserved
+for months and wired on the day the screens existed.
 
-`DOCUMENTS`, the index of the brand books, is the next one. It is not a screen that is
-hard to write; it is a screen with nothing honest to say yet. The titles and page counts
-the website prints beside those five links live in `Colours.tsx` and `Products.tsx` as
-literal JSX, so listing them in the app would mean either copying that prose by hand,
-which ADR 0002 forbids, or moving it into the data layer where both can read it. The
-second is the right answer and is a web change, so it waits for its own commit.
+Neither of the two left has a counterpart to port. `VISUALISER` is `RoomPreview.tsx` and its
+`RoomVisualizer`: upload a photograph, tap a wall to select it, brush the edges by hand, swap
+the hue, compare before and after. That is image work — flood fill, a brush mask, a hue
+exchange — and it is the largest single piece left in the app. `SETTINGS` has no website
+equivalent at all, so it is not a port but a decision about what a native app should let you
+change, and it should not be invented to fill a route.
 
 ## How the content gets in
 
@@ -70,6 +70,14 @@ The legal notices needed extracting first: they lived as a `DOCS` array inside
 `app/src/data/legal.ts` — typed, tested by `data.test.ts`, and rendered by the website
 from the same module, so there is one notice with two readers rather than two notices.
 All 29 website routes render the same character counts before and after the move.
+
+The documents needed the same treatment, and got it in `app/src/data/documents.ts`: the five
+titles, details and analytics targets that `Colours.tsx` and `Products.tsx` held as literal
+JSX. Every string moved unchanged, verified by diffing the removed literals against the
+values in the module rather than by eye. One visible string did change on purpose — the
+products page said "Download the specification sheet" where its four siblings on the colour
+page are all nouns, and a row in a list of documents is a noun, so it now reads
+"Specification sheet" and the `download` attribute does the verb's work.
 
 `ContentRepository` reads those bundles once, lazily, and exposes the accessors the
 screens use (`colors`, `colorsByIds`, `product`, `palettesFor`, `guide`,
@@ -311,7 +319,7 @@ on paper, which is where a checklist gets ticked anyway.
 
 ## Documents
 
-Every product has a technical data sheet and some have a safety data sheet. On the website
+Every product has a technical data sheet and a safety data sheet. On the website
 these open in a new tab; in the app they render from the copy inside the APK, because the
 moment somebody needs a coverage figure is the moment they are standing at a counter under a
 metal roof with no signal.
@@ -357,13 +365,20 @@ A screen reader can be told which page this is and cannot read a coverage table 
 bitmap. The same document on the website is a PDF with real text in it, which is the better
 route for anybody who needs one, and the note under the page points there.
 
-What is *not* here is an index of the brand books. The colour book, the room book, the colour
-wheel, the fan deck and the specification sheet are all inside the APK and no screen lists
-them. The blocker is not weight, it is words: the titles and page counts the website prints
-beside those five links live in `Colours.tsx` and `Products.tsx` as literal JSX, so listing
-them in the app means either hand-copying that prose, which ADR 0002 forbids, or moving it
-into the data layer where both can read it. The second is the right answer and is a web
-change, so it waits for its own commit.
+`DOCUMENTS` lists the six that belong to nobody in particular — the colour book, the room
+book, the colour wheel, the fan deck, the full catalogue and the specification sheet — out of
+`app/src/data/documents.ts`, with the catalogue marked as the one that opens on the website.
+Each row says what the document is for in the website's own words, and the screen says how
+many of them work offline rather than implying all of them do.
+
+Writing the test that keeps that list honest turned up a defect on the website. `data.test.ts`
+now fails if a PDF in `app/public/documents` is listed by nothing, and four failed it:
+`build-documents.py` writes a TDS **and** an SDS for every product without exception, but only
+matt and silk linked their safety data sheet. Primer, gloss, weathershield and screeding each
+had a safety data sheet generated, committed, served and bundled into the APK that nothing
+pointed at — and on a solvent-borne gloss or an exterior coating, that is the sheet somebody
+needs. All six products now link both, which is also why the count above is twelve sheets and
+not eight.
 
 ## Known warnings
 

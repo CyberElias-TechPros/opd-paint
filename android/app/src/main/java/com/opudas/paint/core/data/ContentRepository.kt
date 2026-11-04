@@ -3,9 +3,11 @@ package com.opudas.paint.core.data
 import android.content.res.AssetManager
 import android.util.Log
 import com.opudas.paint.core.data.model.BrandContact
+import com.opudas.paint.core.data.model.BrandDocument
 import com.opudas.paint.core.data.model.ColorsBundle
 import com.opudas.paint.core.data.model.Dealer
 import com.opudas.paint.core.data.model.DealersBundle
+import com.opudas.paint.core.data.model.DocumentsBundle
 import com.opudas.paint.core.data.model.Guide
 import com.opudas.paint.core.data.model.GuidesBundle
 import com.opudas.paint.core.data.model.LegalBundle
@@ -83,6 +85,7 @@ class ContentRepository(private val assets: AssetManager) {
     private val projectsDeferred: Deferred<ProjectsBundle> = deferred("projects.json")
     private val guidesDeferred: Deferred<GuidesBundle> = deferred("guides.json")
     private val legalDeferred: Deferred<LegalBundle> = deferred("legal.json")
+    private val documentsDeferred: Deferred<DocumentsBundle> = deferred("documents.json")
     private val dealersDeferred: Deferred<DealersBundle> = deferred("dealers.json")
     private val toolsDeferred: Deferred<ToolsBundle> = deferred("tools.json")
     private val mediaDeferred: Deferred<MediaBundle> = deferred("media.json")
@@ -160,6 +163,20 @@ class ContentRepository(private val assets: AssetManager) {
     suspend fun legalDocs(): List<LegalDoc> = legalDeferred.await().docs
 
     suspend fun legalDoc(slug: String): LegalDoc? = legalDocs().firstOrNull { it.slug == slug }
+
+    /* ---------------------------------------------------------- documents */
+
+    /**
+     * The brand books and the specification sheet, in the order the website lists them.
+     *
+     * These are the documents that belong to nobody in particular. The data sheets are
+     * not among them: they hang off their products, which is where somebody looking for
+     * one is already standing.
+     */
+    suspend fun documents(): List<BrandDocument> = documentsDeferred.await().documents
+
+    suspend fun document(file: String): BrandDocument? =
+        documents().firstOrNull { it.file == file }
     suspend fun guide(id: String): Guide? = guides().firstOrNull { it.id == id }
 
     /* ------------------------------------------------------------- dealers */

@@ -174,7 +174,17 @@ export const PRODUCTS: Product[] = [
     packs: [pack(20, 'L'), pack(4, 'L')],
     image: 'brand-banner-matt',
     gallery: ['brand-banner-matt'],
-    tds: [{ label: 'Technical data sheet (PDF)', href: '/documents/opudas-primer-tds.pdf' }],
+    /*
+     * Both sheets, like matt and silk. `tools/build-documents.py` writes a TDS and an
+     * SDS for every product without exception, so the four that linked only their TDS
+     * had a safety data sheet sitting in `public/documents` — generated, committed,
+     * served, bundled into the APK — that nothing pointed at. On a solvent-borne gloss
+     * or an exterior coating that is the sheet somebody actually needs.
+     */
+    tds: [
+      { label: 'Technical data sheet (PDF)', href: '/documents/opudas-primer-tds.pdf' },
+      { label: 'Safety data sheet (PDF)', href: '/documents/opudas-primer-sds.pdf' },
+    ],
     bestFor: 'Every new build, every repaired patch, and any wall that has been re-skimmed.',
     application: [
       { step: 'Cure', detail: 'Allow new render to cure for at least 14 days, ideally 28.' },
@@ -208,7 +218,17 @@ export const PRODUCTS: Product[] = [
     packs: [pack(20, 'L'), pack(4, 'L'), pack(1, 'L')],
     image: 'brand-banner-red',
     gallery: ['brand-banner-red'],
-    tds: [{ label: 'Technical data sheet (PDF)', href: '/documents/opudas-gloss-tds.pdf' }],
+    /*
+     * Both sheets, like matt and silk. `tools/build-documents.py` writes a TDS and an
+     * SDS for every product without exception, so the four that linked only their TDS
+     * had a safety data sheet sitting in `public/documents` — generated, committed,
+     * served, bundled into the APK — that nothing pointed at. On a solvent-borne gloss
+     * or an exterior coating that is the sheet somebody actually needs.
+     */
+    tds: [
+      { label: 'Technical data sheet (PDF)', href: '/documents/opudas-gloss-tds.pdf' },
+      { label: 'Safety data sheet (PDF)', href: '/documents/opudas-gloss-sds.pdf' },
+    ],
     bestFor: 'Gates, doors, frames, railings and steelwork.',
     application: [
       { step: 'Prepare', detail: 'Strip loose coating, sand back to a sound edge, and degrease steel with a solvent wipe.' },
@@ -242,7 +262,17 @@ export const PRODUCTS: Product[] = [
     packs: [pack(20, 'L'), pack(10, 'L')],
     image: 'project-finished-villa',
     gallery: ['project-finished-villa', 'project-blue-fence', 'project-cream-scaffold'],
-    tds: [{ label: 'Technical data sheet (PDF)', href: '/documents/opudas-weathershield-tds.pdf' }],
+    /*
+     * Both sheets, like matt and silk. `tools/build-documents.py` writes a TDS and an
+     * SDS for every product without exception, so the four that linked only their TDS
+     * had a safety data sheet sitting in `public/documents` — generated, committed,
+     * served, bundled into the APK — that nothing pointed at. On a solvent-borne gloss
+     * or an exterior coating that is the sheet somebody actually needs.
+     */
+    tds: [
+      { label: 'Technical data sheet (PDF)', href: '/documents/opudas-weathershield-tds.pdf' },
+      { label: 'Safety data sheet (PDF)', href: '/documents/opudas-weathershield-sds.pdf' },
+    ],
     bestFor: 'Facades, boundary walls, parapets and any elevation exposed to rain and sun.',
     application: [
       { step: 'Prepare', detail: 'Remove efflorescence, treat mould, and repair honeycombing before coating.' },
@@ -276,7 +306,17 @@ export const PRODUCTS: Product[] = [
     packs: [pack(25, 'kg'), pack(10, 'kg')],
     image: 'project-render-stage',
     gallery: ['project-render-stage', 'project-corner-scaffold'],
-    tds: [{ label: 'Technical data sheet (PDF)', href: '/documents/opudas-screeding-tds.pdf' }],
+    /*
+     * Both sheets, like matt and silk. `tools/build-documents.py` writes a TDS and an
+     * SDS for every product without exception, so the four that linked only their TDS
+     * had a safety data sheet sitting in `public/documents` — generated, committed,
+     * served, bundled into the APK — that nothing pointed at. On a solvent-borne gloss
+     * or an exterior coating that is the sheet somebody actually needs.
+     */
+    tds: [
+      { label: 'Technical data sheet (PDF)', href: '/documents/opudas-screeding-tds.pdf' },
+      { label: 'Safety data sheet (PDF)', href: '/documents/opudas-screeding-sds.pdf' },
+    ],
     bestFor: 'New blockwork, patch repairs and any wall being finished in Silk or a dark colour.',
     application: [
       { step: 'Damp down', detail: 'Wet the wall so it does not pull water out of the mix.' },

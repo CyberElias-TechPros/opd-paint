@@ -21,6 +21,7 @@ import { DEALERS, STATES, directionsUrl, distanceKm } from '../src/data/dealers.
 import { GUIDES } from '../src/data/guides.ts'
 import { PROJECTS } from '../src/data/projects.ts'
 import { LEGAL_DOCS, findLegalDoc } from '../src/data/legal.ts'
+import { BRAND_DOCUMENTS } from '../src/data/documents'
 import { INK, PAPER, contrast, estimateLrv, readableInk, swatchText } from '../src/lib/color.ts'
 import { ALT } from '../src/lib/media.ts'
 
@@ -62,6 +63,42 @@ const HEX = /^#[0-9A-F]{6}$/
 console.log('content integrity')
 
 /* ------------------------------------------------------------------ colours */
+
+test('every brand document is a real file, and every real file is accounted for', () => {
+  // The other direction matters as much as this one: a PDF dropped into
+  // public/documents that no list mentions is a document the website cannot link and
+  // the app cannot name, and nothing else in the build would notice it.
+  const onDisk = readdirSync(new URL('../public/documents', import.meta.url)).filter((name) =>
+    name.endsWith('.pdf'),
+  )
+  for (const document of BRAND_DOCUMENTS) {
+    assert.ok(onDisk.includes(document.file), `${document.file} is listed but does not exist`)
+  }
+  const sheets = new Set(
+    PRODUCTS.flatMap((product) => product.tds.map((sheet) => sheet.href.split('/').pop())),
+  )
+  const listed = new Set(BRAND_DOCUMENTS.map((document) => document.file))
+  const unaccounted = onDisk.filter((name) => !listed.has(name) && !sheets.has(name))
+  assert.deepEqual(unaccounted, [], 'PDFs that nothing lists')
+})
+
+test('exactly one document is not bundled, and it is the catalogue', () => {
+  // The app copies every PDF into the APK except this one, so a second entry here means
+  // a document the app will offer and then fail to open.
+  assert.deepEqual(
+    BRAND_DOCUMENTS.filter((document) => !document.bundled).map((document) => document.file),
+    ['opudas-catalogue.pdf'],
+  )
+})
+
+test('every brand document has a title, a detail and an href that matches its file', () => {
+  for (const document of BRAND_DOCUMENTS) {
+    assert.ok(document.title.length > 0, `${document.file} has no title`)
+    assert.ok(document.detail.length > 0, `${document.file} has no detail`)
+    assert.equal(document.href, `/documents/${document.file}`)
+    assert.ok(document.trackTarget.length > 0, `${document.file} has no analytics target`)
+  }
+})
 
 test(`${COLORS.length} colours have unique ids and codes`, () => {
   assert.equal(new Set(COLORS.map((c) => c.id)).size, COLORS.length, 'duplicate colour id')

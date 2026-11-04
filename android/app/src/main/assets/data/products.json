@@ -238,6 +238,10 @@
         {
           "label": "Technical data sheet (PDF)",
           "href": "/documents/opudas-primer-tds.pdf"
+        },
+        {
+          "label": "Safety data sheet (PDF)",
+          "href": "/documents/opudas-primer-sds.pdf"
         }
       ],
       "bestFor": "Every new build, every repaired patch, and any wall that has been re-skimmed.",
@@ -314,6 +318,10 @@
         {
           "label": "Technical data sheet (PDF)",
           "href": "/documents/opudas-gloss-tds.pdf"
+        },
+        {
+          "label": "Safety data sheet (PDF)",
+          "href": "/documents/opudas-gloss-sds.pdf"
         }
       ],
       "bestFor": "Gates, doors, frames, railings and steelwork.",
@@ -386,6 +394,10 @@
         {
           "label": "Technical data sheet (PDF)",
           "href": "/documents/opudas-weathershield-tds.pdf"
+        },
+        {
+          "label": "Safety data sheet (PDF)",
+          "href": "/documents/opudas-weathershield-sds.pdf"
         }
       ],
       "bestFor": "Facades, boundary walls, parapets and any elevation exposed to rain and sun.",
@@ -458,6 +470,10 @@
         {
           "label": "Technical data sheet (PDF)",
           "href": "/documents/opudas-screeding-tds.pdf"
+        },
+        {
+          "label": "Safety data sheet (PDF)",
+          "href": "/documents/opudas-screeding-sds.pdf"
         }
       ],
       "bestFor": "New blockwork, patch repairs and any wall being finished in Silk or a dark colour.",

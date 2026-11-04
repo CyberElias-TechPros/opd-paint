@@ -54,6 +54,7 @@ import {
   STATES,
   WHATSAPP_NUMBER,
 } from '../app/src/data/dealers.ts'
+import { BRAND_DOCUMENTS } from '../app/src/data/documents.ts'
 import { CATEGORIES, GUIDES } from '../app/src/data/guides.ts'
 import { LEGAL_DOCS } from '../app/src/data/legal.ts'
 import { PALETTES } from '../app/src/data/palettes.ts'
@@ -232,6 +233,26 @@ const bundles = async () => ({
     optionsFor: OPTIONS_FOR,
     prepSituations: PREP_SITUATIONS,
     toolCards: TOOL_CARDS,
+  },
+  /*
+   * The downloadable documents: five brand books and the specification sheet.
+   *
+   * `trackTarget` stays out. It names a website analytics event, and the app fires no
+   * events, so shipping it would be a field nothing reads. `purpose` is omitted rather
+   * than null where the site never states one, which JSON.stringify does by itself.
+   *
+   * The technical and safety data sheets are not here: they belong to their products and
+   * travel in `products[].tds`, so a sheet is listed beside the thing it specifies.
+   */
+  documents: {
+    documents: BRAND_DOCUMENTS.map((document) => ({
+      file: document.file,
+      href: assetPath(document.href),
+      title: document.title,
+      detail: document.detail,
+      purpose: document.purpose,
+      bundled: document.bundled,
+    })),
   },
   theme: await readTheme(),
 })
