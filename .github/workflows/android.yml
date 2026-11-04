@@ -61,7 +61,7 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The content bundle is generated from TypeScript sources, so Node runs
       # before Gradle does. No `npm ci`: the loader in `app/scripts/register.mjs`
