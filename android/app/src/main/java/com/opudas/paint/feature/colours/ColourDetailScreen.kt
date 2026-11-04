@@ -53,6 +53,7 @@ import com.opudas.paint.core.designsystem.HeroSwatch
 import com.opudas.paint.core.designsystem.HonestNote
 import com.opudas.paint.core.designsystem.LoadingState
 import com.opudas.paint.core.designsystem.PrimaryAction
+import com.opudas.paint.core.designsystem.SecondaryAction
 import com.opudas.paint.core.designsystem.SectionHeader
 import com.opudas.paint.core.engine.parseHex
 import com.opudas.paint.core.util.dial
@@ -77,7 +78,9 @@ private fun rememberColourDetailViewModel(colourId: String): ColourDetailViewMod
     val context = LocalContext.current
     return viewModel(
         factory = viewModelFactory {
-            initializer { ColourDetailViewModel(context.container.content, colourId) }
+            initializer {
+                ColourDetailViewModel(context.container.content, colourId, context.container.board)
+            }
         },
     )
 }
@@ -216,6 +219,15 @@ fun ColourDetailScreen(
                         val contact = state.contact
                         if (contact != null) {
                             val message = viewModel.whatsappMessage()
+                            SecondaryAction(
+                                text = if (state.isOnBoard) {
+                                    "Take ${color.name} off my project"
+                                } else {
+                                    "Save ${color.name} to my project"
+                                },
+                                onClick = viewModel::toggleOnBoard,
+                            )
+                            Spacer(Modifier.height(10.dp))
                             PrimaryAction(
                                 text = "Ask about ${color.name} on WhatsApp",
                                 onClick = { context.openWhatsApp(contact.whatsapp, message) },

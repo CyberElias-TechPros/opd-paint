@@ -10,8 +10,8 @@ submissions until it can deliver them.
 
 ## What is here today
 
-77 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, fourteen
-features, and 77 JVM tests in 5 suites.
+86 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, fifteen
+features, and 103 JVM tests in 6 suites.
 
 | Journey | Screen | Notes |
 | --- | --- | --- |
@@ -27,17 +27,17 @@ features, and 77 JVM tests in 5 suites.
 | Data request | `feature/privacy` | The five rights, through the same outbox |
 | Tools | `feature/tools` | Finish finder (14 weighted rules), 10 preparation sequences, hub |
 | Legal notices | `feature/legal` | Privacy, terms and accessibility, readable offline |
+| Project board | `feature/board` | Saved colours, products and quantities, and the checklist they make |
 | Enquiries inbox | `feature/inbox` | Staff sign-in, a second factor, and the enquiries people sent |
 | More | `feature/more` | The hub, with honest counts from the bundles |
 
-**Not built yet.** Four journeys have no code: the board and checklist, the document
-viewer, the visualiser, and settings.
+**Not built yet.** Three journeys have no code: the document viewer, the visualiser, and
+settings.
 
-Six routes are declared in `navigation/Destinations.kt` and deliberately not wired into
-the graph, because a route that leads nowhere should not be reachable: `BOARD`,
-`CHECKLIST`, `DOCUMENTS`, `DOCUMENT_VIEWER`, `SETTINGS`, `VISUALISER`. They are the
-reserved shape of the remaining work, not an oversight. Wire one in the same commit as
-the screen that answers it.
+Four routes are declared in `navigation/Destinations.kt` and deliberately not wired into
+the graph, because a route that leads nowhere should not be reachable: `DOCUMENTS`,
+`DOCUMENT_VIEWER`, `SETTINGS`, `VISUALISER`. They are the reserved shape of the remaining
+work, not an oversight. Wire one in the same commit as the screen that answers it.
 
 ## How the content gets in
 
@@ -130,7 +130,7 @@ Credentials and session cookies are never written to disk.
 
 ```
 cd android
-./gradlew testDebugUnitTest     # the 77 JVM tests
+./gradlew testDebugUnitTest     # the 103 JVM tests
 ./gradlew lintDebug             # findings are routed to stdout, not to a file nobody opens
 ./gradlew assembleDebug         # the APK
 ```
@@ -250,6 +250,56 @@ moves up to 200 of them across the network — still far less than the CSV, and 
 data this account may already read on the list. A reference outside that page is
 reported as "not in the most recent 200 of 517" rather than as missing, because those
 are different facts.
+
+## The project board and its checklist
+
+The board is what somebody gathers towards one job — colours, products, quantities
+measured with the calculator, and the condition the walls are in — and the checklist is
+the order of work that follows from it. The website keeps the board in local storage and
+builds the checklist in `app/src/lib/advisor.ts`; the app keeps it in the same database as
+the outbox and builds it in `core/engine/ChecklistEngine.kt`.
+
+Both are ports, and the rules are the website's rather than new ones: re-measuring a room
+replaces the old figure instead of adding a second, saving a quantity also saves its
+product, twelve estimates and eight recent colours and a sixty-character name are the
+caps, clearing keeps the browsing history, colours and products are prepended while
+preparation situations are appended — because that list is a sequence of work and its
+order means something. Looking at a colour notes it as recent without stamping the board
+as edited, since browsing is not planning.
+
+The port was checked by running the real TypeScript under Node and a transcription of the
+Kotlin engine over the same seven boards, then diffing them field by field. That caught a
+bug the first six boards did not: the separator between two preparation situations was
+written `"·"` where the website writes `" · "`, and with one situation on the board
+nothing is joined at all, so it was invisible. A board with one damp wall reads the same
+in both; a board with two read as one compound word in the app. `ChecklistEngineTest` now
+pins the spaced separator, along with the exact strings the TypeScript produced for pack
+sizes, coat plurals, colour plurals, an estimate whose product no longer exists, and the
+plain-text export.
+
+Two porting details are worth knowing before editing either side:
+
+- **`guaranteeYears` and `fullCureDays` are non-null `Int`s here and optional numbers on
+  the website**, where `if (product.guaranteeYears)` skips a zero. Two of the six products
+  carry a zero, because no guarantee is published for a primer or a screeding compound, so
+  the Kotlin tests `> 0`. Printing "0-year guarantee" would invent a term the supplier
+  never offered.
+- **Checklist links are not paths.** The website writes `/tools/surface-prep` into an item
+  and its screens parse that back apart. The app carries a `ChecklistLink` — a fixed
+  destination, or a product by id — and the nav graph maps it, so renaming a web route can
+  never silently send a phone somewhere wrong. The sample line maps to the enquiry form
+  with `projectType=sample` already chosen, because the type is what routes the enquiry to
+  the sample and colour desk. For that, `QUOTE_WITH_CONTEXT` gained a fourth optional
+  argument, which is why the quote route now reads
+  `quote?colourId=…&productId=…&quantity=…&projectType=…`.
+
+The board is version 2 of the database, with `MIGRATION_1_2` written out rather than left
+to `fallbackToDestructiveMigration`: the row holds quantities somebody walked a room with,
+and losing them on upgrade is losing the numbers they are about to buy paint against.
+
+There are no tick boxes on the checklist screen. A tick that is forgotten when the screen
+closes looks like a record of work done and is not one; the copied text has boxes to tick
+on paper, which is where a checklist gets ticked anyway.
 
 ## Known warnings
 

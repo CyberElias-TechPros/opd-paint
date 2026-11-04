@@ -21,8 +21,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.opudas.paint.core.designsystem.TabGlyph
-import com.opudas.paint.core.util.AppCopy
-import com.opudas.paint.core.util.openWeb
+import com.opudas.paint.core.engine.ChecklistLink
+import com.opudas.paint.feature.board.BoardScreen
+import com.opudas.paint.feature.board.ChecklistScreen
 import com.opudas.paint.feature.calculator.CalculatorScreen
 import com.opudas.paint.feature.colours.ColourDetailScreen
 import com.opudas.paint.feature.colours.ColoursScreen
@@ -339,6 +340,7 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     onOpenPrivacyNotice = {
                         navController.navigate(Destinations.legal("privacy"))
                     },
+                    onOpenBoard = { navController.navigate(Destinations.BOARD) },
                     onOpenInbox = { navController.navigate(Destinations.INBOX) },
                 )
             }
@@ -369,6 +371,50 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
             }
 
             /*
+             * The project board and the checklist it produces. Two screens where the
+             * website has one page: managing what is saved and reading the order of work
+             * are different jobs on a phone, and one long scrolling page does neither
+             * well with a thumb.
+             */
+            composable(Destinations.BOARD) {
+                BoardScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenChecklist = { navController.navigate(Destinations.CHECKLIST) },
+                )
+            }
+
+            composable(Destinations.CHECKLIST) {
+                ChecklistScreen(
+                    onBack = { navController.popBackStack() },
+                    /*
+                     * Each line knows what it refers to, not which URL the website would
+                     * have used: a link is a decision about a destination, and parsing
+                     * another platform's route string to make it means the day somebody
+                     * renames a path, a phone navigates somewhere wrong without anything
+                     * failing.
+                     */
+                    onOpenLink = { link ->
+                        when (link) {
+                            ChecklistLink.Calculator ->
+                                navController.navigate(Destinations.CALCULATOR)
+
+                            ChecklistLink.SampleRequest -> navController.navigate(
+                                Destinations.quoteForProjectType(Destinations.SAMPLE_PROJECT_TYPE),
+                            )
+
+                            ChecklistLink.SurfacePrep ->
+                                navController.navigate(Destinations.SURFACE_PREP)
+
+                            ChecklistLink.Dealers -> navController.navigate(Destinations.DEALERS)
+                            ChecklistLink.Colours -> navController.navigate(Destinations.COLOURS)
+                            is ChecklistLink.Product ->
+                                navController.navigate(Destinations.product(link.id))
+                        }
+                    },
+                )
+            }
+
+            /*
              * One registration for the bare route and the one carrying context: all
              * three arguments are nullable with defaults, so "quote" and
              * "quote?productId=matt&quantity=9%20tins" both match here.
@@ -391,6 +437,11 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                         nullable = true
                         defaultValue = null
                     },
+                    navArgument("projectType") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
                 ),
             ) { entry ->
                 QuoteScreen(
@@ -407,6 +458,7 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     colourId = entry.arguments?.getString("colourId"),
                     productId = entry.arguments?.getString("productId"),
                     quantity = entry.arguments?.getString("quantity"),
+                    projectType = entry.arguments?.getString("projectType"),
                 )
             }
         }

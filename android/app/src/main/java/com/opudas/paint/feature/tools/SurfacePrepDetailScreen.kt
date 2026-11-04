@@ -43,6 +43,7 @@ import com.opudas.paint.core.designsystem.Brand
 import com.opudas.paint.core.designsystem.ContactActions
 import com.opudas.paint.core.designsystem.EmptyState
 import com.opudas.paint.core.designsystem.LoadingState
+import com.opudas.paint.core.designsystem.SecondaryAction
 import com.opudas.paint.core.designsystem.SectionHeader
 import com.opudas.paint.core.util.dial
 import com.opudas.paint.core.util.openWhatsApp
@@ -61,7 +62,13 @@ private fun rememberSurfacePrepDetailViewModel(situationId: String): SurfacePrep
     val context = LocalContext.current
     return viewModel(
         factory = viewModelFactory {
-            initializer { SurfacePrepDetailViewModel(context.container.content, situationId) }
+            initializer {
+                SurfacePrepDetailViewModel(
+                    context.container.content,
+                    situationId,
+                    context.container.board,
+                )
+            }
         },
     )
 }
@@ -231,6 +238,19 @@ fun SurfacePrepDetailScreen(
                 }
                 items(state.guides) { guide ->
                     GuideLine(guide = guide, onOpen = { onOpenGuide(guide.id) })
+                }
+            }
+
+            item {
+                Column(Modifier.padding(top = 20.dp)) {
+                    SecondaryAction(
+                        text = if (state.isOnBoard) {
+                            "Take this sequence off my project"
+                        } else {
+                            "Add this sequence to my project"
+                        },
+                        onClick = viewModel::toggleOnBoard,
+                    )
                 }
             }
 

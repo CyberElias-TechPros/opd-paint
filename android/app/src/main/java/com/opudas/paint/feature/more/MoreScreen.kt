@@ -91,6 +91,8 @@ fun MoreScreen(
     onOpenTools: () -> Unit,
     onOpenLegal: () -> Unit,
     onOpenPrivacyNotice: () -> Unit,
+    /** The saved project: colours, products, quantities and the checklist they make. */
+    onOpenBoard: () -> Unit,
     /** Staff only: the enquiries people sent, behind the same accounts as the website. */
     onOpenInbox: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
@@ -280,6 +282,24 @@ fun MoreScreen(
                     )
                     FactRow("Version", BuildConfig.VERSION_NAME)
                 }
+            }
+        }
+
+        item {
+            SectionHeader(
+                title = "Your project",
+                subtitle = "What you have saved towards one job, and the order to do it in",
+            )
+        }
+
+        item {
+            Column {
+                LinkRow(
+                    icon = Icons.AutoMirrored.Filled.List,
+                    title = "Project board and checklist",
+                    subtitle = "Saved colours, products and measured quantities",
+                    onClick = onOpenBoard,
+                )
             }
         }
 

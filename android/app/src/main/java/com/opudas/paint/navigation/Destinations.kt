@@ -70,7 +70,21 @@ object Destinations {
 
     const val QUOTE = "quote"
     /** A quote started from a colour or a calculator result, with its context pre-filled. */
-    const val QUOTE_WITH_CONTEXT = "quote?colourId={colourId}&productId={productId}&quantity={quantity}"
+    const val QUOTE_WITH_CONTEXT =
+        "quote?colourId={colourId}&productId={productId}&quantity={quantity}&projectType={projectType}"
+
+    /** The project type that routes an enquiry to the sample and colour desk. */
+    const val SAMPLE_PROJECT_TYPE = "sample"
+
+    /**
+     * The enquiry form with a project type already chosen.
+     *
+     * The checklist's "confirm the colour against a real sample" line comes here rather
+     * than to a bare form, because the type is what routes the enquiry: a sample request
+     * belongs at the sample and colour desk, and arriving untyped would put it in the
+     * general queue and cost the customer a day.
+     */
+    fun quoteForProjectType(type: String) = "quote?projectType=$type"
     fun quote(colourId: String? = null, productId: String? = null, quantity: String? = null): String {
         val params = buildList {
             colourId?.let { add("colourId=$it") }

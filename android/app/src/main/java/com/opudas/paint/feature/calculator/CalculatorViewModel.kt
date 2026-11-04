@@ -2,9 +2,11 @@ package com.opudas.paint.feature.calculator
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.opudas.paint.core.data.BoardRepository
 import com.opudas.paint.core.data.ContentRepository
 import com.opudas.paint.core.data.model.BrandContact
 import com.opudas.paint.core.data.model.Product
+import com.opudas.paint.core.data.model.SavedEstimate
 import com.opudas.paint.core.engine.CalculationInput
 import com.opudas.paint.core.engine.CalculationResult
 import com.opudas.paint.core.engine.MeasureSystem
@@ -56,7 +58,42 @@ data class CalculatorUiState(
     val openings: List<OpeningDraft> = emptyList(),
     val result: CalculationResult? = null,
     val contact: BrandContact? = null,
-)
+    /** What the person called the room. Empty means the default, not "no room". */
+    val roomLabel: String = "",
+    /** Product and room pairs already on the board, so the button can say "update". */
+    val savedKeys: Set<String> = emptySet(),
+    val savedNotice: String? = null,
+) {
+    /**
+     * The room label as it will be saved.
+     *
+     * Trimmed, and falling back to "Room" when nothing was typed — the website's rule,
+     * and the reason a save with an empty field still produces a checklist line that
+     * says something.
+     */
+    val effectiveRoomLabel: String
+        get() = roomLabel.trim().ifEmpty { DEFAULT_ROOM_LABEL }
+
+    /**
+     * Whether this room has been measured before with this product.
+     *
+     * Saving again replaces the old figure rather than adding a second one, so the
+     * button says "update" when that is what it is about to do. A checklist with two
+     * disagreeing numbers for the same lounge is worse than either number on its own.
+     */
+    val alreadySaved: Boolean
+        get() = selectedProductId?.let { key(it, effectiveRoomLabel) in savedKeys } == true
+
+    val canSaveToBoard: Boolean
+        get() = result != null && selectedProductId != null
+
+    companion object {
+        const val DEFAULT_ROOM_LABEL = "Room"
+
+        /** The board's own deduplication key: same product, same room, one estimate. */
+        fun key(productId: String, label: String) = "$productId|$label"
+    }
+}
 
 /**
  * Sizing a job.
@@ -75,6 +112,7 @@ data class CalculatorUiState(
 class CalculatorViewModel(
     private val content: ContentRepository,
     private val preselectedProductId: String?,
+    private val board: BoardRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CalculatorUiState())
@@ -84,6 +122,17 @@ class CalculatorViewModel(
     val openingKinds: List<OpeningKind> = OpeningKind.entries
 
     init {
+        viewModelScope.launch {
+            board.observe().collect { saved ->
+                _uiState.update { current ->
+                    current.copy(
+                        savedKeys = saved.estimates
+                            .map { CalculatorUiState.key(it.productId, it.label) }
+                            .toSet(),
+                    )
+                }
+            }
+        }
         viewModelScope.launch {
             val products = content.products()
             val contact = content.contact()
@@ -100,6 +149,52 @@ class CalculatorViewModel(
                         unit = unitFor(preselected),
                     ),
                 )
+            }
+        }
+    }
+
+    fun onRoomLabelChange(value: String) {
+        _uiState.update { it.copy(roomLabel = value, savedNotice = null) }
+    }
+
+    fun dismissSavedNotice() {
+        _uiState.update { it.copy(savedNotice = null) }
+    }
+
+    /**
+     * Save this quantity to the project board.
+     *
+     * Field for field what the website saves, because the checklist it feeds is the same
+     * checklist: `litres` is the amount including the handling allowance and not the
+     * amount bought, `area` is the paintable area after openings, and the pack summary
+     * reads "2 × 20 L + 1 × 4 L" with the multiplication sign the site uses. The id
+     * carries the product and a base-36 timestamp, so re-measuring a room makes a new
+     * row that then replaces the old one by product and label rather than by id.
+     */
+    fun saveToBoard() {
+        val current = _uiState.value
+        val result = current.result ?: return
+        val product = current.selectedProduct ?: return
+        val label = current.effectiveRoomLabel
+        val packs = result.packs.joinToString(" + ") { pack ->
+            "${pack.count} × ${pack.size.plain()} ${result.unit.symbol}"
+        }
+        viewModelScope.launch {
+            board.saveEstimate(
+                SavedEstimate(
+                    id = "${product.id}-${System.currentTimeMillis().toString(36)}",
+                    productId = product.id,
+                    label = label,
+                    packs = packs,
+                    litres = result.amountWithAllowance,
+                    unit = result.unit.symbol,
+                    area = result.paintableArea,
+                    coats = current.coats.coerceAtLeast(1),
+                    savedAt = System.currentTimeMillis(),
+                ),
+            )
+            _uiState.update {
+                it.copy(savedNotice = "Saved to your project — $label: $packs of ${product.shortName}.")
             }
         }
     }

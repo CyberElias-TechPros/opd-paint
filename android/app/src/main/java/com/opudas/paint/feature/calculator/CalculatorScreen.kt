@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,8 +51,10 @@ import com.opudas.paint.core.designsystem.Brand
 import com.opudas.paint.core.designsystem.ContactActions
 import com.opudas.paint.core.designsystem.FactRow
 import com.opudas.paint.core.designsystem.FilterChipRow
+import com.opudas.paint.core.designsystem.FormField
 import com.opudas.paint.core.designsystem.HonestNote
 import com.opudas.paint.core.designsystem.LoadingState
+import com.opudas.paint.core.designsystem.PrimaryAction
 import com.opudas.paint.core.designsystem.SecondaryAction
 import com.opudas.paint.core.designsystem.SectionHeader
 import com.opudas.paint.core.engine.CalculationResult
@@ -80,7 +84,9 @@ private fun rememberCalculatorViewModel(productId: String?): CalculatorViewModel
     val context = LocalContext.current
     return viewModel(
         factory = viewModelFactory {
-            initializer { CalculatorViewModel(context.container.content, productId) }
+            initializer {
+                CalculatorViewModel(context.container.content, productId, context.container.board)
+            }
         },
     )
 }
@@ -225,6 +231,32 @@ fun CalculatorScreen(
                 }
                 item {
                     FormulaCard(result = result)
+                }
+                item {
+                    Column(Modifier.padding(horizontal = 20.dp)) {
+                        FormField(
+                            label = "Which room is this?",
+                            value = state.roomLabel,
+                            onValueChange = viewModel::onRoomLabelChange,
+                            supporting = "Quantities are kept per room, so measuring this room " +
+                                "again replaces the figure already saved for it.",
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        PrimaryAction(
+                            text = if (state.alreadySaved) {
+                                "Update \u201C${state.effectiveRoomLabel}\u201D in my project"
+                            } else {
+                                "Save this estimate to my project"
+                            },
+                            onClick = viewModel::saveToBoard,
+                            enabled = state.canSaveToBoard,
+                        )
+                        val notice = state.savedNotice
+                        if (notice != null) {
+                            Spacer(Modifier.height(8.dp))
+                            HonestNote(text = notice)
+                        }
+                    }
                 }
                 item {
                     HonestNote(

@@ -1,6 +1,7 @@
 package com.opudas.paint.di
 
 import android.content.Context
+import com.opudas.paint.core.data.BoardRepository
 import com.opudas.paint.core.data.ContentRepository
 import com.opudas.paint.core.data.OutboxScheduler
 import com.opudas.paint.core.data.SubmissionRepository
@@ -77,6 +78,17 @@ class AppContainer(private val context: Context) {
 
     /** How delivery is requested. WorkManager, behind an interface the data layer does not know about. */
     val scheduler: OutboxScheduler by lazy { WorkManagerOutboxScheduler(context) }
+
+    /**
+     * The project board: colours, products, quantities and preparation someone has
+     * gathered towards one job.
+     *
+     * Lazy, and on the same database as the outbox, so opening the app to look at a
+     * colour still opens no SQLite. Unlike the outbox this is not a queue anybody is
+     * waiting on — but it is measured numbers somebody walked a room with, which is why
+     * it gets a written migration rather than a reset on upgrade.
+     */
+    val board: BoardRepository by lazy { BoardRepository(database.boardDao(), json) }
 
     /** Writing submissions down and reading back what happened to them. */
     val submissions: SubmissionRepository by lazy {

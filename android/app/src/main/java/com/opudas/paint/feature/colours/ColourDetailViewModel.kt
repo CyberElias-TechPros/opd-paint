@@ -2,6 +2,7 @@ package com.opudas.paint.feature.colours
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.opudas.paint.core.data.BoardRepository
 import com.opudas.paint.core.data.ContentRepository
 import com.opudas.paint.core.data.model.BrandContact
 import com.opudas.paint.core.data.model.PaintColor
@@ -49,6 +50,8 @@ data class ColourDetailUiState(
     val lights: List<LightVariant> = emptyList(),
     val contrasts: List<ContrastCheck> = emptyList(),
     val contact: BrandContact? = null,
+    /** Whether this colour is on the project board, so the button says which way it goes. */
+    val isOnBoard: Boolean = false,
 )
 
 /**
@@ -63,10 +66,35 @@ data class ColourDetailUiState(
 class ColourDetailViewModel(
     private val content: ContentRepository,
     private val colourId: String,
+    private val board: BoardRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ColourDetailUiState())
     val uiState: StateFlow<ColourDetailUiState> = _uiState.asStateFlow()
+
+    /*
+     * A second init block rather than an edit to the one below: looking a colour up and
+     * watching the board are unrelated work, and interleaving them in one block would
+     * make the board's state depend on the bundle having loaded.
+     *
+     * Opening a colour notes it as recently viewed, which is the one board change that
+     * does not stamp the board as edited - browsing is not planning.
+     */
+    init {
+        viewModelScope.launch { board.pushRecent(colourId) }
+        viewModelScope.launch {
+            board.observe().collect { saved ->
+                _uiState.update { current ->
+                    current.copy(isOnBoard = saved.savedColors.contains(colourId))
+                }
+            }
+        }
+    }
+
+    /** Put this colour on the project board, or take it off again. */
+    fun toggleOnBoard() {
+        viewModelScope.launch { board.toggleColor(colourId) }
+    }
 
     init {
         viewModelScope.launch {

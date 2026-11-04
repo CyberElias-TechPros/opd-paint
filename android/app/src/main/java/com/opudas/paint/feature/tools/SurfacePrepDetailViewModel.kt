@@ -2,6 +2,7 @@ package com.opudas.paint.feature.tools
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.opudas.paint.core.data.BoardRepository
 import com.opudas.paint.core.data.ContentRepository
 import com.opudas.paint.core.data.model.BrandContact
 import com.opudas.paint.core.data.model.Guide
@@ -20,6 +21,8 @@ data class SurfacePrepDetailUiState(
     val products: List<Product> = emptyList(),
     val guides: List<Guide> = emptyList(),
     val contact: BrandContact? = null,
+    /** Whether this sequence is on the project board. */
+    val isOnBoard: Boolean = false,
 )
 
 /**
@@ -32,10 +35,32 @@ data class SurfacePrepDetailUiState(
 class SurfacePrepDetailViewModel(
     private val content: ContentRepository,
     private val situationId: String,
+    private val board: BoardRepository,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(SurfacePrepDetailUiState())
     val uiState: StateFlow<SurfacePrepDetailUiState> = mutableState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            board.observe().collect { saved ->
+                mutableState.update { current ->
+                    current.copy(isOnBoard = saved.prep.contains(situationId))
+                }
+            }
+        }
+    }
+
+    /**
+     * Put this sequence on the project board, or take it off.
+     *
+     * What that adds to the checklist is the sequence's own steps and warnings, and any
+     * product it names that is not already on the board — which is how a primer for
+     * flaking paint ends up on a shopping list nobody added by hand.
+     */
+    fun toggleOnBoard() {
+        viewModelScope.launch { board.togglePrep(situationId) }
+    }
 
     init {
         viewModelScope.launch {

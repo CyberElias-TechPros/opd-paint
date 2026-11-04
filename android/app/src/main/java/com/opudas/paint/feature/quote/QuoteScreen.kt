@@ -80,6 +80,7 @@ private fun rememberQuoteViewModel(
     colourId: String?,
     productId: String?,
     quantity: String?,
+    projectType: String?,
 ): QuoteViewModel {
     val context = LocalContext.current
     return viewModel(
@@ -92,6 +93,7 @@ private fun rememberQuoteViewModel(
                     colourId = colourId,
                     productId = productId,
                     quantity = quantity,
+                    projectType = projectType,
                 )
             }
         },
@@ -106,7 +108,8 @@ fun QuoteScreen(
     colourId: String? = null,
     productId: String? = null,
     quantity: String? = null,
-    viewModel: QuoteViewModel = rememberQuoteViewModel(colourId, productId, quantity),
+    projectType: String? = null,
+    viewModel: QuoteViewModel = rememberQuoteViewModel(colourId, productId, quantity, projectType),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current

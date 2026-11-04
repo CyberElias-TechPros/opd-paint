@@ -136,6 +136,8 @@ class QuoteViewModel(
     colourId: String?,
     productId: String?,
     quantity: String?,
+    /** Already chosen by whoever sent the person here, as the website's `?type=` does. */
+    projectType: String?,
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(QuoteUiState())
@@ -157,7 +159,10 @@ class QuoteViewModel(
                     // A calculation arrives as a sentence rather than a number:
                     // "9 tins for 43.7 m², 2 coats". Put where the person can read
                     // it, edit it, and delete it before sending.
-                    form = current.form.copy(message = quantity.orEmpty()),
+                    form = current.form.copy(
+                        message = quantity.orEmpty(),
+                        projectType = projectType.orEmpty(),
+                    ),
                 )
             }
         }
