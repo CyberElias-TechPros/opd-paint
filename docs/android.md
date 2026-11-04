@@ -312,22 +312,30 @@ on paper, which is where a checklist gets ticked anyway.
 ## Documents
 
 Every product has a technical data sheet and some have a safety data sheet. On the website
-these open in a new tab; in the app they render from a copy inside the APK, because the
-moment somebody needs a coverage figure is the moment they are standing at a counter with a
-metal roof over them and no signal.
+these open in a new tab; in the app they render from the copy inside the APK, because the
+moment somebody needs a coverage figure is the moment they are standing at a counter under a
+metal roof with no signal.
 
-`tools/build-android-data.mjs` decides which PDFs ship, and it decides by reading the
-product data rather than by keeping a list: every file a product's `tds` array points at,
-and nothing else. Eight files, 28 kB. A product that gains a sheet gets its PDF bundled by
-the change that adds the link; a product that drops one stops shipping dead kilobytes; and
-a product that points at a file the repository does not have fails the build instead of
-shipping an app that cannot open its own data sheet.
+The files were already in the APK before this screen existed. `app/build.gradle.kts`
+registers `syncBundledAssets`, a `Copy` task hooked onto `preBuild`, which pulls
+`app/public/media`, `app/public/brand` and `app/public/documents` into
+`build/generated/bundledAssets` and adds that directory to the `main` source set's assets.
+Everything in `app/public/documents` ships except `opudas-catalogue.pdf` — 17 of the 18 PDFs.
+The catalogue is 6.2 MB of the 7.3 MB in that directory and 126 pages nobody reads on a
+phone, which is the same reasoning `ContentRepository.documentAsset` encodes when it returns
+null for it and the product row offers the website instead.
 
-The brand books stay out — the colour book, the room book, the colour wheel, the fan deck,
-the specification sheet, and the 6.2 MB master catalogue. Ten of the eighteen PDFs, 1.4 MB,
-none of them reachable from any screen. The catalogue is excluded on its own merits too:
-126 pages is not something to read on a phone, which is why `ContentRepository.documentAsset`
-returns null for it and the product row offers the website instead.
+They are copied rather than committed on purpose, and the reason is written where the task
+is: a second copy of a 7 MB photography set is a second copy to forget, and the app would
+keep serving last year's project photographs after the media pipeline regenerated them
+without anything failing. The generated JSON under `src/main/assets/data/` *is* committed,
+because it is small and committing it means the APK can be built without a Node toolchain.
+
+**That distinction is load-bearing, and getting it wrong fails the build.** A PDF committed
+under `src/main/assets/documents/` sits beside the one Gradle generates and
+`mergeDebugAssets` refuses with `Duplicate resources`. Nothing but `data/` belongs under
+`src/main/assets` in a commit, which is why the drift check in `android.yml` watches all of
+`assets/` and not `assets/data/` alone.
 
 Rendering is the platform's own `PdfRenderer`, which dictates the shape of
 `DocumentViewModel`:
@@ -341,18 +349,21 @@ Rendering is the platform's own `PdfRenderer`, which dictates the shape of
   file descriptor is not a visible bug until the process runs out of them.
 - **The path is untrusted.** It arrives as a navigation argument, so it can arrive through a
   deep link. `copyToCache` refuses anything that is not a bare filename before it goes
-  anywhere near the filesystem; without that, `../../databases/opudas.db` would be joined onto
-  the cache directory and opened.
+  anywhere near the filesystem; without that, `../../databases/opudas.db` is joined onto the
+  cache directory and opened.
 
 What ends up on screen is a rendering of a page, not the text of it, and the screen says so.
 A screen reader can be told which page this is and cannot read a coverage table out of a
 bitmap. The same document on the website is a PDF with real text in it, which is the better
 route for anybody who needs one, and the note under the page points there.
 
-`android.yml` checks that the committed assets match what the generators produce, and it
-checks the whole of `assets/` rather than `assets/data/` alone: the bundled documents live
-beside the JSON and come out of the same command, and verifying one directory but not the
-other is how a hand-edited PDF starts shipping.
+What is *not* here is an index of the brand books. The colour book, the room book, the colour
+wheel, the fan deck and the specification sheet are all inside the APK and no screen lists
+them. The blocker is not weight, it is words: the titles and page counts the website prints
+beside those five links live in `Colours.tsx` and `Products.tsx` as literal JSX, so listing
+them in the app means either hand-copying that prose, which ADR 0002 forbids, or moving it
+into the data layer where both can read it. The second is the right answer and is a web
+change, so it waits for its own commit.
 
 ## Known warnings
 

@@ -33,8 +33,8 @@
  *
  * or, from `app/`:  npm run data:android
  */
-import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
-import { basename, dirname, join } from 'node:path'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import {
@@ -72,31 +72,6 @@ import {
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = join(root, 'android', 'app', 'src', 'main', 'assets', 'data')
-const docsSrcDir = join(root, 'app', 'public', 'documents')
-const docsOutDir = join(root, 'android', 'app', 'src', 'main', 'assets', 'documents')
-
-/**
- * The documents that go into the APK, derived rather than listed.
- *
- * Every PDF a product's data sheets point at, and nothing else. Deriving it means a
- * product that gains a sheet gets its file bundled by the same change that adds the
- * link, and a product that drops one stops shipping dead megabytes.
- *
- * The brand books are deliberately not in here: the colour book, the room book, the
- * colour wheel, the fan deck, the specification sheet and the 6.2 MB master catalogue
- * are offered from the colour and product pages on the website, and the app has no
- * screen that lists them yet. A PDF nothing can open is 300 kB of APK that buys
- * nothing, and the catalogue is 126 pages nobody reads on a phone — which is why
- * `ContentRepository.documentAsset` returns null for it and the screen offers the
- * website instead.
- */
-const bundledDocuments = () => {
-  const names = new Set()
-  for (const product of PRODUCTS) {
-    for (const doc of product.tds) names.add(basename(assetPath(doc.href)))
-  }
-  return [...names].sort()
-}
 const themeCss = join(root, 'app', 'src', 'styles', 'theme.css')
 
 /**
@@ -271,34 +246,6 @@ const main = async () => {
   }
   console.log(`android content bundle: ${written.length} files → android/app/src/main/assets/data`)
   for (const name of written) console.log(`  ${name}`)
-
-  await mkdir(docsOutDir, { recursive: true })
-  const documents = (await readdir(docsSrcDir)).filter((name) => name.endsWith('.pdf')).sort()
-  const wanted = bundledDocuments()
-  const bundled = []
-  let bytes = 0
-  for (const name of documents) {
-    if (!wanted.includes(name)) {
-      console.log(`  skipped ${name} (nothing in the app can open it yet)`)
-      continue
-    }
-    await copyFile(join(docsSrcDir, name), join(docsOutDir, name))
-    bundled.push(name)
-  }
-  for (const name of wanted.filter((want) => !documents.includes(want))) {
-    // A product links a sheet that is not in the repository: that is a broken
-    // download on the website too, so it should fail here rather than silently
-    // ship an app that cannot open its own data sheet.
-    throw new Error(`product data refers to a document that does not exist: ${name}`)
-  }
-  for (const name of bundled) {
-    bytes += (await readFile(join(docsOutDir, name))).byteLength
-  }
-  console.log(
-    `android documents: ${bundled.length} of ${documents.length} PDFs → ` +
-      `android/app/src/main/assets/documents (${(bytes / 1024).toFixed(0)} kB)`,
-  )
-  for (const name of bundled) console.log(`  ${name}`)
 }
 
 await main()
