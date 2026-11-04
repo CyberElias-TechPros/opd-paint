@@ -70,7 +70,7 @@ jobs:
           grep -q 'canonical" href="https://opudapaint.com/colours/palm-shadow"' dist/colours/palm-shadow/index.html
           echo "build artefacts present"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: site-build
           path: app/dist
@@ -272,7 +272,7 @@ jobs:
             --report-format sarif \
             --report-path "$GITHUB_WORKSPACE/gitleaks.sarif"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: secret-scan
@@ -363,7 +363,7 @@ jobs:
           gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" \
             -F body=@/tmp/a11y-commit-comment.md > /dev/null
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: a11y-report
@@ -421,7 +421,7 @@ jobs:
             gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/lighthouse.md
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: lighthouse-reports
