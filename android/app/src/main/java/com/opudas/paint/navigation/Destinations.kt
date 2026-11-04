@@ -152,7 +152,6 @@ object Destinations {
     fun inboxEntry(reference: String) = "inbox/$reference"
 
     const val MORE = "more"
-    const val SETTINGS = "settings"
 }
 
 /**

@@ -33,19 +33,37 @@ features, and 130 JVM tests in 8 suites.
 | Room preview | `feature/visualiser` | Your photograph, one wall, one colour; decoded on the phone and never uploaded |
 | More | `feature/more` | The hub, with honest counts from the bundles |
 
-**Not built yet.** One journey has no code: settings.
+**What the website has that the app does not.** Four routes, and they are not all the same
+kind of absence.
 
-One route is declared in `navigation/Destinations.kt` and deliberately not wired into the
-graph, because a route that leads nowhere should not be reachable: `SETTINGS`. It is the
-reserved shape of the remaining work, not an oversight. Wire it in the same commit as the
-screen that answers it — `DOCUMENT_VIEWER`, `DOCUMENTS` and `VISUALISER` were all reserved for
-months and wired on the day the screens existed.
+`About.tsx` is the real gap. It is prose — the company's story, its claims, the reasons the
+catalogue is the shape it is — written as JSX, with facts interpolated from the colour, product
+and dealer data. Porting it means first extracting that prose into the data layer, exactly the
+move `legal.ts` and `documents.ts` made, so the app reads the same sentences rather than a
+hand-copied approximation of them. Until then there is nothing honest to render.
 
-`SETTINGS` is the one route left with no counterpart to port. The website has no settings
-page, so it is not a translation but a decision about what a native app should let you
-change — a default unit for the calculator, perhaps, or a way to clear the board and the
-queued submissions, which is a privacy feature and not a preference. It should not be invented
-to fill a route, and it should not be a screen of toggles that change nothing.
+`DataPage.tsx` is partly covered. It is a transparency page — what this build knows, where each
+number came from, when it was last regenerated — and the hub already prints honest counts
+straight from the bundles, which is the part a phone user needs. The full provenance table does
+not exist in the app.
+
+`Advice.tsx` and `Inspiration.tsx` are covered and simply have different names here: Advice is
+`feature/guides`, rendering the same six guides from `guides.json`, and Inspiration is
+`feature/projects`, rendering the same nineteen projects from `projects.json`.
+
+`StyleGuide.tsx` is an internal reference for the design system and not a customer journey.
+`NotFound.tsx` is a 404, which has no meaning in an app that cannot navigate to a route it does
+not have — the equivalent failure here is a bug, and it is handled by the navigation graph being
+exhaustive rather than by a page.
+
+There is no `SETTINGS` route any more. It was reserved for months alongside `DOCUMENTS`,
+`DOCUMENT_VIEWER` and `VISUALISER`, and those three were wired on the day their screens existed.
+Settings has no screen and no plan: the website has no settings page, nothing in the roadmap
+asks for one, and the two things a settings screen would plausibly hold are already where the
+data lives — the board clears itself from the board, with an explanation of what clearing keeps,
+and a failed submission is retried or deleted from the screen that sent it. A route constant
+that no screen answers is speculative surface, and a settings page of toggles that change
+nothing would be worse than no settings page.
 
 ## How the content gets in
 
