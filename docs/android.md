@@ -10,7 +10,7 @@ submissions until it can deliver them.
 
 ## What is here today
 
-86 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, fifteen
+88 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, sixteen
 features, and 103 JVM tests in 6 suites.
 
 | Journey | Screen | Notes |
@@ -29,15 +29,23 @@ features, and 103 JVM tests in 6 suites.
 | Legal notices | `feature/legal` | Privacy, terms and accessibility, readable offline |
 | Project board | `feature/board` | Saved colours, products and quantities, and the checklist they make |
 | Enquiries inbox | `feature/inbox` | Staff sign-in, a second factor, and the enquiries people sent |
+| Documents | `feature/documents` | The eight data and safety sheets behind the products, read with no signal |
 | More | `feature/more` | The hub, with honest counts from the bundles |
 
-**Not built yet.** Three journeys have no code: the document viewer, the visualiser, and
-settings.
+**Not built yet.** Two journeys have no code: the visualiser and settings.
 
-Four routes are declared in `navigation/Destinations.kt` and deliberately not wired into
+Three routes are declared in `navigation/Destinations.kt` and deliberately not wired into
 the graph, because a route that leads nowhere should not be reachable: `DOCUMENTS`,
-`DOCUMENT_VIEWER`, `SETTINGS`, `VISUALISER`. They are the reserved shape of the remaining
-work, not an oversight. Wire one in the same commit as the screen that answers it.
+`SETTINGS`, `VISUALISER`. They are the reserved shape of the remaining work, not an
+oversight. Wire one in the same commit as the screen that answers it — `DOCUMENT_VIEWER`
+was reserved for two months and wired the day the viewer existed.
+
+`DOCUMENTS`, the index of the brand books, is the next one. It is not a screen that is
+hard to write; it is a screen with nothing honest to say yet. The titles and page counts
+the website prints beside those five links live in `Colours.tsx` and `Products.tsx` as
+literal JSX, so listing them in the app would mean either copying that prose by hand,
+which ADR 0002 forbids, or moving it into the data layer where both can read it. The
+second is the right answer and is a web change, so it waits for its own commit.
 
 ## How the content gets in
 
@@ -300,6 +308,51 @@ and losing them on upgrade is losing the numbers they are about to buy paint aga
 There are no tick boxes on the checklist screen. A tick that is forgotten when the screen
 closes looks like a record of work done and is not one; the copied text has boxes to tick
 on paper, which is where a checklist gets ticked anyway.
+
+## Documents
+
+Every product has a technical data sheet and some have a safety data sheet. On the website
+these open in a new tab; in the app they render from a copy inside the APK, because the
+moment somebody needs a coverage figure is the moment they are standing at a counter with a
+metal roof over them and no signal.
+
+`tools/build-android-data.mjs` decides which PDFs ship, and it decides by reading the
+product data rather than by keeping a list: every file a product's `tds` array points at,
+and nothing else. Eight files, 28 kB. A product that gains a sheet gets its PDF bundled by
+the change that adds the link; a product that drops one stops shipping dead kilobytes; and
+a product that points at a file the repository does not have fails the build instead of
+shipping an app that cannot open its own data sheet.
+
+The brand books stay out — the colour book, the room book, the colour wheel, the fan deck,
+the specification sheet, and the 6.2 MB master catalogue. Ten of the eighteen PDFs, 1.4 MB,
+none of them reachable from any screen. The catalogue is excluded on its own merits too:
+126 pages is not something to read on a phone, which is why `ContentRepository.documentAsset`
+returns null for it and the product row offers the website instead.
+
+Rendering is the platform's own `PdfRenderer`, which dictates the shape of
+`DocumentViewModel`:
+
+- **Assets are streams, not files.** `AssetManager` will not hand over a file descriptor, so
+  the document is copied into the cache directory on first open. That copy is a cache in the
+  honest sense — the APK still holds the original, and losing it costs one copy.
+- **One page at a time, from one thread.** The renderer is neither thread-safe nor willing to
+  hold two pages open, so rendering happens under a mutex and each page is closed before the
+  next is opened. The descriptor and the renderer are closed in `onCleared`, because a leaked
+  file descriptor is not a visible bug until the process runs out of them.
+- **The path is untrusted.** It arrives as a navigation argument, so it can arrive through a
+  deep link. `copyToCache` refuses anything that is not a bare filename before it goes
+  anywhere near the filesystem; without that, `../../databases/opudas.db` would be joined onto
+  the cache directory and opened.
+
+What ends up on screen is a rendering of a page, not the text of it, and the screen says so.
+A screen reader can be told which page this is and cannot read a coverage table out of a
+bitmap. The same document on the website is a PDF with real text in it, which is the better
+route for anybody who needs one, and the note under the page points there.
+
+`android.yml` checks that the committed assets match what the generators produce, and it
+checks the whole of `assets/` rather than `assets/data/` alone: the bundled documents live
+beside the JSON and come out of the same command, and verifying one directory but not the
+other is how a hand-edited PDF starts shipping.
 
 ## Known warnings
 

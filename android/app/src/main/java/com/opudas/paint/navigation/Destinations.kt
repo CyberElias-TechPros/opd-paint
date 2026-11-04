@@ -1,5 +1,6 @@
 package com.opudas.paint.navigation
 
+import android.net.Uri
 import com.opudas.paint.core.designsystem.TabGlyphKind
 
 /**
@@ -109,7 +110,22 @@ object Destinations {
     fun legal(slug: String) = "legal/notices/$slug"
 
     const val DOCUMENTS = "documents"
-    const val DOCUMENT_VIEWER = "documents/{path}"
+    const val DOCUMENT_VIEWER = "documents/{path}?title={title}"
+
+    /**
+     * A bundled document, by the filename it has inside the APK.
+     *
+     * The title rides along encoded because the viewer has no other way to know what it
+     * is showing: a rendered PDF page carries no name the platform will hand back, and
+     * deriving one from `opudas-matt-tds.pdf` would mean inventing a label for a document
+     * the product data already labels properly.
+     */
+    fun document(path: String, title: String?): String =
+        if (title.isNullOrEmpty()) {
+            "documents/$path"
+        } else {
+            "documents/$path?title=${Uri.encode(title)}"
+        }
     fun document(path: String) = "documents/$path"
 
     const val INBOX = "inbox"

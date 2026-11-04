@@ -94,6 +94,8 @@ fun ProductDetailScreen(
     productId: String,
     onBack: () -> Unit,
     onSizeThisJob: (String) -> Unit,
+    /** A bundled document, by its path in the APK and the label the data gives it. */
+    onOpenDocument: (String, String) -> Unit,
     viewModel: ProductDetailViewModel = rememberProductDetailViewModel(productId),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -297,12 +299,28 @@ fun ProductDetailScreen(
                     item {
                         SectionHeader(
                             title = "Documents",
-                            subtitle = "Open on opudapaint.com — these need a connection",
+                            subtitle = if (state.sheets.all { it.asset != null }) {
+                                "Inside the app — these open with no signal"
+                            } else {
+                                "Some open inside the app; the rest need the website"
+                            },
                             modifier = Modifier.padding(horizontal = 20.dp),
                         )
                     }
                     items(state.sheets) { sheet ->
-                        DocumentRow(label = sheet.label, onClick = { context.openWeb(sheet.url) })
+                        DocumentRow(
+                            label = sheet.label,
+                            onClick = {
+                                val asset = sheet.asset
+                                if (asset != null) {
+                                    onOpenDocument(asset, sheet.label)
+                                } else {
+                                    // Not bundled: the website's copy is the only one,
+                                    // and saying so is the row's subtitle's job.
+                                    context.openWeb(sheet.url)
+                                }
+                            },
+                        )
                     }
                 }
 

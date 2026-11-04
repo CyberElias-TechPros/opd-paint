@@ -17,16 +17,27 @@ import kotlinx.coroutines.launch
  * A document the product ships with — a technical data sheet or a safety sheet.
  *
  * [bundled] records whether the same file is inside the APK. It is, for every
- * sheet in the range, because the documents are copied in at build time; the app
- * opens the website's copy for now and will open the bundled one when the
- * document viewer lands, which turns "needs a connection" into "works in a
- * basement with no signal". Carrying the flag now means that switch is one line
- * at the call site rather than another trip through the repository.
+ * sheet in the range, because the documents are copied in at build time by
+ * `tools/build-android-data.mjs`, which derives the list from this same product
+ * data: a product that gains a sheet gets its PDF bundled by the change that adds
+ * the link, and one that drops a sheet stops shipping dead kilobytes.
+ *
+ * [ProductSheet.asset] is what makes that usable. Where it is set, the row opens the
+ * document inside the app, with no signal; where it is null, the website's copy is the
+ * only one and the row says so.
  */
 data class ProductSheet(
     val label: String,
+    /** The website's copy, for the documents that are not inside the APK. */
     val url: String,
-    val bundled: Boolean,
+    /**
+     * The path inside the APK, or null when this document is not bundled.
+     *
+     * Null is not a failure and not a guess: `ContentRepository.documentAsset` returns it
+     * for the master catalogue, which is 6.2 MB of 126 pages that do not belong in a
+     * pocket. Those rows open the website; the rest open in the app with no signal.
+     */
+    val asset: String?,
 )
 
 data class ProductDetailUiState(
@@ -64,7 +75,7 @@ class ProductDetailViewModel(
                 ProductSheet(
                     label = document.label,
                     url = AppCopy.url(document.href),
-                    bundled = content.documentAsset(document.href) != null,
+                    asset = content.documentAsset(document.href),
                 )
             }
             _uiState.update { current ->

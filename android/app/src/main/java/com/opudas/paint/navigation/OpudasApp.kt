@@ -29,6 +29,7 @@ import com.opudas.paint.feature.colours.ColourDetailScreen
 import com.opudas.paint.feature.colours.ColoursScreen
 import com.opudas.paint.feature.dealers.DealerDetailScreen
 import com.opudas.paint.feature.dealers.DealersScreen
+import com.opudas.paint.feature.documents.DocumentScreen
 import com.opudas.paint.feature.guides.GuideDetailScreen
 import com.opudas.paint.feature.guides.GuidesScreen
 import com.opudas.paint.feature.home.HomeScreen
@@ -144,6 +145,9 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     productId = entry.arguments?.getString("productId").orEmpty(),
                     onBack = { navController.popBackStack() },
                     onSizeThisJob = { id -> navController.navigate(Destinations.calculator(id)) },
+                    onOpenDocument = { path, title ->
+                        navController.navigate(Destinations.document(path, title))
+                    },
                 )
             }
 
@@ -366,6 +370,29 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
             ) { entry ->
                 InboxDetailScreen(
                     reference = entry.arguments?.getString("reference").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                )
+            }
+
+            /*
+             * A document from inside the APK. The path is untrusted - it can arrive
+             * through a deep link - so the viewer validates it as a bare filename
+             * before it goes anywhere near the filesystem.
+             */
+            composable(
+                route = Destinations.DOCUMENT_VIEWER,
+                arguments = listOf(
+                    navArgument("path") { type = NavType.StringType },
+                    navArgument("title") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
+            ) { entry ->
+                DocumentScreen(
+                    path = entry.arguments?.getString("path").orEmpty(),
+                    title = entry.arguments?.getString("title"),
                     onBack = { navController.popBackStack() },
                 )
             }
