@@ -13,7 +13,12 @@ import kotlinx.serialization.Serializable
 data class BrandDocument(
     /** The filename in `app/public/documents`, and the asset path inside the APK. */
     val file: String,
-    /** The website's path for it, with the leading slash already stripped. */
+    /**
+     * The website's path for it: `/documents/opudas-colour-book.pdf`.
+     *
+     * Carried with its slash, the way [ProductDocument] carries a sheet's. [file] is the
+     * asset name; this is the web path, and the two are not interchangeable.
+     */
     val href: String,
     val title: String,
     /** The format, and a page count where one is known: "PDF · 32pp". */

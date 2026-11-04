@@ -247,7 +247,14 @@ const bundles = async () => ({
   documents: {
     documents: BRAND_DOCUMENTS.map((document) => ({
       file: document.file,
-      href: assetPath(document.href),
+      /*
+       * A web path, slash and all, exactly as `products[].tds[].href` carries it.
+       * `AppCopy.url` builds a website URL from it for the one document the app does not
+       * bundle, and `ContentRepository.documentAsset` resolves it to the bundled copy for
+       * the five it does. Stripping the slash would work in both — each copes — but then
+       * two bundles would describe the same kind of value in two different ways.
+       */
+      href: document.href,
       title: document.title,
       detail: document.detail,
       purpose: document.purpose,
