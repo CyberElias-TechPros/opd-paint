@@ -67,7 +67,7 @@ jobs:
       # before Gradle does. No `npm ci`: the loader in `app/scripts/register.mjs`
       # uses only Node builtins, and installing 300 packages to read nine JSON
       # files would be the slowest step in the job for nothing.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
