@@ -91,6 +91,8 @@ fun ColourDetailScreen(
     colourId: String,
     onBack: () -> Unit,
     onOpenProject: ((String) -> Unit)? = null,
+    /** See this colour on a photograph of your own wall. */
+    onVisualise: (String) -> Unit,
     viewModel: ColourDetailViewModel = rememberColourDetailViewModel(colourId),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -226,6 +228,10 @@ fun ColourDetailScreen(
                                     "Save ${color.name} to my project"
                                 },
                                 onClick = viewModel::toggleOnBoard,
+                            )
+                            SecondaryAction(
+                                text = "See ${color.name} on your wall",
+                                onClick = { onVisualise(color.id) },
                             )
                             Spacer(Modifier.height(10.dp))
                             PrimaryAction(

@@ -10,8 +10,8 @@ submissions until it can deliver them.
 
 ## What is here today
 
-91 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, sixteen
-features, and 103 JVM tests in 6 suites.
+95 Kotlin files in `android/app/src/main/java/com/opudas/paint/`, seventeen
+features, and 130 JVM tests in 8 suites.
 
 | Journey | Screen | Notes |
 | --- | --- | --- |
@@ -30,22 +30,22 @@ features, and 103 JVM tests in 6 suites.
 | Project board | `feature/board` | Saved colours, products and quantities, and the checklist they make |
 | Enquiries inbox | `feature/inbox` | Staff sign-in, a second factor, and the enquiries people sent |
 | Documents | `feature/documents` | Six brand books and twelve product sheets; all but the 126-page catalogue open with no signal |
+| Room preview | `feature/visualiser` | Your photograph, one wall, one colour; decoded on the phone and never uploaded |
 | More | `feature/more` | The hub, with honest counts from the bundles |
 
-**Not built yet.** Two journeys have no code: the visualiser and settings.
+**Not built yet.** One journey has no code: settings.
 
-Two routes are declared in `navigation/Destinations.kt` and deliberately not wired into the
-graph, because a route that leads nowhere should not be reachable: `SETTINGS`, `VISUALISER`.
-They are the reserved shape of the remaining work, not an oversight. Wire one in the same
-commit as the screen that answers it — `DOCUMENT_VIEWER` and `DOCUMENTS` were both reserved
-for months and wired on the day the screens existed.
+One route is declared in `navigation/Destinations.kt` and deliberately not wired into the
+graph, because a route that leads nowhere should not be reachable: `SETTINGS`. It is the
+reserved shape of the remaining work, not an oversight. Wire it in the same commit as the
+screen that answers it — `DOCUMENT_VIEWER`, `DOCUMENTS` and `VISUALISER` were all reserved for
+months and wired on the day the screens existed.
 
-Neither of the two left has a counterpart to port. `VISUALISER` is `RoomPreview.tsx` and its
-`RoomVisualizer`: upload a photograph, tap a wall to select it, brush the edges by hand, swap
-the hue, compare before and after. That is image work — flood fill, a brush mask, a hue
-exchange — and it is the largest single piece left in the app. `SETTINGS` has no website
-equivalent at all, so it is not a port but a decision about what a native app should let you
-change, and it should not be invented to fill a route.
+`SETTINGS` is the one route left with no counterpart to port. The website has no settings
+page, so it is not a translation but a decision about what a native app should let you
+change — a default unit for the calculator, perhaps, or a way to clear the board and the
+queued submissions, which is a privacy feature and not a preference. It should not be invented
+to fill a route, and it should not be a screen of toggles that change nothing.
 
 ## How the content gets in
 
@@ -379,6 +379,66 @@ had a safety data sheet generated, committed, served and bundled into the APK th
 pointed at — and on a solvent-borne gloss or an exterior coating, that is the sheet somebody
 needs. All six products now link both, which is also why the count above is twelve sheets and
 not eight.
+
+## The room preview
+
+Your photograph, one wall, one colour. Two engines and a screen, and the engines are where
+the work was.
+
+`core/engine/MaskEngine.kt` ports `app/src/lib/mask.ts`; `core/engine/RenderEngine.kt` ports
+`app/src/lib/render.ts`. Neither file imports anything from Android — pixels are `IntArray` of
+ARGB — so both run on the JVM in a unit test in milliseconds. `ColorMath` set that rule and
+said why: the visualiser's bitmap work needs Android, the arithmetic underneath it does not,
+and arithmetic that can be tested is arithmetic that gets tested.
+
+**What is exact, and what is only equivalent.** The flood fill, the coverage sample, the stroke
+interpolation and the downscale are arithmetic, and they reproduce the TypeScript pixel for
+pixel. `MaskEngineTest` asserts values lifted from running the real thing on a 6×4 fixture:
+16 pixels at tolerance 12, 15 at tolerance 0 because one pixel is near the wall but not the
+wall, a seed at (-4, 99) clamping to the corner rather than being rejected, an erase that
+writes transparent white, and a zero-length stroke stamping twice in the same place because
+`steps` has a floor of one. Those are odd behaviours worth keeping, not bugs to fix in passing.
+
+The brush and the compositor cannot be identical and do not claim to be. A canvas radial
+gradient is rasterised by the browser with its own anti-aliasing, and its stops interpolate in
+premultiplied space; the blend formulae themselves are exact, written out from the W3C
+Compositing and Blending specification, which is more than the canvas version can be checked
+against since a browser will not tell you what it did.
+
+There is no reference output to lift for the compositor, because a canvas needs a browser and a
+JVM test does not have one. So each expected pixel came from a separate transcription of the
+specification — not from this code, and not by reading this code. That transcription had a bug
+of its own on the first run: it normalised a luminance shift against 0-255 channels instead of
+0..1, and every blend came out black. Worth recording, because "the reference agrees" is only
+worth as much as the reference, and a blend that returns black for every input survives a
+glance at a preview since a dark room looks plausible.
+
+**The photograph never leaves the device.** It is chosen through the system photo picker,
+which needs no permission on a modern Android and hands over one image rather than the gallery.
+It is decoded twice — once for the dimensions only, so a sample size can be chosen before any
+pixels are allocated, because a 48-megapixel photograph decoded at full size is an
+out-of-memory error on a cheap device — scaled to at most 1400px on its longest edge, and
+turned into an `IntArray`. There is no upload path in this feature to disable and no queue to
+drain, because nothing in it can reach a network.
+
+Two compromises, both with a reason attached. The frame is composed when a gesture ends rather
+than on every pointer event: the website composes per event, which a GPU-backed canvas can
+afford, and a per-pixel blend over 1.5 million pixels in Kotlin cannot, sixty times a second,
+on the device this is likeliest to be used on. And nothing is shared or saved yet — letting
+another app read the preview needs a FileProvider and a manifest entry, and a share sheet that
+fails on some devices is worse than no share sheet.
+
+One detail that looks like a bug and is not: the matt pass veils the whole frame at five per
+cent while the silk sheen is masked. That is what `source-atop` does over an opaque canvas, and
+it reads as the flatness of a matt film rather than as a selected region.
+
+The frame bitmap is reused across recompositions, because a 1400px frame is several megabytes
+and a brush stroke redraws it — and Compose compares a state value for equality, which a reused
+bitmap passes, so the state carries a revision counter that the screen keys on. Without it the
+pixels change and the screen does not.
+
+Two ways in: a row on the hub, and "See {colour} on your wall" on every colour page, which
+preselects that colour rather than making somebody find it again in a strip of 59.
 
 ## Known warnings
 

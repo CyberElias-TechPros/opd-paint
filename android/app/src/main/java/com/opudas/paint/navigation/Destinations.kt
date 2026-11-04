@@ -60,7 +60,17 @@ object Destinations {
     fun calculator(productId: String? = null): String =
         if (productId == null) CALCULATOR else "calculator?productId=$productId"
 
-    const val VISUALISER = "visualiser"
+    const val VISUALISER = "visualiser?colourId={colourId}"
+
+    /**
+     * The room preview, optionally starting on one colour.
+     *
+     * The website takes `?colour=`; a colour page that offers "see it on your wall" is
+     * answering a question somebody already asked, so the answer arrives pre-selected
+     * rather than making them find the same colour again in a strip of 59.
+     */
+    fun visualiser(colourId: String?): String =
+        if (colourId.isNullOrEmpty()) "visualiser" else "visualiser?colourId=$colourId"
 
     const val DEALERS = "dealers"
     const val DEALER_DETAIL = "dealers/{dealerId}"

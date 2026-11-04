@@ -95,6 +95,8 @@ fun MoreScreen(
     onOpenBoard: () -> Unit,
     /** The brand books and the specification sheet, five of them offline. */
     onOpenDocuments: () -> Unit,
+    /** Your photograph, one wall, one colour — decoded on the phone and never uploaded. */
+    onOpenVisualiser: () -> Unit,
     /** Staff only: the enquiries people sent, behind the same accounts as the website. */
     onOpenInbox: () -> Unit,
     viewModel: MoreViewModel = rememberMoreViewModel(),
@@ -157,6 +159,12 @@ fun MoreScreen(
                         title = "Tools",
                         subtitle = "Finish finder, surface preparation and the calculator",
                         onClick = onOpenTools,
+                    )
+                    LinkRow(
+                        icon = Icons.Filled.Create,
+                        title = "Room preview",
+                        subtitle = "Your photograph, one wall, one colour — nothing is uploaded",
+                        onClick = onOpenVisualiser,
                     )
                     LinkRow(
                         icon = Icons.AutoMirrored.Filled.List,

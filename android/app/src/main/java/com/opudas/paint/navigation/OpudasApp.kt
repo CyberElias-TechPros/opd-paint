@@ -52,6 +52,7 @@ import com.opudas.paint.feature.tools.SurfacePrepScreen
 import com.opudas.paint.feature.tools.ToolTarget
 import com.opudas.paint.feature.tools.ToolsScreen
 import com.opudas.paint.feature.quote.QuoteScreen
+import com.opudas.paint.feature.visualiser.VisualiserScreen
 
 /**
  * The app's shell: one scaffold, one navigation graph, one bottom bar.
@@ -128,6 +129,7 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                 ColourDetailScreen(
                     colourId = entry.arguments?.getString("colourId").orEmpty(),
                     onBack = { navController.popBackStack() },
+                    onVisualise = { id -> navController.navigate(Destinations.visualiser(id)) },
                 )
             }
 
@@ -347,6 +349,7 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
                     },
                     onOpenBoard = { navController.navigate(Destinations.BOARD) },
                     onOpenDocuments = { navController.navigate(Destinations.DOCUMENTS) },
+                    onOpenVisualiser = { navController.navigate(Destinations.visualiser(null)) },
                     onOpenInbox = { navController.navigate(Destinations.INBOX) },
                 )
             }
@@ -381,6 +384,26 @@ fun OpudasApp(navController: NavHostController = rememberNavController()) {
              * through a deep link - so the viewer validates it as a bare filename
              * before it goes anywhere near the filesystem.
              */
+            /*
+             * The room preview. The colour argument is optional and nullable: the hub
+             * arrives with nothing selected and a colour page arrives with one.
+             */
+            composable(
+                route = Destinations.VISUALISER,
+                arguments = listOf(
+                    navArgument("colourId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
+            ) { entry ->
+                VisualiserScreen(
+                    colourId = entry.arguments?.getString("colourId"),
+                    onBack = { navController.popBackStack() },
+                )
+            }
+
             composable(Destinations.DOCUMENTS) {
                 DocumentsScreen(
                     onBack = { navController.popBackStack() },
