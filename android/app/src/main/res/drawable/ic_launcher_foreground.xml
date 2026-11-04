@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The launcher foreground: the company's house-and-pail mark, traced from
+  app/public/brand/mark.svg and left in its own 48x40 coordinate space, scaled
+  and centred into the 108dp adaptive-icon canvas by the group below.
+
+  Keeping the original path data (rather than multiplying every coordinate by
+  the scale factor) means a change to the mark can be copied across by hand and
+  still be recognisable as the same file. The safe zone is the middle 66dp, and
+  48 * 1.375 = 66, so the mark fills it exactly without clipping in a circular,
+  squircle or rounded mask.
+
+  Geometry, and what each shape is: the roof line, the pail body, the paper
+  label on the pail, the crimson brush stroke on the label, and the orange dot
+  that is one of the four colour dots from the tin.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="1.375"
+        android:scaleY="1.375"
+        android:translateX="21"
+        android:translateY="26.5">
+        <path
+            android:fillColor="#0C6B45"
+            android:pathData="M24,3.4L46.5,20.2L46.5,21.6L1.5,21.6L1.5,20.2Z" />
+        <path
+            android:fillColor="#0C6B45"
+            android:pathData="M10,19.6L38,19.6L38,36.2C38,36.8 37.5,37.3 36.9,37.3L11.1,37.3C10.5,37.3 10,36.8 10,36.2Z" />
+        <path
+            android:fillColor="#FCF9F3"
+            android:pathData="M20.5,25.5L27.5,25.5L27.5,37.3L20.5,37.3Z" />
+        <path
+            android:fillColor="#C1121F"
+            android:pathData="M21.6,26.6L26.4,26.6L26.4,37.3L21.6,37.3Z" />
+        <path
+            android:fillColor="#EE6C22"
+            android:pathData="M41.4,6.1a2.3,2.3 0 1,0 0,4.6a2.3,2.3 0 1,0 0,-4.6Z" />
+    </group>
+</vector>

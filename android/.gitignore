@@ -1,0 +1,15 @@
+# Build output and machine-local config. Never committed: they are per-machine,
+# and `local.properties` holds an absolute SDK path that is wrong everywhere else.
+.gradle/
+build/
+local.properties
+.kotlin/
+captures/
+*.iml
+.idea/
+
+# Signing material. A keystore in Git is a keystore leaked; CI signs from
+# repository secrets or not at all.
+*.keystore
+*.jks
+keystore.properties

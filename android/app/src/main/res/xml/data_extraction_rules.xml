@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Nothing in this app's private storage leaves the device by backup.
+
+  The database holds queued enquiries — names, phone numbers, addresses — and
+  saved projects. A cloud backup of that is a copy of personal data in a place
+  the privacy notice does not describe and the retention schedule does not
+  govern, so it is excluded on both paths: cloud backup and device-to-device
+  transfer (API 31+, which is where these rules apply; `allowBackup="false"`
+  covers the rest).
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="file" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="file" />
+    </device-transfer>
+</data-extraction-rules>

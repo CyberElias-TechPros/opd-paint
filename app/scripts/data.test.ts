@@ -20,6 +20,8 @@ import { PRODUCTS, findProduct } from '../src/data/products.ts'
 import { DEALERS, STATES, directionsUrl, distanceKm } from '../src/data/dealers.ts'
 import { GUIDES } from '../src/data/guides.ts'
 import { PROJECTS } from '../src/data/projects.ts'
+import { LEGAL_DOCS, findLegalDoc } from '../src/data/legal.ts'
+import { BRAND_DOCUMENTS } from '../src/data/documents'
 import { INK, PAPER, contrast, estimateLrv, readableInk, swatchText } from '../src/lib/color.ts'
 import { ALT } from '../src/lib/media.ts'
 
@@ -61,6 +63,42 @@ const HEX = /^#[0-9A-F]{6}$/
 console.log('content integrity')
 
 /* ------------------------------------------------------------------ colours */
+
+test('every brand document is a real file, and every real file is accounted for', () => {
+  // The other direction matters as much as this one: a PDF dropped into
+  // public/documents that no list mentions is a document the website cannot link and
+  // the app cannot name, and nothing else in the build would notice it.
+  const onDisk = readdirSync(new URL('../public/documents', import.meta.url)).filter((name) =>
+    name.endsWith('.pdf'),
+  )
+  for (const document of BRAND_DOCUMENTS) {
+    assert.ok(onDisk.includes(document.file), `${document.file} is listed but does not exist`)
+  }
+  const sheets = new Set(
+    PRODUCTS.flatMap((product) => product.tds.map((sheet) => sheet.href.split('/').pop())),
+  )
+  const listed = new Set(BRAND_DOCUMENTS.map((document) => document.file))
+  const unaccounted = onDisk.filter((name) => !listed.has(name) && !sheets.has(name))
+  assert.deepEqual(unaccounted, [], 'PDFs that nothing lists')
+})
+
+test('exactly one document is not bundled, and it is the catalogue', () => {
+  // The app copies every PDF into the APK except this one, so a second entry here means
+  // a document the app will offer and then fail to open.
+  assert.deepEqual(
+    BRAND_DOCUMENTS.filter((document) => !document.bundled).map((document) => document.file),
+    ['opudas-catalogue.pdf'],
+  )
+})
+
+test('every brand document has a title, a detail and an href that matches its file', () => {
+  for (const document of BRAND_DOCUMENTS) {
+    assert.ok(document.title.length > 0, `${document.file} has no title`)
+    assert.ok(document.detail.length > 0, `${document.file} has no detail`)
+    assert.equal(document.href, `/documents/${document.file}`)
+    assert.ok(document.trackTarget.length > 0, `${document.file} has no analytics target`)
+  }
+})
 
 test(`${COLORS.length} colours have unique ids and codes`, () => {
   assert.equal(new Set(COLORS.map((c) => c.id)).size, COLORS.length, 'duplicate colour id')
@@ -445,4 +483,56 @@ test('the colour index the enquiry service ships matches the library', () => {
 })
 
 const total = passed
+/* -------------------------------------------------------------------- legal */
+
+test('there are three legal notices, with unique slugs, in reading order', () => {
+  assert.equal(LEGAL_DOCS.length, 3)
+  assert.equal(new Set(LEGAL_DOCS.map((doc) => doc.slug)).size, LEGAL_DOCS.length)
+  assert.deepEqual(LEGAL_DOCS.map((doc) => doc.slug), ['privacy', 'terms', 'accessibility'])
+})
+
+test('every notice carries a revision date a reader can age', () => {
+  for (const doc of LEGAL_DOCS) {
+    assert.match(doc.updated, /^\d{4}-\d{2}-\d{2}$/, `${doc.slug} updated`)
+    assert.ok(doc.title, `${doc.slug} title`)
+    assert.ok(doc.intro.length > 40, `${doc.slug} intro`)
+    assert.ok(doc.sections.length >= 3, `${doc.slug} needs at least three sections`)
+  }
+})
+
+test('no section is a heading with nothing under it', () => {
+  for (const doc of LEGAL_DOCS) {
+    for (const section of doc.sections) {
+      const where = `${doc.slug} / ${section.heading}`
+      assert.ok(section.heading, 'section needs a heading')
+      assert.ok(
+        section.body.length > 0 || (section.list?.length ?? 0) > 0 || section.form !== undefined,
+        `${where} is empty`,
+      )
+      for (const paragraph of section.body) {
+        assert.ok(paragraph.trim().length > 20, `${where} has a stub paragraph`)
+      }
+    }
+  }
+})
+
+test('the data-request form appears once, in the privacy notice', () => {
+  // It is the only interactive section in any notice, and it is the one a reader
+  // arrives at wanting to exercise a right. A second copy would be a second place
+  // to keep the statutory wording in step.
+  const forms = LEGAL_DOCS.flatMap((doc) =>
+    doc.sections.filter((section) => section.form !== undefined).map((section) => `${doc.slug}/${section.form}`),
+  )
+  assert.deepEqual(forms, ['privacy/data-request'])
+})
+
+test('findLegalDoc resolves by slug and returns undefined for junk', () => {
+  assert.equal(findLegalDoc('privacy')?.title, 'Privacy notice')
+  assert.equal(findLegalDoc('terms')?.title, 'Terms of use')
+  assert.equal(findLegalDoc('accessibility')?.title, 'Accessibility statement')
+  assert.equal(findLegalDoc(''), undefined)
+  assert.equal(findLegalDoc('Privacy'), undefined)
+  assert.equal(findLegalDoc('cookies'), undefined)
+})
+
 console.log(`\n${total} passed${process.exitCode ? ' — with failures' : ''}`)

@@ -4,6 +4,7 @@ import { BookOpen, Check, FileDown, Layers, LayoutGrid, LibraryBig, Printer, Sea
 import { usePageMeta } from '../lib/seo'
 import { COLORS, COLLECTIONS, COLOR_LRV, FAMILIES, FAMILY_SWATCH, ROOMS, type Family, type Room, type Undertone } from '../data/colors'
 import { PALETTES } from '../data/palettes'
+import { CATALOGUE, COLOUR_BOOK, COLOUR_WHEEL, FAN_DECK, ROOM_BOOK } from '../data/documents'
 import { ColourCard } from '../components/colour/ColourCard'
 import { Pill, Kicker, Badge, ArrowLink } from '../components/ui/Bits'
 import { Button, ButtonLink } from '../components/ui/Button'
@@ -163,49 +164,49 @@ export default function Colours() {
                   photograph into one file. All five are generated from the data on this
                   page, so none of them can list a colour the page has dropped. */}
               <a
-                href="/documents/opudas-colour-book.pdf"
+                href={COLOUR_BOOK.href}
                 download
-                onClick={() => track('cta_click', { target: 'colours-book' })}
+                onClick={() => track('cta_click', { target: COLOUR_BOOK.trackTarget })}
                 className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper-2 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
               >
-                <BookOpen className="size-3.5" aria-hidden /> Colour book
-                <span className="text-[0.66rem] font-normal opacity-60">PDF · 32pp</span>
+                <BookOpen className="size-3.5" aria-hidden /> {COLOUR_BOOK.title}
+                <span className="text-[0.66rem] font-normal opacity-60">{COLOUR_BOOK.detail}</span>
               </a>
               <a
-                href="/documents/opudas-room-book.pdf"
+                href={ROOM_BOOK.href}
                 download
-                onClick={() => track('cta_click', { target: 'colours-room-book' })}
+                onClick={() => track('cta_click', { target: ROOM_BOOK.trackTarget })}
                 className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
               >
-                <Layers className="size-3.5" aria-hidden /> Room book
-                <span className="text-[0.66rem] font-normal opacity-60">PDF · 20pp</span>
+                <Layers className="size-3.5" aria-hidden /> {ROOM_BOOK.title}
+                <span className="text-[0.66rem] font-normal opacity-60">{ROOM_BOOK.detail}</span>
               </a>
               <a
-                href="/documents/opudas-colour-wheel.pdf"
+                href={COLOUR_WHEEL.href}
                 download
-                onClick={() => track('cta_click', { target: 'colours-wheel' })}
+                onClick={() => track('cta_click', { target: COLOUR_WHEEL.trackTarget })}
                 className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
               >
-                <LayoutGrid className="size-3.5" aria-hidden /> Colour wheel
-                <span className="text-[0.66rem] font-normal opacity-60">PDF · wall chart</span>
+                <LayoutGrid className="size-3.5" aria-hidden /> {COLOUR_WHEEL.title}
+                <span className="text-[0.66rem] font-normal opacity-60">{COLOUR_WHEEL.detail}</span>
               </a>
               <a
-                href="/documents/opudas-fan-deck.pdf"
+                href={FAN_DECK.href}
                 download
-                onClick={() => track('cta_click', { target: 'colours-fandeck' })}
+                onClick={() => track('cta_click', { target: FAN_DECK.trackTarget })}
                 className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
               >
-                <FileDown className="size-3.5" aria-hidden /> Fan deck
-                <span className="text-[0.66rem] font-normal opacity-60">PDF</span>
+                <FileDown className="size-3.5" aria-hidden /> {FAN_DECK.title}
+                <span className="text-[0.66rem] font-normal opacity-60">{FAN_DECK.detail}</span>
               </a>
               <a
-                href="/documents/opudas-catalogue.pdf"
+                href={CATALOGUE.href}
                 download
-                onClick={() => track('cta_click', { target: 'colours-catalogue' })}
+                onClick={() => track('cta_click', { target: CATALOGUE.trackTarget })}
                 className="inline-flex items-center gap-2 rounded-full border border-ink/15 px-3.5 py-2 text-[0.76rem] font-semibold transition-colors hover:border-ink/40"
               >
-                <LibraryBig className="size-3.5" aria-hidden /> Full catalogue
-                <span className="text-[0.66rem] font-normal opacity-60">PDF · 126pp</span>
+                <LibraryBig className="size-3.5" aria-hidden /> {CATALOGUE.title}
+                <span className="text-[0.66rem] font-normal opacity-60">{CATALOGUE.detail}</span>
               </a>
               <button
                 type="button"

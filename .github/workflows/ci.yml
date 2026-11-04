@@ -284,7 +284,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: web
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
     defaults:
       run:
@@ -338,6 +338,30 @@ jobs:
         run: |
           node scripts/a11y-report.mjs reports/a11y.json > /tmp/a11y-report.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/a11y-report.md
+
+      # The step above only runs for pull requests, so a failure on a push had
+      # nowhere to be read at all: job logs and uploaded artifacts both live on
+      # storage that is not reachable from every environment that works on this
+      # repository, and "Process completed with exit code 1" is not a diagnosis.
+      # The audit is already written as JSON and already has a renderer; this
+      # posts the same table to the commit, which is readable with the plain
+      # contents API. Same remedy the Android build uses for its own failures.
+      - name: Report the failure on the commit
+        if: failure() && github.event_name != 'pull_request'
+        working-directory: app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          {
+            echo "### Accessibility audit failed on \`${GITHUB_SHA:0:7}\`"
+            echo
+            echo "Job: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            node scripts/a11y-report.mjs reports/a11y.json
+          } > /tmp/a11y-commit-comment.md
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" \
+            -F body=@/tmp/a11y-commit-comment.md > /dev/null
 
       - uses: actions/upload-artifact@v4
         if: always()

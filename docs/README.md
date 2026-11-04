@@ -12,10 +12,11 @@ still a placeholder.
 | [qa-checklist.md](qa-checklist.md) | You are reviewing a release against the README's gates, or you need to know what is *not* real yet. |
 | [brochure.md](brochure.md) | You are regenerating or editing the printed colour book, or briefing a printer. |
 | [catalogue.md](catalogue.md) | You are regenerating the master catalogue — the colour book, room book, colour wheel, specification sheet, fan deck and every data sheet, bound into one file with a new chapter of restored site photography. |
+| [android.md](android.md) | You are building, testing, extending or releasing the native Android app — what exists, what does not, and why the inbox is blocked. |
 | [deploying.md](deploying.md) | You are putting it on a server: Docker, systemd, nginx, env vars, backups, post-deploy smoke test. |
 | [operations.md](operations.md) | You are on call: notifications, error reports, log events, what to alert on, the inbox access model, retention, data-subject requests, backup and restore, incident playbooks. |
 | [launch-runbook.md](launch-runbook.md) | You are launching: who owns what, the service levels and recovery objectives, the pre-launch checklist, launch-day order, the first 72 hours, and the ongoing cadence. |
-| [adr/](adr/README.md) | You want to know *why* it is built this way: the static-site-plus-one-service decision, typed data instead of a CMS, and no e-commerce at launch. |
+| [adr/](adr/README.md) | You want to know *why* it is built this way: the static-site-plus-one-service decision, typed data instead of a CMS, no e-commerce at launch, and a native Android app on the generated bundle. |
 | [remaining-work.md](remaining-work.md) | You are planning what is left: a gate-by-gate gap analysis against the root README roadmap, with the business blockers named. |
 | [implementation-audit.md](implementation-audit.md) | You want to know what was checked against the docs, what was found wrong, what was fixed and how that is proven — and what is still wrong on purpose. |
 

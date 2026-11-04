@@ -1,0 +1,51 @@
+{
+  "documents": [
+    {
+      "file": "opudas-colour-book.pdf",
+      "href": "/documents/opudas-colour-book.pdf",
+      "title": "Colour book",
+      "detail": "PDF · 32pp",
+      "purpose": "The brochure a customer keeps.",
+      "bundled": true
+    },
+    {
+      "file": "opudas-room-book.pdf",
+      "href": "/documents/opudas-room-book.pdf",
+      "title": "Room book",
+      "detail": "PDF · 20pp",
+      "purpose": "The same colours doing actual work on real walls.",
+      "bundled": true
+    },
+    {
+      "file": "opudas-colour-wheel.pdf",
+      "href": "/documents/opudas-colour-wheel.pdf",
+      "title": "Colour wheel",
+      "detail": "PDF · wall chart",
+      "purpose": "The wall chart a trade counter pins up.",
+      "bundled": true
+    },
+    {
+      "file": "opudas-fan-deck.pdf",
+      "href": "/documents/opudas-fan-deck.pdf",
+      "title": "Fan deck",
+      "detail": "PDF",
+      "purpose": "The one-page-a-family reference a painter works from.",
+      "bundled": true
+    },
+    {
+      "file": "opudas-catalogue.pdf",
+      "href": "/documents/opudas-catalogue.pdf",
+      "title": "Full catalogue",
+      "detail": "PDF · 126pp",
+      "purpose": "All of that plus every real site photograph, bound into one file.",
+      "bundled": false
+    },
+    {
+      "file": "opudas-spec-sheet.pdf",
+      "href": "/documents/opudas-spec-sheet.pdf",
+      "title": "Specification sheet",
+      "detail": "PDF · this table, printable",
+      "bundled": true
+    }
+  ]
+}

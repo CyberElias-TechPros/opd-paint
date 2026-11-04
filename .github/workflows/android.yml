@@ -1,0 +1,251 @@
+name: Android
+
+# Why this workflow exists, and why it is not part of `ci.yml`:
+#
+# The Android build needs Gradle, the Android SDK and every AndroidX artefact,
+# which come from services.gradle.org, dl.google.com and repo.maven.apache.org.
+# A development sandbox that cannot reach those hosts cannot compile the app at
+# all, so this job is the compiler for the Android tree: it builds, lints, runs
+# the unit tests, and uploads an installable APK as an artifact.
+#
+# It also regenerates the app's content bundle and launcher icons from their
+# sources and fails if the committed files differ — the same discipline
+# `ci.yml` applies to the website's PDFs, icons and sitemap. The app's data is
+# generated from `app/src/data/*.ts`, so a colour edited on the website and not
+# regenerated here is a drift this job catches rather than a customer complaint.
+
+on:
+  push:
+    # Every branch, like `ci.yml`. An Android build that only runs on main is a
+    # build that reports its failures after they have landed, and this tree needs
+    # compiling on the branch it is written on.
+    branches: ['**']
+    paths:
+      - 'android/**'
+      - 'app/src/data/**'
+      - 'app/src/lib/media.ts'
+      - 'app/src/styles/theme.css'
+      - 'app/public/media/manifest.json'
+      - 'app/public/brand/mark.svg'
+      - 'tools/build-android-data.mjs'
+      - 'tools/build-android-icons.py'
+      - '.github/workflows/android.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'app/src/data/**'
+      - 'app/src/lib/media.ts'
+      - 'app/src/styles/theme.css'
+      - 'app/public/media/manifest.json'
+      - 'app/public/brand/mark.svg'
+      - 'tools/build-android-data.mjs'
+      - 'tools/build-android-icons.py'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  # `contents: write` so a failing build can post its own errors as a commit
+  # comment. The job log lives on a host a development sandbox cannot reach, and
+  # a build failure that can only be read in a browser is a failure an agent
+  # cannot fix. This is the same reason the asset job comments on pull requests.
+  contents: write
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Lint, test, package
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The content bundle is generated from TypeScript sources, so Node runs
+      # before Gradle does. No `npm ci`: the loader in `app/scripts/register.mjs`
+      # uses only Node builtins, and installing 300 packages to read nine JSON
+      # files would be the slowest step in the job for nothing.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Pinned to the same version `ci.yml` pins, so the launcher icons this job
+      # regenerates are byte-identical to the ones committed. A floating Pillow
+      # would make the drift check below fail at random, and a check that fails
+      # at random gets switched off.
+      - name: Install the pinned image library
+        run: pip install 'Pillow==13.0.0'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Caches ~/.gradle (wrapper distributions and dependencies) between runs.
+      # An uncached Android build downloads Gradle plus several hundred
+      # megabytes of AndroidX; a cached one takes a few minutes.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Regenerate the content bundle and the launcher icons
+        run: |
+          set -euo pipefail
+          cd app && npm run data:android
+          cd .. && python3 tools/build-android-icons.py
+
+      - name: Fail if the generated files drifted
+        run: |
+          set -euo pipefail
+          # The whole assets directory, not just assets/data. Only the generated JSON
+          # belongs under src/main/assets in the commit: the site's media, brand marks and
+          # documents are copied in at build time by Gradle's syncBundledAssets task, and a
+          # PDF committed beside them is a duplicate resource that fails mergeDebugAssets.
+          dirty="$(git status --porcelain -- android/app/src/main/assets android/app/src/main/res)"
+          if [ -n "$dirty" ]; then
+            echo "The committed Android assets do not match what their generators produce." >&2
+            echo "Run 'cd app && npm run data:android' and 'python3 tools/build-android-icons.py', then commit." >&2
+            echo "$dirty" >&2
+            git --no-pager diff --stat -- android/ >&2 || true
+            exit 1
+          fi
+
+      - name: Pre-flight the Kotlin sources
+        # A second of scanning instead of a five-minute Gradle round trip. This
+        # sandbox cannot reach Google's Maven repository, so CI is the only
+        # compiler this tree has, and the mistakes it catches — a glob inside
+        # KDoc, a truncated file, a drawable that does not exist — are exactly
+        # the ones that cost a whole cycle to discover.
+        run: python3 tools/check-android-static.py
+
+      - name: Build, test, lint
+        run: |
+          set -euo pipefail
+          cd android
+          # `--console=plain` because the CI log is read as text, and the rich
+          # console's cursor escapes turn a compile error into noise.
+          #
+          # Compile first, then tests, then lint: if the code does not build, the
+          # other two have nothing to say, and Gradle stops at the first failing
+          # task. `--continue` still reports every task that could run, so one
+          # cycle surfaces as much as possible.
+          #
+          # `tee` keeps a copy for the failure comment below, and `pipefail` (set
+          # above) is what stops `tee` from reporting success on a failed build.
+          ./gradlew --no-daemon --stacktrace --continue --console=plain \
+            :app:assembleDebug \
+            :app:testDebugUnitTest \
+            :app:lintDebug 2>&1 | tee ../gradle-output.txt
+
+      - name: Report the failure where it can be read
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          log="gradle-output.txt"
+          [ -f "$log" ] || log="/dev/null"
+          lint="android/app/build/reports/lint-results-debug.txt"
+          {
+            echo "### Android build failed on \`${GITHUB_SHA:0:7}\`"
+            echo
+            echo "Job: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo '#### Compiler and Gradle'
+            echo
+            echo '```'
+            # Kotlin writes `e: file:///path:line:col: message`, which is the part
+            # worth reading; the rest is Gradle explaining that it stopped.
+            grep -E "^e: |^error: |FAILURE:|What went wrong|Execution failed|Caused by:|> Task .* FAILED" "$log" \
+              | head -60 || true
+            echo '```'
+            echo
+            echo '#### Lint'
+            echo
+            echo '```'
+            # Lint prints `path:line: Error: message [IssueId]`. Its own summary
+            # line is only "Lint found errors in the project", which says that
+            # something is wrong and nothing about what, so the findings are
+            # extracted here as well as printed by the build.
+            grep -E "(Error|Warning): .*\[[A-Za-z0-9]+\]$" "$log" | head -60 || true
+            if [ -f "$lint" ]; then
+              echo
+              echo "--- $lint ---"
+              head -150 "$lint" || true
+            fi
+            echo '```'
+            echo
+            echo '#### Unit tests'
+            echo
+            echo '```'
+            # The test task prints failures to the console (see testLogging in
+            # app/build.gradle.kts). The XML results are swept up too, because a
+            # crash in test setup can leave the console saying very little.
+            grep -E "^.*Test.*FAILED|tests? (completed|failed)" "$log" | head -40 || true
+            for file in android/app/build/test-results/testDebugUnitTest/*.xml; do
+              [ -f "$file" ] || continue
+              grep -hoE 'testcase name="[^"]+" classname="[^"]+"|<failure message="[^"]{0,300}' "$file" || true
+            done | head -60
+            echo '```'
+            echo
+            echo '<details><summary>last 80 lines</summary>'
+            echo
+            echo '```'
+            tail -80 "$log" || true
+            echo '```'
+            echo
+            echo '</details>'
+          } > android-failure.md
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" \
+            -F body=@android-failure.md > /dev/null
+
+      - name: Report what the build produced
+        run: |
+          set -euo pipefail
+          apk="android/app/build/outputs/apk/debug/app-debug.apk"
+          ls -la android/app/build/outputs/apk/debug/
+          # The APK carries 7 MB of the website's photography and 1.4 MB of PDFs.
+          # That is a deliberate trade for an app that works with no signal, and
+          # this line is where the cost of it stays visible.
+          du -h "$apk"
+
+      - name: Upload the installable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: opudas-paint-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      # Room writes the schema JSON during KSP. It is not in the repository yet:
+      # nothing in this sandbox can run Gradle to produce it, and a hand-written
+      # schema would be a guess at a file a build owns. Uploading it means the
+      # first person with a toolchain can commit the real thing rather than
+      # reconstruct it, and it keeps migration testing possible later.
+      - name: Upload generated Room schemas
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-room-schemas
+          path: android/app/schemas/**
+          if-no-files-found: warn
+          retention-days: 14
+
+      # A red build with no report attached is a red build nobody can diagnose:
+      # Actions logs are awkward to read and they expire. These do not.
+      - name: Upload reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reports
+          path: |
+            android/app/build/reports/lint-results-debug.html
+            android/app/build/reports/lint-results-debug.xml
+            android/app/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 14
