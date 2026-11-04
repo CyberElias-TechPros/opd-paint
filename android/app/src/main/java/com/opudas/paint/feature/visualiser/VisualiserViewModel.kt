@@ -46,8 +46,12 @@ data class VisualiserUiState(
     val colour: PaintColor? = null,
     val finish: FinishLook = FinishLook.MATT,
     val tool: VisualiserTool = VisualiserTool.FILL,
-    val tolerance: Int = DEFAULT_TOLERANCE,
-    val brushRadius: Int = DEFAULT_BRUSH_RADIUS,
+    // Qualified, and not because it reads well: these defaults belong to the view model's
+    // companion, which is declared after this class, and a default value cannot see an
+    // unqualified name from a class it is not inside. The compiler says "unresolved
+    // reference" and gives no hint that the constant exists three screens down the file.
+    val tolerance: Int = VisualiserViewModel.DEFAULT_TOLERANCE,
+    val brushRadius: Int = VisualiserViewModel.DEFAULT_BRUSH_RADIUS,
     val coverage: Double = 0.0,
     val canUndo: Boolean = false,
     val failure: String? = null,
