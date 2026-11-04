@@ -6,6 +6,7 @@ import com.opudas.paint.core.data.BoardRepository
 import com.opudas.paint.core.data.ContentRepository
 import com.opudas.paint.core.engine.ChecklistEngine
 import com.opudas.paint.core.engine.ChecklistGroup
+import com.opudas.paint.core.engine.ChecklistInput
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
