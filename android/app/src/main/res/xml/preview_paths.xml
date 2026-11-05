@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The only directory this app will hand another app a URI into.
+
+  A FileProvider declares its readable paths here and refuses everything else, so this
+  file is the whole of the app's file-sharing surface: one subdirectory of the cache,
+  used for room previews and nothing more. Adding a path here is adding a place another
+  app can be invited to read, which is why it is narrow and why it is written down.
+
+  `cache-path` maps to Context.getCacheDir(). The OS owns that directory and clears it
+  under storage pressure, which is exactly right for a preview: it is reproducible from
+  the photograph and the colour in a second, so losing it costs nothing and the app does
+  not have to grow a pruning policy for files it does not promise to keep.
+-->
+<paths>
+    <cache-path
+        name="previews"
+        path="previews/" />
+</paths>
