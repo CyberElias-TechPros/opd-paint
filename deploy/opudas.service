@@ -17,8 +17,16 @@ Environment=NODE_ENV=production
 Environment=PORT=8787
 Environment=OPD_STATIC_DIR=/srv/opudas/app/dist
 Environment=OPD_DATA_DIR=/srv/opudas/data
-# Keep credentials in a root-owned file, not in this unit.
-EnvironmentFile=-/etc/opudas.env
+# Credentials live in a root-owned file, not in this unit.
+#
+# Required, not optional: the leading dash systemd uses to tolerate a missing
+# file was how a deployment could look healthy and quietly not be. Without this
+# file there are no inbox credentials (so /admin answers 404, correctly, and
+# looks broken to whoever is expecting an inbox) and no OPD_SESSION_SECRET, so
+# the service falls back to a per-boot random and every restart signs the inbox
+# out. On a provider that reboots instances for maintenance without asking,
+# that is not an edge case. Better to refuse to start and say why.
+EnvironmentFile=/etc/opudas.env
 ExecStart=/usr/bin/node /srv/opudas/server/index.mjs
 Restart=always
 RestartSec=3

@@ -1,0 +1,21 @@
+# Nightly trigger for opudas-backup.service.
+#
+#   systemctl list-timers opudas-backup.timer      # when it next runs
+
+[Unit]
+Description=OPUDA'S PAINT — nightly enquiry backup
+
+[Timer]
+OnCalendar=*-*-* 02:15:00
+Unit=opudas-backup.service
+
+# The line that justifies using a timer instead of cron. An Always Free instance
+# is rebooted and occasionally stopped by the provider without asking; if the
+# machine was down at 02:15, cron skips that night silently and the gap is
+# invisible until somebody needs the archive. Persistent=true runs a missed
+# activation as soon as the machine is back, so the worst case is a late backup
+# rather than no backup.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

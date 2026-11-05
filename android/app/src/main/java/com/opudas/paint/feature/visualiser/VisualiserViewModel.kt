@@ -12,7 +12,10 @@ import com.opudas.paint.core.engine.BrushStamp
 import com.opudas.paint.core.engine.FinishLook
 import com.opudas.paint.core.engine.MaskEngine
 import com.opudas.paint.core.engine.RenderEngine
+import com.opudas.paint.core.util.previewFile
+import java.io.File
 import java.io.IOException
+import java.io.OutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -83,9 +86,10 @@ data class VisualiserUiState(
  *    every pointer event, which a GPU-backed canvas can afford. A per-pixel blend over 1.5
  *    million pixels in Kotlin cannot, sixty times a second, on the device this is likeliest
  *    to be used on. So a drag paints the mask and shows the result when the finger lifts.
- *  - **Nothing is shared or saved yet.** Letting another app read the preview needs a
- *    FileProvider and a manifest entry, and a share sheet that fails on some devices is worse
- *    than no share sheet.
+ *  - **Sharing and saving are hand-offs, and either can be refused.** An empty share sheet, a
+ *    cancelled picker, a full disk. Both report what happened in words rather than doing
+ *    nothing visibly, because a button that appears dead is the failure this app's own intent
+ *    helpers call the worst one on a screen that matters.
  */
 class VisualiserViewModel(
     private val context: Context,
@@ -233,6 +237,67 @@ class VisualiserViewModel(
         pendingStrokeFrom = null
         if (mutableState.value.tool == VisualiserTool.FILL) return
         viewModelScope.launch { recompose() }
+    }
+
+    /**
+     * The composed frame as a PNG in the cache's preview directory.
+     *
+     * PNG, not JPEG, because `shareImage` already declares `image/png` and because a
+     * preview somebody hands to a painter may be printed: JPEG would put blocking
+     * artefacts along exactly the edge between the painted wall and the ceiling line,
+     * which is the edge the whole exercise is about.
+     *
+     * Null means there is no frame — no photograph yet, or one that failed to decode.
+     * The caller says so in words rather than showing a share sheet with nothing in it.
+     */
+    suspend fun exportPng(): File? {
+        val bitmap = frame ?: return null
+        return withContext(Dispatchers.IO) {
+            try {
+                val file = context.previewFile("opudas-room-preview-${System.currentTimeMillis()}.png")
+                file.outputStream().use { stream ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                }
+                file
+            } catch (error: IOException) {
+                // A full disk or a cache cleared mid-write. Reproducible in a second
+                // from the photograph and the colour, so this is a shrug, not a loss.
+                null
+            }
+        }
+    }
+
+    /**
+     * The composed frame written into a stream the caller opened.
+     *
+     * This is the save path: the system file picker hands back a content URI and an
+     * output stream, and writing straight into it means the photograph is never copied
+     * into a place another app could later find. Same reason the cache copy is a cache.
+     */
+    suspend fun writeTo(stream: OutputStream): Boolean {
+        val bitmap = frame ?: return false
+        return withContext(Dispatchers.IO) {
+            try {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            } catch (error: IOException) {
+                false
+            }
+        }
+    }
+
+    /**
+     * What the shared preview says about itself.
+     *
+     * Carries the disclaimer, because a preview that reaches a painter's phone without
+     * it stops being a simulation and becomes an instruction — and the colour name is
+     * there so the recipient knows which of 59 this was, without having to ask.
+     */
+    fun shareCaption(): String {
+        val colour = mutableState.value.colour
+        val finish = mutableState.value.finish.name.lowercase()
+        val name = colour?.let { "${it.name} (${it.code})" } ?: "an OPUDA'S colour"
+        return "OPUDA'S PAINT — $name on my wall, $finish finish. " +
+            "A simulation on screen: confirm with a sample pot or a dealer chip."
     }
 
     fun undo() {

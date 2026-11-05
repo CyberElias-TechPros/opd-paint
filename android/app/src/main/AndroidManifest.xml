@@ -54,6 +54,15 @@
             <action android:name="android.intent.action.SEND" />
             <data android:mimeType="text/plain" />
         </intent>
+        <!--
+          The room preview shares a PNG. Declaring only text/plain above leaves the
+          image chooser empty on Android 11 and newer, which reads to the customer as
+          "this phone has no apps" rather than "the manifest is one line short".
+        -->
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="image/png" />
+        </intent>
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
     </queries>
@@ -100,5 +109,24 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
+        <!--
+          Sharing a preview with another app.
+
+          A content:// URI from this provider rather than a file:// path, because
+          handing another app a file URI throws FileUriExposedException on API 24 and
+          above - every device this app supports. The provider is not exported: nothing
+          can ask it for a file, and a URI it has granted is readable only by the app it
+          was granted to, only for as long as that grant lives.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/preview_paths" />
+        </provider>
+
     </application>
 </manifest>

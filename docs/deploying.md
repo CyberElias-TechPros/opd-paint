@@ -176,6 +176,94 @@ curl -sS https://<deployment>/api/health | jq
 A `502` there means the proxy is fine and the origin is unreachable; a `503`
 means the variable is missing.
 
+## Option D — an Oracle Cloud Always Free VM ($0, and the site owns its own disk)
+
+Options A and B both need a machine. Option C needs a machine *and* accepts a
+seam between the site and the service. This is the option for hosting the whole
+thing — site, service and enquiry log — for nothing, on a real VM with a real
+disk that does not disappear when the process restarts.
+
+**What Always Free provides**, and these resources do not expire the way a
+30-day trial does: two AMD Micro instances (`VM.Standard.E2.1.Micro`, 1/8 OCPU
+and 1 GB RAM each), up to four ARM Ampere A1 instances sharing 4 OCPUs and
+24 GB RAM, 200 GB of block storage in total, and 10 TB of egress a month. Check
+the figures against Oracle's own Always Free documentation at provisioning time
+rather than trusting this paragraph — they are the reason for the decision, not
+a promise this repository can keep.
+
+**Which shape.** Take the AMD Micro. It is always available in the home region,
+and it is enough: this is a static site with a small service in front of one
+directory of JSON lines. The ARM A1 shapes are considerably more machine and are
+frequently reported as unavailable ("out of capacity") in a home region, which
+makes them a poor thing to plan around.
+
+**Whether it can build the site.** Measured rather than assumed: `npm run build`
+— colour index, sitemap, `tsc -b`, vite, and the 110-page prerender — peaked at
+roughly 530 MB of additional resident memory over 20 seconds on two cores. A
+1 GB instance therefore fits, with little room, and on an eighth of an OCPU it
+will be far slower than 20 seconds. `deploy/bootstrap-oracle.sh` creates a 2 GB
+swapfile on small instances for exactly this reason. The faster alternative is
+to build in CI and copy `dist/` across, which also means the artefact you
+deployed is the artefact the tests passed against.
+
+**The thing that wastes an afternoon.** There are two firewalls, and they are
+independent:
+
+1. the **VCN security list**, in the Oracle console, above the VM;
+2. the **host firewall in the image**, which on Oracle's Ubuntu and Oracle Linux
+   images drops inbound traffic other than SSH by default.
+
+Opening only the first produces the most confusing failure available: nginx is
+listening, the certificate is valid, `curl` from the VM itself works, and
+nothing arrives from the internet. The bootstrap inserts the host rules for 80
+and 443 and persists them; the VCN rule has to be added in the console, and no
+script running on the VM can do it.
+
+**The honest risk.** Oracle documents that idle Always Free compute instances
+may be stopped or reclaimed, and a low-traffic brochure site is idle by most
+measures of the word. The documented way to keep them is to upgrade the tenancy
+to Pay As You Go — Always Free resources stay free on such an account — which
+needs a payment card and a decision from the business, not from this repository.
+Until that decision is made, treat the VM as *restartable* rather than as
+*durable*: the enquiry log is backed up off-host, and `Persistent=true` on the
+backup timer means a missed nightly run happens on the way back up.
+
+```bash
+# 1. Provision an Always Free VM (Ubuntu 22.04 or later, AMD Micro), with a
+#    public IP, and allow ingress 80 and 443 in the VCN security list.
+
+# 2. Bootstrap it. Idempotent — re-running after a partial failure is the
+#    intended recovery.
+ssh ubuntu@<instance-ip>
+git clone https://github.com/CyberElias-TechPros/opd-paint.git
+cd opd-paint
+sudo bash deploy/bootstrap-oracle.sh
+
+# 3. Put the code in place and build it.
+sudo rsync -a --exclude node_modules --exclude .git ./ /srv/opudas/
+sudo chown -R opudas:opudas /srv/opudas
+cd /srv/opudas/app && npm ci && npm run build
+
+# 4. nginx and TLS (deploy/nginx.conf is written for this layout).
+sudo cp deploy/nginx.conf /etc/nginx/sites-available/opudapaint.conf
+sudo ln -sf /etc/nginx/sites-available/opudapaint.conf /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d opudapaint.com -d www.opudapaint.com
+
+# 5. Set the inbox credentials and one notification channel in /etc/opudas.env,
+#    then start the service and check it.
+sudo systemctl restart opudas
+curl -fsS https://opudapaint.com/api/health | jq
+node tools/smoke-production.mjs --origin https://opudapaint.com --release "$(git rev-parse HEAD)"
+```
+
+The bootstrap generates `OPD_SESSION_SECRET` into `/etc/opudas.env` (root-owned,
+`0600`) on first run and never rewrites it. That is the difference between an
+inbox that survives a maintenance reboot and one that signs everybody out at a
+moment nobody chose — see ADR 0005 for why this option exists at all.
+
+
 ## Backups
 
 ```bash

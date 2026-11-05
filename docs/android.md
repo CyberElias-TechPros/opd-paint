@@ -30,7 +30,7 @@ features, and 130 JVM tests in 8 suites.
 | Project board | `feature/board` | Saved colours, products and quantities, and the checklist they make |
 | Enquiries inbox | `feature/inbox` | Staff sign-in, a second factor, and the enquiries people sent |
 | Documents | `feature/documents` | Six brand books and twelve product sheets; all but the 126-page catalogue open with no signal |
-| Room preview | `feature/visualiser` | Your photograph, one wall, one colour; decoded on the phone and never uploaded |
+| Room preview | `feature/visualiser` | Your photograph, one wall, one colour; decoded on the phone, never uploaded, and shareable or savable as a PNG |
 | More | `feature/more` | The hub, with honest counts from the bundles |
 
 **What the website has that the app does not.** Four routes, and they are not all the same
@@ -233,7 +233,9 @@ data rather than by judgement:
 - **Nothing is deployed at `https://opudapaint.com` yet.** `ApiConfig.BASE_URL`
   points there because that is the documented production host. Until the service is
   live, every submission is queued and then fails as unreachable — which the app
-  reports honestly rather than pretending to send.
+  reports honestly rather than pretending to send. `deploy/` holds the runbook and the
+  service units for the host the business has chosen; running them is an operations
+  task, not a build task, and no part of CI can do it.
 - **Deep links use `autoVerify="false"`**, because verified app links need a hosted
   asset statement on a deployed domain.
 
@@ -442,9 +444,25 @@ drain, because nothing in it can reach a network.
 Two compromises, both with a reason attached. The frame is composed when a gesture ends rather
 than on every pointer event: the website composes per event, which a GPU-backed canvas can
 afford, and a per-pixel blend over 1.5 million pixels in Kotlin cannot, sixty times a second,
-on the device this is likeliest to be used on. And nothing is shared or saved yet — letting
-another app read the preview needs a FileProvider and a manifest entry, and a share sheet that
-fails on some devices is worse than no share sheet.
+on the device this is likeliest to be used on.
+
+Sharing and saving are both hand-offs to another app, and either can be refused — an empty
+share sheet, a cancelled picker, a full disk — so both say what happened, in words, instead of
+failing silently. Sharing goes through a `FileProvider` content URI, because a `file://` URI
+throws `FileUriExposedException` on every API level this app supports. Saving goes through the
+system file picker, which needs no provider at all, and puts the PNG wherever the customer
+chose and nowhere else. Both write PNG rather than JPEG: a preview a painter may print should
+not carry JPEG's blocking artefacts along the wall-to-ceiling line, which is the edge the whole
+exercise is about.
+
+Two manifest details are load-bearing and neither is obvious from the code. The `<provider>`
+authority has to equal the string the code asks for, and a mismatch is an
+`IllegalArgumentException` from a framework class at runtime rather than a compile error, so
+`Context.previewAuthority()` is the only place that string is built and the manifest spells it
+`${applicationId}.fileprovider` to keep a debug application-id suffix working. And `<queries>`
+has to declare `ACTION_SEND` for `image/png` — it previously declared only `text/plain` —
+because on Android 11 and up an app that is not visible is an app that is not there, and the
+share sheet would open empty and read as a bug in this app.
 
 One detail that looks like a bug and is not: the matt pass veils the whole frame at five per
 cent while the silk sheen is masked. That is what `source-atop` does over an opaque canvas, and

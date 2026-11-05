@@ -1,0 +1,41 @@
+# One run of tools/backup.sh. Triggered by opudas-backup.timer.
+#
+# A oneshot unit rather than a line in /etc/crontab, for one reason: systemd
+# records every run and its exit status, so "did the backup happen?" is
+# `systemctl status opudas-backup` and not an archaeology exercise in syslog.
+# docs/operations.md §6 names the failure this avoids — discovering six months
+# later that the cron job had been silent.
+#
+#   sudo systemctl start opudas-backup.service     # run it now
+#   journalctl -u opudas-backup.service -n 20      # what the last run said
+
+[Unit]
+Description=OPUDA'S PAINT — enquiry log backup
+After=opudas.service
+Wants=opudas.service
+
+[Service]
+Type=oneshot
+# Root, because this reads the data directory (0700, owned by opudas) and writes
+# a root-owned backup directory. Everything else about it is constrained.
+User=root
+EnvironmentFile=-/etc/opudas.env
+# Set after the environment file so it wins: the backup must read the directory
+# the service actually writes to, whatever the env file happens to say.
+Environment=OPD_DATA_DIR=/srv/opudas/data
+
+ExecStart=/srv/opudas/tools/backup.sh /var/backups/opudas
+
+# Backups are worth doing slowly. Neither should compete with a live enquiry.
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/opudas/data /var/backups/opudas
+
+# A backup that fails should be visible in the journal, and should not take the
+# service down with it. It is a separate unit precisely so that it cannot.
