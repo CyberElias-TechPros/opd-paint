@@ -1,6 +1,6 @@
 # Architecture decision records
 
-Roadmap 22.03.01–.03. Four records, because four decisions explain most of what
+Roadmap 22.03.01–.03. Five records, because five decisions explain most of what
 this project is and is not.
 
 | # | Decision | Date | Status |
@@ -9,6 +9,7 @@ this project is and is not.
 | [0002](0002-typed-data-over-a-cms.md) | Typed data files in Git as the single source of truth, not a content management system | 2026-11-03 | accepted |
 | [0003](0003-no-e-commerce-at-launch.md) | No e-commerce at launch | 2026-11-03 | accepted |
 | [0004](0004-native-android-app.md) | A native Android app reading the generated bundle, with a local outbox | 2026-11-03 | accepted |
+| [0005](0005-hosting-on-an-always-free-vm.md) | Hosting on an Always Free VM — one origin, one writer, a real disk — rather than on a platform | 2026-11-05 | accepted |
 
 Each record answers three questions: **what was decided**, **what was rejected and
 why**, and **what would make us come back**. The third is the one that keeps an ADR

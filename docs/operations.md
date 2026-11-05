@@ -22,11 +22,11 @@ mode this section exists to prevent.
 | `OPD_NOTIFY_WEBHOOK` **or** `OPD_RESEND_API_KEY` + `OPD_NOTIFY_EMAIL` + `OPD_NOTIFY_FROM` | No alert when an enquiry arrives. The lead waits in `/admin` for someone to look. |
 | `OPD_ADMIN_USER` + `OPD_ADMIN_PASSWORD`, or `OPD_ADMIN_USERS` | `/admin` answers 404. There is no way to read enquiries except the JSONL file. |
 | `OPD_ADMIN_TOTP_SECRET` (or a per-user `totp`) | The inbox opens on a password alone. It works, and it is logged as `service.inbox_without_mfa` at every start, because one leaked password is the whole customer log. |
-| `OPD_SESSION_SECRET` | A random secret is generated per boot, so every deploy signs everybody out of the inbox. |
+| `OPD_SESSION_SECRET` | A random secret is generated per boot, so every deploy — and on a VM, every maintenance reboot the provider performs without asking — signs everybody out of the inbox. `deploy/bootstrap-oracle.sh` generates one into `/etc/opudas.env` on first run and then never rewrites it, because rotating it is a decision and not a side effect of re-running a script. |
 | `OPD_ACK_CUSTOMER` + the Resend variables | The visitor gets a reference on screen and then silence. The acknowledgement is on by default *when email is configured*. |
 | `OPD_DATA_DIR` on a backed-up volume | A container restart takes the enquiries with it. |
 | `OPD_SENTRY_DSN` (**optional**) | Errors are still written to `errors.jsonl`; nobody is paged. |
-| `OPD_API_ORIGIN` (**Vercel only**) | The form on the Vercel deployment reports failure honestly and keeps the answers on the visitor's device. |
+| `OPD_API_ORIGIN` (**Vercel only**) | The form on the Vercel deployment reports failure honestly and keeps the answers on the visitor's device. Not needed at all on a single-origin host, where nginx serves the site and proxies `/api` (Option D in `docs/deploying.md`): there is then no second origin to name and no CORS rule to get wrong. |
 | A restore drill that has passed | The backup is a hypothesis. |
 
 `GET /api/health` reports what is actually live, so this is checkable rather
@@ -444,9 +444,18 @@ is a dry run unless `--yes` is passed.
 
 ## 6. Backups and restore
 
-Backups: `tools/backup.sh DEST`, nightly from cron, 30-day retention, archives
-created `0600` because they contain personal data. Store them off the host, and
-encrypt them — the script deliberately does not pretend to solve that.
+Backups: `tools/backup.sh DEST`, nightly, 30-day retention, archives created
+`0600` because they contain personal data. Store them off the host, and encrypt
+them — the script deliberately does not pretend to solve that.
+
+*Nightly* means either cron (`docs/deploying.md` has the line) or
+`deploy/opudas-backup.timer`. On a VM, prefer the timer, for two reasons. systemd
+records the exit status of every run, so "did the backup happen?" is
+`systemctl status opudas-backup` rather than an argument with syslog. And
+`Persistent=true` runs a missed activation on the way back up, so a provider
+reboot that swallowed 02:15 costs a late backup instead of a silent gap —
+which is the failure named at the end of this section, discovered six months
+after it started.
 
 Restore: `tools/restore.sh ARCHIVE TARGET` — with more care than a `tar -xzf`:
 
